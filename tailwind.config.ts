@@ -8,9 +8,12 @@ export default {
   ],
   theme: {
     extend: {
+    
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        'custom-purple': '#b093bf',
+        'custom-orange': '#d57159'
       },
     },
   },
