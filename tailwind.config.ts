@@ -13,7 +13,9 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
         'custom-purple': '#b093bf',
-        'custom-orange': '#d57159'
+        'custom-orange': '#d57159',
+        'valkyrie-purple': '#7b548b',
+        'creativity-purple': '#b093bf'
       },
     },
   },
