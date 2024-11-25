@@ -3,6 +3,7 @@ import React from 'react';
 const HomeSection1: React.FC = () => {
   return (
     <section
+    id='Homesection1'
       className="h-screen w-screen bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: "url('/images/valkiriashirt.jpg')" }}
     >
