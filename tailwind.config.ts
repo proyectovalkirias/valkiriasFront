@@ -8,7 +8,9 @@ export default {
   ],
   theme: {
     extend: {
-    
+      fontFamily: {
+        miFuente: ['Bogart', 'sans-serif'],
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
