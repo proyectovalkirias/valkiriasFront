@@ -22,8 +22,8 @@ const HomeSection7 = () => {
         </h2>
         <ul className="text-lg text-gray-800 mb-6 list-disc list-inside">
           <li>Tenemos envíos a todo el país.</li>
-          <li>¿No es tu talla? Aprovecha nuestra política de devolución sin complicaciones.</li>
-          <li>Obtén atención al cliente 24/7.</li>
+          <li>Tabla de talles disponibles para que puedas elegir la prenda justa para vos.</li>
+          <li>Asesoramiento personalizado para cada una de tus consultas.</li>
           <li>Apoyamos los pagos sin contacto y el pago en efectivo.</li>
         </ul>
         <button className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition">

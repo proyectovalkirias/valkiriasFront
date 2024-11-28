@@ -3,7 +3,7 @@ import React from 'react';
 
 const Login = () => {
   const handleGoogleLogin = () => {
-    window.location.href = `https://localhost:3000/google`;
+    window.location.href = `http://localhost:3000/google/redirect`;
   };
 
   return (
