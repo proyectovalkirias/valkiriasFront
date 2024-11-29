@@ -5,16 +5,16 @@ const GOOGLE_CLIENT_ID = "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.goo
 const REDIRECT_URI = "http://localhost:3001/Landing";
 
 const Login = () => {
-    const handleLogin = () => {
-        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(
-            REDIRECT_URI
-        )}&scope=openid%20email%20profile`;
-        window.location.href = googleAuthUrl; // Redirige al usuario a Google
-    };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com&redirect_uri=http://localhost:3000/google/redirect&response_type=code&scope=openid profile email`;
+
+  };
+
 
   return (
     <div>
-      <button onClick={handleLogin}>Iniciar sesión con Google</button>
+      <button onClick={handleGoogleLogin}>Iniciar sesión con Google</button>
     </div>
   );
 };
