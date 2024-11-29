@@ -8,8 +8,11 @@ const GoogleAuth = () => {
   useEffect(() => {
     const fetchGoogleAuth = async () => {
       try {
+        const { code } = router.query;
+        if(!code) throw new Error('Authorization code is missing');
+
         const res = await axios.get(
-          `http://localhost:3000/google/redirect`
+          `https://localhost:3000/google/redirect?code=${code}`
         );
         
         // Aquí guardas el token JWT en el almacenamiento local o en cookies
@@ -23,7 +26,9 @@ const GoogleAuth = () => {
       }
     };
 
-    fetchGoogleAuth();
+    if(router.query.code){  
+      fetchGoogleAuth();
+    }
   }, [router]);
 
   return <p>Authenticating...</p>;
