@@ -2,13 +2,12 @@
 import React from 'react';
 
 const GOOGLE_CLIENT_ID = "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
-const REDIRECT_URI = "http://localhost:3001/Landing";
+const REDIRECT_URI = "https://localhost:3001/Landing"; 
 
 const Login = () => {
-
   const handleGoogleLogin = () => {
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com&redirect_uri=http://localhost:3000/google/redirect&response_type=code&scope=openid profile email`;
-
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=openid profile email`;
+    window.location.href = authUrl;
   };
 
 
