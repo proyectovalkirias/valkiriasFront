@@ -1,40 +1,46 @@
-"use client"
-import React, { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
 
-const Landing = () => {
-const router = useRouter();
+const GoogleAuth = () => {
+  const router = useRouter();
 
-    useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
+  useEffect(() => {
+    const fetchGoogleAuth = async () => {
 
-        if (code) {
-            // Envía el código al backend para validarlo
-            axios.post('https://localhost:3000/google', { code })
-                .then(response => {
-                    console.log("Usuario autenticado:", response.data);
+        const { code } = router.query;
+    if (!code) return;
+    
+      try {
+        // const { code } = router.query;
+        // if(!code) throw new Error('Authorization code is missing');
 
-                    const { token } = response.data;
-                    if(token) {
-                        localStorage.setItem('token', token);
-                        router.push('/Landing');
-                    }else {
-                        console.error('Token no recibido');
-                        router.push('/Login');
-                    }
-                })
-                .catch(error => {
-                    console.error("Error al autenticar:", error);
-                });
-        } else {
-            console.error('Codifo de autenticaión no encontrado');
-            router.push('/Login');
-        }
-    }, [router]);
+        const res = await axios.post(
+          'http://localhost:3000/google/redirect', { code }
+        );
+        
+        const { token } = res.data;
+        // Aquí guardas el token JWT en el almacenamiento local o en cookies
+        localStorage.setItem('token', token);
 
-    return <div>Procesando inicio de sesión...</div>;
+        console.log('Token recibido:', token);
+        
+        
+        // Redirigir a la página principal o dashboard
+        console.log('Redirigiendo a /dashboard...');
+        router.push('/dashboard');
+      } catch (error) {
+        console.error('Error during Google authentication', error);
+        router.push('/Login')
+      }
+    };
+
+    if(router.query.code){  
+      fetchGoogleAuth();
+    }
+  }, [router.query.code]);
+
+  return <p>Authenticating...</p>;
 };
 
-export default Landing;
+export default GoogleAuth;
