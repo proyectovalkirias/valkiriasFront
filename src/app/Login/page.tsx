@@ -1,15 +1,15 @@
 "use client"
 import React from 'react';
 
-const GOOGLE_CLIENT_ID = "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
-const REDIRECT_URI = "https://localhost:3001/Landing"; 
-
 const Login = () => {
   const handleGoogleLogin = () => {
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=openid profile email`;
-    window.location.href = authUrl;
-  };
+    const clientID = '634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com';
+    const redirectURI = 'http://localhost:3000/google/redirect';
+    const scope = 'openid profile email';
+    const responseType = 'code';
 
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientID}&redirect_uri=${redirectURI}&response_type=${responseType}&scope=${scope}`;
+  };
 
   return (
     <div>
