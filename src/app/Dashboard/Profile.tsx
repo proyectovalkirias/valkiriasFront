@@ -4,7 +4,7 @@ const Profile: React.FC = () => {
   return (
     <div className="flex flex-col items-center">
       {/* Título */}
-      <h1 className="text-3xl md:text-5xl font-bold mb-6">Mi perfil</h1>
+      <h1 className="text-4xl md:text-6xl text-[#e5ded3] mb-6">Mi perfil</h1>
       
       {/* Imagen */}
       <img
