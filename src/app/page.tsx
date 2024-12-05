@@ -9,7 +9,7 @@ import HomeSection8 from "./Home/Homesection8";
 
 export default function Home() {
   return ( 
-      <div>
+    <div>
       <HomeSection1/>
       <HomeSection2/>
       <HomeSection3/>
