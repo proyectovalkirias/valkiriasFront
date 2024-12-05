@@ -1,6 +1,6 @@
 import React from "react";
-import Profile from "./Profile";
-import Orders from "./Orders";
+import Profile from "./page";
+import Orders from "./Orders/page";
 
 const Dashboard: React.FC = () => {
   return (
