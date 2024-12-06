@@ -26,19 +26,19 @@ const Register: React.FC = () => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
-  
+
     const { firstName, lastName, email, password, confirmPassword } = formData;
-  
+
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
       setError("Todos los campos son obligatorios.");
       return;
     }
-  
+
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden.");
       return;
     }
-  
+
     try {
       const response = await fetch("http://localhost:3000/auth/signup", {
         method: "POST",
@@ -46,21 +46,26 @@ const Register: React.FC = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          firstname: firstName, // Asegúrate de que los nombres de los campos coincidan con el backend
+          firstname: firstName,
           lastname: lastName,
           email: email,
           password: password,
-          confirmPassword: confirmPassword, // Agrega confirmPassword para enviar la confirmación de la contraseña
         }),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         setError(errorData.message || "Error al registrarse.");
         return;
       }
-  
+
+      const data = await response.json();
       setSuccess("Registro exitoso. ¡Ahora puedes iniciar sesión!");
+
+      // Guardar los datos del usuario en el localStorage
+      localStorage.setItem("user", JSON.stringify(data));
+
+      // Limpiar el formulario
       setFormData({
         firstName: "",
         lastName: "",
@@ -73,7 +78,6 @@ const Register: React.FC = () => {
       console.error(err);
     }
   };
-  
 
   return (
     <div className="flex h-screen items-center justify-center bg-[#7b548b]">

@@ -29,6 +29,34 @@
 } */
 
 
+::-webkit-scrollbar {
+  width: 8px;  /* Establece el mismo ancho para la barra vertical */
+  height: 8px; /* Establece el mismo ancho para la barra horizontal */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: gray; /* Color del thumb */
+  border-radius: 10px; /* Bordes redondeados */
+}
+
+::-webkit-scrollbar-track {
+  background-color: #F0F0F0; /* Color del track */
+}
+
+#navbar {
+  background: transparent;
+  /* Puedes agregar más propiedades aquí si necesitas modificar otros estilos */
+}
+
+#navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50; /* Asegura que esté sobre otros elementos */
+  background: transparent; /* Fondo transparente */
+  /* transition: background 0.3s ease-in-out; Efecto de transición para el fondo */
+}
 body {
   color: var(--foreground);
   background: var(--background);
