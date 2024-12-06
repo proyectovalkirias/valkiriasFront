@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaBars,
   FaSearch,
@@ -14,10 +14,27 @@ import { IoShirtOutline } from "react-icons/io5";
 import { SlScreenSmartphone } from "react-icons/sl";
 import { CgWebsite } from "react-icons/cg";
 import { CiSearch } from "react-icons/ci";
+import Link from "next/dist/client/link";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [user, setUser] = useState<any>(null); // Guardamos el usuario en el estado
+
+  // Verificamos si hay un usuario logueado en localStorage
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    // Aquí no eliminamos el usuario de localStorage
+    // Solo actualizamos el estado para que la UI cambie
+    setUser(null); // Limpiamos el estado del usuario
+
+  };
 
   return (
     <nav id="navbar" className="flex justify-end items-center p-6">
@@ -51,12 +68,32 @@ const Navbar = () => {
                 Inicio
               </a>
             </li>
-            <li className="flex items-center space-x-3">
-              <VscAccount className="text-black" />
-              <a href="/Login" className="text-gray-800 hover:text-purple-600">
-                Iniciar sesión
-              </a>
-            </li>
+            {user ? (
+              <>
+                <li className="flex items-center space-x-3">
+                  <VscAccount className="text-black" />
+                  <a href="/Dashboard" className="text-gray-800 hover:text-purple-600">
+                    Mi cuenta
+                  </a>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <FaSignInAlt className="text-black" />
+                  <button
+                    onClick={handleLogout}
+                    className="text-gray-800 hover:text-purple-600"
+                  >
+                    Cerrar sesión
+                  </button>
+                </li>
+              </>
+            ) : (
+              <li className="flex items-center space-x-3">
+                <FaSignInAlt className="text-black" />
+                <a href="/Login" className="text-gray-800 hover:text-purple-600">
+                  Iniciar sesión
+                </a>
+              </li>
+            )}
             <li className="flex items-center space-x-3">
               <IoShirtOutline className="text-black" />
               <a href="/Products" className="text-gray-800 hover:text-purple-600">
