@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const HomeSection3 = () => {
   return (
@@ -17,16 +18,19 @@ const HomeSection3 = () => {
 
       {/* Texto */}
       <div className="text-center lg:text-left lg:w-1/2 max-w-[500px] px-6 lg:px-16">
-      <h2 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
+        <h2 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
           Estampados en remeras
         </h2>
         <p className="text-lg text-gray-800 mb-6">
           ¿Buscas algo único y divertido? Personaliza tus prendas con diseños
           especiales que reflejen tu estilo y humor.
         </p>
-        <button className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition">
+        <Link
+          href={"/ProductDetail"}
+          className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
+        >
           COMPRA AHORA
-        </button>
+        </Link>
       </div>
     </section>
   );
