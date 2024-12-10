@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+// import Navbar from "@/components/Navbar";
 import Home from "./page";
 
 
@@ -33,7 +33,7 @@ export default function RootLayout({
     
     <html lang="en" className="!scroll-smooth">
       <body>
-        <Navbar/>
+        {/* <Navbar/> */}
         {children}
       </body>
     </html>
