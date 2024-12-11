@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const HomeSection4 = () => {
   return (
@@ -23,9 +24,12 @@ const HomeSection4 = () => {
           Dale un toque especial a tus buzos favoritos con diseños únicos que
           combinen estilo y comodidad.
         </p>
-        <button className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition">
+        <Link
+          href={"/ProductDetail1"}
+          className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
+        >
           COMPRA AHORA
-        </button>
+        </Link>
       </div>
     </section>
   );
