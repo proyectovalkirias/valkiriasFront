@@ -1,4 +1,4 @@
-
+//! sin uso actualmente
 export const getUserData = async (token: string) => {
     try {
       const response = await fetch("http://localhost:3000/users/me", {
