@@ -20,20 +20,25 @@ const Profile: React.FC = () => {
       <h1 className="text-4xl md:text-5xl text-[#e5ded3] mb-6">Mi perfil</h1>
 
       <img
-        src={user.photoUrl || "/images/Homevalkirias.jpg"}
+        src={user.photoUrl || "/images/Avatar.png"}
         alt="Profile emoji"
-        className="rounded-full border-4 border-white w-[140px] md:w-[170px] lg:w-[200px]"
+        className=" border-b-2 w-[140px] md:w-[170px] lg:w-[200px] mb-2"
       />
 
       <div className="text-base md:text-xl mt-6">
-        <h2 className="font-semibold mb-3">Info personal</h2>
-        <p className="mb-2">
-          Nombre: <span className="font-light">{user.name}</span>
-        </p>
-        <p className="mb-2">
-          Email: <span className="font-light">{user.email}</span>
-        </p>
+        <h2 className="font-semibold mb-6 ">Info personal</h2>
       </div>
+        <div className="text-base md:text-xl mr-32">
+          <p className="mb-2">
+            Nombre: <span className="font-light">{user.firstname}</span>
+          </p>
+          <p className="mb-2">
+            Apellido: <span className="font-light">{user.lastname}</span>
+          </p>
+          <p className="mb-2">
+            Email: <span className="font-light">{user.email}</span>
+          </p>
+        </div>
     </div>
   );
 };
