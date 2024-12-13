@@ -1,8 +1,10 @@
-export interface Product{
-    name: string;
-    description: string;
-    price: number;
-    sizes: string[];
-    category: string;
-    photos: File[];
-  }
+export interface Product {
+  name: string;
+  description: string;
+  price: number;
+  sizes: string[];
+  category: string;
+  photos: string[]; 
+  stock: number;  
+  color: string;  
+}

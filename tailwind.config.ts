@@ -17,7 +17,8 @@ export default {
         'custom-purple': '#b093bf',
         'custom-orange': '#d57159',
         'valkyrie-purple': '#7b548b',
-        'creativity-purple': '#b093bf'
+        'creativity-purple': '#b093bf',
+        'purple-dark': '#3e1a4d'
       },
     },
   },
