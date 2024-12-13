@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Esto asegura que el componente se ejecute en el cliente
 
 import React, { useState } from "react";
 import Image from "next/image";
