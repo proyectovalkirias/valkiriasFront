@@ -12,28 +12,28 @@ const ProductDetail: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [mainImage, setMainImage] = useState<string>(
-    "/images/TU_IMAGEN_AQUI_20241210_210417_0000-removebg-preview.png"
+    "/images/TU_IMAGEN_AQUI_20241212_211409_0000-removebg-preview.png"
   );
   const basePrice = 20;
 
   // Asociación de colores con imágenes
   const colorImages: Record<string, string> = {
-    Gris: "/images/TU_IMAGEN_AQUI_20241210_210417_0000-removebg-preview.png",
+    Gris: "/images/TU_IMAGEN_AQUI_20241212_211409_0000-removebg-preview.png",
     Negro: "/images/TU_IMAGEN_AQUI_20241210_205129_0000-removebg-preview.png",
   };
 
   const printImages: Record<string, Record<string, string>> = {
     Gris: {
       "Grande en frente":
-        "/images/TU_IMAGEN_AQUI_20241210_210417_0000-removebg-preview.png",
+        "/images/TU_IMAGEN_AQUI_20241212_211409_0000-removebg-preview.png",
       "Grande atrás":
-        "/images/TU_IMAGEN_AQUI_20241210_205800_0000-removebg-preview.png",
+        "/images/TU_IMAGEN_AQUI_20241212_211532_0000-removebg-preview.png",
       "Pequeño en frente lado derecho":
-        "/images/TU_IMAGEN_AQUI_20241210_210522_0000-removebg-preview.png",
+        "/images/TU_IMAGEN_AQUI_20241212_211348_0000-removebg-preview.png",
       "Pequeño en frente centro":
-        "/images/TU_IMAGEN_AQUI_20241210_210500_0000-removebg-preview.png",
+        "/images/TU_IMAGEN_AQUI_20241212_211327_0000-removebg-preview.png",
       "Pequeño atrás":
-        "/images/TU_IMAGEN_AQUI_20241210_210726_0000-removebg-preview.png",
+        "/images/TU_IMAGEN_AQUI_20241212_211637_0000-removebg-preview.png",
     },
     Negro: {
       "Grande en frente":
@@ -292,6 +292,9 @@ const ProductDetail: React.FC = () => {
         </div>
 
         <div className="flex flex-col">
+          <label className="text-gray-800 w-full font-medium text-lg mb-2">
+            Tu idea:
+          </label>
           <textarea
             className="border flex w-full border-gray-300 text-gray-800 rounded-lg p-3 h-12 mb-4"
             placeholder="Contanos tu idea..."
