@@ -30,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="!scroll-smooth">
       <body className="w-full">
-        <Navbar />
+        {/* <Navbar /> */}
         {children}
       </body>
     </html>
