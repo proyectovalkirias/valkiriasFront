@@ -37,10 +37,13 @@ const ProductDetail: React.FC = () => {
         "/images/TU_IMAGEN_AQUI_20241210_210122_0000-removebg-preview.png",
     },
     Gris: {
-      "Grande en frente": "/images/gray-front-large.png",
+      "Grande en frente":
+        "/images/TU_IMAGEN_AQUI_20241212_211953_0000-removebg-preview.png",
       "Grande atrás": "/images/gray-back-large.png",
-      "Pequeño en frente lado derecho": "/images/gray-front-small-right.png",
-      "Pequeño en frente centro": "/images/gray-front-small-center.png",
+      "Pequeño en frente lado derecho":
+        "/images/TU_IMAGEN_AQUI_20241212_211929_0000-removebg-preview.png",
+      "Pequeño en frente centro":
+        "/images/TU_IMAGEN_AQUI_20241212_211915_0000-removebg-preview.png",
       "Pequeño atrás": "/images/gray-back-small.png",
     },
     Negro: {
