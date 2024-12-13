@@ -74,7 +74,7 @@ const CreateProduct: React.FC = () => {
       .catch((error) => {
         console.error("Error al crear el producto:", error);
         setLoading(false);
-        setIsSuccess(false); 
+        // setIsSuccess(false); 
       });
   };
 
