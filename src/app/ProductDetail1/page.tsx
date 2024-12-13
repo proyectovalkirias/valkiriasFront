@@ -292,6 +292,9 @@ const ProductDetail: React.FC = () => {
         </div>
 
         <div className="flex flex-col">
+          <label className="text-gray-800 w-full font-medium text-lg mb-2">
+            Tu idea:
+          </label>
           <textarea
             className="border flex w-full border-gray-300 text-gray-800 rounded-lg p-3 h-12 mb-4"
             placeholder="Contanos tu idea..."
