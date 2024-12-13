@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+// import Navbar from "@/components/Navbar";
 import Home from "./page";
 
 const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
@@ -29,8 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="!scroll-smooth">
-      <body className="w-full">
-        {/* <Navbar /> */}
+
+      <body>
+        {/* <Navbar/> */}
         {children}
       </body>
     </html>
