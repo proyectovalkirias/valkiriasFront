@@ -1,10 +1,8 @@
-
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 // import Navbar from "@/components/Navbar";
 import Home from "./page";
-
 
 const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 
@@ -30,7 +28,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    
     <html lang="en" className="!scroll-smooth">
       <body>
         {/* <Navbar/> */}
