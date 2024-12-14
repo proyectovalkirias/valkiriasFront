@@ -37,7 +37,24 @@ const GoogleAuth = () => {
     }
   }, [router.isReady, router.query.code]);
 
-  return <p>Authenticating...</p>;
+  // return <p>Authenticating...</p>;
+
+  // const handleLogout = async () => {
+  //   try {
+  //     const token = localStorage.getItem('token');
+  //     if(!token){
+  //       console.error('No token found');
+  //       return;
+  //     }
+
+  //     await axios.post('http://localhost:3000/google/logout', { token });
+  //     localStorage.removeItem('token');
+  //     console.log('Logout successfull');
+  //     router.push('/dashboard')
+  //   } catch (error) {
+  //     console.error('Error during logout:', error);
+  //   }
+  // }
 };
 
 export default GoogleAuth;
