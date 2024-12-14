@@ -15,8 +15,8 @@
 }
 
 @font-face {
-  font-family: 'Bogart';
-  src: url('/fonts/Bogart-Medium-trial.ttf') format('truetype');
+  font-family: 'Playfair';
+  src: url('/Fonts/PlayfairDisplay-Medium.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -63,3 +63,4 @@ body {
   font-family: Bogart, sans-serif;
   scroll-behavior: smooth;
 }
+
