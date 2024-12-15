@@ -14,8 +14,9 @@ const GoogleAuth = () => {
         if (!code) throw new Error('Authorization code is missing');
         
         const res = await axios.post(
-          'http://localhost:3000/google/redirect', 
-          { code }
+          // 'http://localhost:3000/google/redirect', 
+          // { code }
+          `http://localhost:3000/google/redirect?code=${code}`
         );
 
 
