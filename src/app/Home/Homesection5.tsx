@@ -26,12 +26,14 @@ const HomeSection5 = () => {
           dedicación. Tenemos remeras, gorros de lana, gorras Trucker, buzos,
           tazas y más.
         </p>
-        <Link
-          href={"/ProductDetail2"}
-          className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
-        >
-          COMPRA AHORA
-        </Link>
+        <div className="sm:mb-16">
+          <Link
+            href={"/ProductDetail2"}
+            className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
+          >
+            COMPRA AHORA
+          </Link>
+        </div>
       </div>
     </section>
   );

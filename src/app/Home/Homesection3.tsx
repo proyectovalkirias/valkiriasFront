@@ -25,12 +25,14 @@ const HomeSection3 = () => {
           ¿Buscas algo único y divertido? Personaliza tus prendas con diseños
           especiales que reflejen tu estilo y humor.
         </p>
-        <Link
-          href={"/ProductDetail"}
-          className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
-        >
-          COMPRA AHORA
-        </Link>
+        <div className="sm:mb-16">
+          <Link
+            href={"/ProductDetail"}
+            className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
+          >
+            COMPRA AHORA
+          </Link>
+        </div>
       </div>
     </section>
   );

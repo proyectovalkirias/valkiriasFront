@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-const HomeSection4 = () => {
+const HomeSection6 = () => {
   return (
     <section className="flex flex-col lg:flex-row-reverse items-center h-screen gap-10 lg:gap-16 bg-gray-100">
       {/* Imagen */}
@@ -22,12 +22,14 @@ const HomeSection4 = () => {
         <p className="text-lg text-gray-800 mb-6">
         Dale vida a la ropa de tus pequeños con diseños únicos y llenos de magia. ¡Hacemos de cada prenda un mundo de imaginación!
         </p>
+        <div className="sm:mb-16">
         <button className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition">
           COMPRA AHORA
         </button>
+        </div>
       </div>
     </section>
   );
 };
 
-export default HomeSection4;
+export default HomeSection6;
