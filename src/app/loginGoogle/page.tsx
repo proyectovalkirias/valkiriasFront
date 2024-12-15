@@ -12,15 +12,16 @@ const GoogleAuth = () => {
         console.log('Query params:', router.query);
 
         if (!code) throw new Error('Authorization code is missing');
-
-        // Intercambiar el código por un token en tu servidor
+        
         const res = await axios.post(
           'http://localhost:3000/google/redirect',
           { code }
         );
 
-        const { token } = res.data;
+
+        const { token, user } = res.data;
         console.log('Token recibido', token);
+        console.log('Usuario recibido:', user);
 
         // Guardamos el token
         localStorage.setItem('token', token);
@@ -45,20 +46,65 @@ const GoogleAuth = () => {
 
         // Redirigir a Dashboard o a la página principal
         router.push('/Dashboard');
+
+
+        // cami este lo agregue yo (facu) lo necesito para el dashboard, aunque no me funciona todavia 
+
+        // Hacer una solicitud para obtener los detalles del usuario, incluyendo foto de perfil
+        const userRes = await axios.get('http://localhost:3000/api/user', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const userData = {
+          name: userRes.data.name,
+          email: userRes.data.email,
+          photoUrl: userRes.data.photoUrl,
+        };
+
+        
+        // Guardamos la información del usuario
+        localStorage.setItem('user', JSON.stringify(userData));
+
+        // Guardamos el token
+        localStorage.setItem('token', token);
+
+        router.push('/dashboard');
+>>>>>>> 38cf9ebc30244c3fe806574b75f2af6e65f8d086
       } catch (error) {
         console.error('Error durante la autenticación con Google', error);
         router.push('/Login');
       }
     };
 
-    // Verificamos si el query tiene el parámetro `code` para empezar el proceso
     if (router.query.code) {
       console.log('Redirigiendo con el código:', router.query.code);
       fetchGoogleAuth();
     }
   }, [router.isReady, router.query.code]);
+  
+  
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if(!token){
+        console.error('No token found');
+        return;
+      }
+      
+      await axios.post('http://localhost:3000/google/logout', { token });
+      localStorage.removeItem('token');
+      console.log('Logout successfull');
+      router.push('/dashboard')
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
 
-  return <p>Authenticating...</p>;
+  return (
+    <div>
+    <button onClick={handleLogout}>Logout</button>
+    </div>
+  );
 };
 
 export default GoogleAuth;
