@@ -2,23 +2,45 @@
 
 import React, { useEffect, useState } from "react";
 
+// Función para obtener los datos del usuario almacenados en localStorage
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
-      // Verifica si existe la propiedad user en los datos
       return {
-        firstname: parsedUser.user.firstname || "",
-        lastname: parsedUser.user.lastname || "",
-        email: parsedUser.user.email || "",
-        photoUrl: parsedUser.user.photo || "/images/Avatar.png",
+        firstname: parsedUser.firstname || "",
+        lastname: parsedUser.lastname || "",
+        email: parsedUser.email || "",
+        photoUrl: parsedUser.photo || "/images/Avatar.png", // Avatar por defecto
       };
     }
     return null;
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
-    return null;
+    return null;
+  }
+};
+
+// Función para obtener los datos del usuario desde la API de Google
+const fetchGoogleUserData = async (accessToken: string) => {
+  try {
+    const response = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al obtener los datos del usuario");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error al obtener los datos de Google:", error);
+    throw error;
   }
 };
 
@@ -32,24 +54,45 @@ const Dashboard: React.FC = () => {
     firstname: "",
     lastname: "",
     email: "",
-    photoUrl: "/images/Avatar.png", // Avatar predeterminado
+    photoUrl: "/images/Avatar.png", // Avatar por defecto
   });
 
-  // UseEffect para cargar los datos del usuario cuando el componente se monta
+  const [accessToken, setAccessToken] = useState<string | null>(null); // Token de acceso de Google
+
   useEffect(() => {
-    const userData = getUserData();
-    if (userData) {
-      setUser(userData);
+    const storedToken = localStorage.getItem("googleAccessToken"); // Obtenemos el token de Google
+    if (storedToken) {
+      setAccessToken(storedToken);
     }
-  }, []);
+
+    const userData = getUserData(); // Intentamos obtener los datos del usuario desde localStorage
+    if (userData) {
+      setUser(userData); // Si se encuentran datos, los usamos
+    }
+
+    // Si tenemos un token de Google, obtenemos los datos de Google
+    if (accessToken) {
+      fetchGoogleUserData(accessToken)
+        .then((googleData) => {
+          setUser({
+            firstname: googleData.given_name || "",
+            lastname: googleData.family_name || "",
+            email: googleData.email || "",
+            photoUrl: googleData.picture || "/images/Avatar.png", // Foto de perfil de Google
+          });
+        })
+        .catch((err) => {
+          console.error("Error al obtener los datos de Google:", err);
+        });
+    }
+  }, [accessToken]);
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <h1 className="text-4xl md:text-5xl text-[#e5ded3] mb-6">Mi perfil</h1>
 
-      {/* Imagen de perfil del usuario */}
       <img
-        src={user.photoUrl}
+        src={user.photoUrl} // Foto de perfil
         alt="Foto de perfil"
         className="border-b-2 w-[140px] md:w-[170px] lg:w-[200px] mb-2 rounded-full"
       />
@@ -58,7 +101,7 @@ const Dashboard: React.FC = () => {
         <h2 className="font-semibold mb-6">Info personal</h2>
       </div>
 
-      {/* Información personal del usuario */}
+      {/* Información personal */}
       <div className="text-base md:text-xl">
         <p className="mb-2">
           Nombre: <span className="font-light">{user.firstname}</span>
@@ -74,4 +117,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default Dashboard;

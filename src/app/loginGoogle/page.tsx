@@ -9,48 +9,45 @@ const GoogleAuth = () => {
     const fetchGoogleAuth = async () => {
       try {
         const { code } = router.query;
-        console.log('Query params:', router.query); 
+        console.log('Query params:', router.query);
 
         if (!code) throw new Error('Authorization code is missing');
 
         // Intercambiar el código por un token en tu servidor
         const res = await axios.post(
-          'http://localhost:3000/google/redirect', 
+          'http://localhost:3000/google/redirect',
           { code }
         );
 
         const { token } = res.data;
         console.log('Token recibido', token);
 
-
-
-        // cami este lo agregue yo (facu) lo necesito para el dashboard, aunque no me funciona todavia 
-
-        // Hacer una solicitud para obtener los detalles del usuario, incluyendo foto de perfil
-        const userRes = await axios.get('http://localhost:3000/api/user', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        // Guardamos los datos del usuario (nombre, email, foto)
-        const userData = {
-          name: userRes.data.name,
-          email: userRes.data.email,
-          photoUrl: userRes.data.photoUrl, // Foto de perfil de Google
-        };
-
-
-        
-        // Guardamos la información del usuario en el almacenamiento local
-        localStorage.setItem('user', JSON.stringify(userData));
-
         // Guardamos el token
         localStorage.setItem('token', token);
 
-        // Redirigir a dashboard o a la página principal
-        router.push('/dashboard');
+        // Obtener información del usuario desde Google API
+        const userInfo = await axios.get(
+          `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${token}`
+        );
+
+        const { given_name, family_name, email, picture } = userInfo.data;
+
+        // Guardamos la información del usuario en localStorage
+        localStorage.setItem(
+          'user',
+          JSON.stringify({
+            firstname: given_name,
+            lastname: family_name,
+            email,
+            photo: picture,
+          })
+        );
+
+        // Redirigir a Dashboard o a la página principal
+        router.push('/Dashboard');
       } catch (error) {
         console.error('Error durante la autenticación con Google', error);
-        router.push('/login');
+        router.push('/Login');
       }
     };
 
