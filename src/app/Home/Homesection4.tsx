@@ -3,14 +3,14 @@ import Link from "next/link";
 
 const HomeSection4 = () => {
   return (
-    <section className="flex flex-col lg:flex-row-reverse items-center h-screen gap-10 lg:gap-16 bg-gray-100">
+    <section className="flex flex-col lg:flex-row-reverse items-center h-screen gap-10 lg:gap-16 bg-gray-100 px-6 py-8">
       {/* Imagen */}
-      <div className="relative w-full lg:w-1/2 h-full">
+      <div className="relative w-full lg:w-1/2 h-72 lg:h-full">
         <Image
           src="/images/BuzoOversize.jpg"
           alt="Buzo Oversize estampado personalizado"
           fill
-          className="object-cover shadow-lg"
+          className="object-cover shadow-lg rounded-lg"
           priority
         />
       </div>
@@ -24,12 +24,14 @@ const HomeSection4 = () => {
           Dale un toque especial a tus buzos favoritos con diseños únicos que
           combinen estilo y comodidad.
         </p>
-        <Link
-          href={"/ProductDetail1"}
-          className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
-        >
-          COMPRA AHORA
-        </Link>
+        <div className="sm:mb-16">
+          <Link
+            href={"/ProductDetail1"}
+            className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
+          >
+            COMPRA AHORA
+          </Link>
+        </div>
       </div>
     </section>
   );

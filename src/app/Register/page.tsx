@@ -81,14 +81,15 @@ const Register: React.FC = () => {
 
   return (
     <div className="flex h-screen items-center justify-center bg-[#7b548b]">
-      <div className="flex w-3/4 max-w-4xl rounded-lg bg-[#7b548b]">
-        <div className="w-1/2 p-8 flex flex-col items-center justify-center text-center text-white">
+      <div className="w-full max-w-4xl rounded-lg bg-[#7b548b] flex flex-col md:flex-row">
+        {/* Sección de la imagen */}
+        <div className="w-full md:w-1/2 p-8 flex flex-col items-center justify-start text-center text-white">
           <Image
             src="/images/valkiriaslogo.jpg"
             alt="Valkirias Logo"
             width={150}
             height={150}
-            className="mb-6"
+            className="sm:mt-6 xl:pt-24 md:pt-24"
           />
           <h2 className="text-2xl font-bold">¡Bienvenido!</h2>
           <p className="mt-4">
@@ -96,7 +97,8 @@ const Register: React.FC = () => {
           </p>
         </div>
 
-        <div className="w-1/2 p-8 bg-[#7b548b] flex flex-col justify-center">
+        {/* Sección del formulario */}
+        <div className="w-full md:w-1/2 p-8 bg-[#7b548b] flex flex-col justify-center">
           <h2 className="mb-6 text-3xl font-bold text-white text-center">
             Registro
           </h2>

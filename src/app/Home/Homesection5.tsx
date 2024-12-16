@@ -3,15 +3,15 @@ import Link from "next/link";
 
 const HomeSection5 = () => {
   return (
-    <section className="flex flex-col lg:flex-row items-center h-screen gap-10 lg:gap-16 bg-gray-100">
+    <section className="flex flex-col lg:flex-row items-center h-screen gap-10 lg:gap-16 bg-gray-100 px-6 py-8">
       {/* Imagen */}
-      <div className="relative w-full lg:w-1/2 h-full">
+      <div className="relative w-full lg:w-1/2 h-72 lg:h-full">
         <Image
           src="/images/tazavalkiria.jpg"
           alt="Taza estampada personalizada"
-          layout="fill"
+          fill
           objectFit="cover"
-          className="shadow-lg"
+          className="shadow-lg rounded-lg"
           priority
         />
       </div>
@@ -22,19 +22,22 @@ const HomeSection5 = () => {
           Accesorios
         </h2>
         <p className="text-lg text-gray-800 mb-6">
-          ¡Es hora de inspirarse y crear! personalizamos tus prendas con amor y
+          ¡Es hora de inspirarse y crear! Personalizamos tus productos con amor y
           dedicación. Tenemos remeras, gorros de lana, gorras Trucker, buzos,
           tazas y más.
         </p>
-        <Link
-          href={"/ProductDetail2"}
-          className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
-        >
-          COMPRA AHORA
-        </Link>
+        <div className="sm:mb-16">
+          <Link
+            href={"/ProductDetail2"}
+            className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
+          >
+            COMPRA AHORA
+          </Link>
+        </div>
       </div>
     </section>
   );
 };
 
 export default HomeSection5;
+
