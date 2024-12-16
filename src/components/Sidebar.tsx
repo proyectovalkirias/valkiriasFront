@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
+    console.log(localStorage.getItem("user"));
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
