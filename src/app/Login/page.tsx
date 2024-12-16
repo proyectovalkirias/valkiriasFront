@@ -53,7 +53,7 @@ const Login: React.FC = () => {
       // Guardar datos del usuario en el localStorage
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
-      // Redirigir al Dashboard sin usar useRouter
+ 
       window.location.href = "/"; // Redirige al dashboard en el cliente
     } catch (err) {
       setError("Hubo un problema al conectar con el servidor.");
