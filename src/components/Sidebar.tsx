@@ -29,6 +29,8 @@ const getUserData = () => {
 
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const [isAccordionOpen, setIsAccordionOpen] = useState(false); // Estado para el acordeón
+  const [categories, setCategories] = useState<string[]>([]); // Categorías dinámicas
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -44,12 +46,41 @@ const Sidebar: React.FC = () => {
     }
   }, []);
 
+  // Cargar las categorías dinámicamente desde la API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/products");
+        const data = await response.json();
+
+        // Asegúrate de tipar los datos correctamente
+        const uniqueCategories = Array.from(
+          new Set(
+            (data as { category: string }[]).map((product) => product.category)
+          )
+        );
+
+        setCategories(uniqueCategories); // Ahora no habrá error
+      } catch (error) {
+        console.error("Error al obtener las categorías:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   // Función para manejar la redirección
   const handleNavigation = (path: string) => {
-    window.location.href = path;  // Redirige al path especificado
+    window.location.href = path; // Redirige al path especificado
   };
 
-  // Función para cerrar sesión
+  const toggleAccordion = () => {
+    setIsAccordionOpen(!isAccordionOpen);
+    handleNavigation("/Products");
+
+    // Alternar el estado del acordeón
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("user"); // Eliminar los datos del usuario del localStorage
     setUser(null); // Limpiar el estado del usuario
@@ -63,27 +94,29 @@ const Sidebar: React.FC = () => {
       } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300`}
     >
       {/* Logo */}
-      <div className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center" onClick={() => setIsOpen(!isOpen)}>
+      <div
+        className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
+        onClick={() => setIsOpen(!isOpen)}
+      >
         {isOpen ? (
           <img
             src="/images/valkiriaslogo.jpg"
             alt="Logo Valkirias"
-            className=""
             style={{
-              width: isOpen ? "150px" : "40px", // Ajusta el tamaño del logo cuando la sidebar está abierta
-              height: isOpen ? "auto" : "40px", // Ajusta el tamaño cuando la sidebar está cerrada
-              objectFit: "contain", // No recorta la imagen
+              width: isOpen ? "150px" : "40px",
+              height: isOpen ? "auto" : "40px",
+              objectFit: "contain",
             }}
           />
         ) : (
           <img
-            src="/images/LogCircular.jpg"  // Imagen cuando la sidebar está cerrada
+            src="/images/LogCircular.jpg"
             alt="Logo Circular"
             className="rounded-full"
             style={{
-              width: "40px", // Tamaño cuando la sidebar está cerrada
-              height: "40px", // Tamaño cuando la sidebar está cerrada
-              objectFit: "contain", // No recorta la imagen
+              width: "40px",
+              height: "40px",
+              objectFit: "contain",
             }}
           />
         )}
@@ -94,33 +127,56 @@ const Sidebar: React.FC = () => {
         <ul>
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-            onClick={() => handleNavigation("/")} // Redirige al Home
+            onClick={() => handleNavigation("/")}
           >
             <TbHomeHeart size={24} />
             {isOpen && <span>Inicio</span>}
           </li>
-          <li className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
-            <IoShirtOutline size={24} />
-            {isOpen && <span>Productos</span>}
+          {/* Acordeón para Productos */}
+          <li>
+            <div
+              className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer"
+              onClick={toggleAccordion}
+            >
+              <div className="flex items-center gap-4 ">
+                <IoShirtOutline size={24} />
+                {isOpen && <span>Productos</span>}
+              </div>
+              {isOpen && <span>{isAccordionOpen ? "▼" : "▶"}</span>}
+            </div>
+            {isAccordionOpen && (
+              <ul className="ml-8">
+                {categories.map((category) => (
+                  <li
+                    key={category}
+                    className="py-1 hover:text-gray-300 cursor-pointer"
+                    onClick={() => handleNavigation(`/products/${category}`)}
+                  >
+                    {category}
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
-          <li className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
+          <li
+            className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
+            onClick={() => handleNavigation("/About")}
+          >
             <FaRegUser size={24} />
             {isOpen && <span>Sobre Nosotros</span>}
           </li>
-          {/* Si el usuario no está logueado, mostrar "Iniciar Sesión" */}
           {!user ? (
             <li
               className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-              onClick={() => handleNavigation("/Login")} // Redirige al Login
+              onClick={() => handleNavigation("/Login")}
             >
               <CiLogin size={24} />
               {isOpen && <span>Iniciar Sesión</span>}
             </li>
           ) : (
-            // Si el usuario está logueado, mostrar los datos y el botón "Cerrar Sesión"
             <li
               className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-              onClick={handleLogout} // Cerrar sesión
+              onClick={handleLogout}
             >
               <CiLogin size={24} />
               {isOpen && <span>Cerrar Sesión</span>}
@@ -129,7 +185,7 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {/* Información del usuario, solo si está logueado */}
+      {/* Información del usuario */}
       {user && (
         <div className="p-4 flex items-center gap-4">
           <img
@@ -137,9 +193,9 @@ const Sidebar: React.FC = () => {
             alt="Foto de perfil"
             className="rounded-full border-2 border-gray-500 transition-all duration-300"
             style={{
-              objectFit: "contain", // No recorta la imagen
-              width: isOpen ? "48px" : "32px", // Ajusta el tamaño cuando la sidebar está cerrada
-              height: isOpen ? "48px" : "32px", // Ajusta el tamaño cuando la sidebar está cerrada
+              objectFit: "contain",
+              width: isOpen ? "48px" : "32px",
+              height: isOpen ? "48px" : "32px",
             }}
           />
           {isOpen && (

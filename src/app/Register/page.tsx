@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -53,13 +53,23 @@ const Register: React.FC = () => {
         }),
       });
 
+      const contentType = response.headers.get("Content-Type");
+
       if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.message || "Error al registrarse.");
+        if (contentType?.includes("application/json")) {
+          const errorData = await response.json();
+          setError(errorData.message || "Error al registrarse.");
+        } else {
+          const errorText = await response.text();
+          setError(errorText || "Error al registrarse.");
+        }
         return;
       }
 
-      const data = await response.json();
+      const data = contentType?.includes("application/json")
+        ? await response.json()
+        : await response.text();
+
       setSuccess("Registro exitoso. ¡Ahora puedes iniciar sesión!");
 
       // Guardar los datos del usuario en el localStorage
@@ -156,7 +166,10 @@ const Register: React.FC = () => {
 
           <p className="mt-4 text-sm text-white">
             ¿Ya tienes cuenta?{" "}
-            <Link href="/Login" className="font-medium text-purple-300 hover:underline">
+            <Link
+              href="/Login"
+              className="font-medium text-purple-300 hover:underline"
+            >
               Iniciar sesión
             </Link>
           </p>
