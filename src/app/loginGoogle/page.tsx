@@ -9,7 +9,7 @@ const GoogleAuth = () => {
     const fetchGoogleAuth = async () => {
       try {
         const { code } = router.query;
-        console.log('Query params:', router.query); 
+        console.log('Query params:', router.query);
 
         if (!code) throw new Error('Authorization code is missing');
         
@@ -24,6 +24,29 @@ const GoogleAuth = () => {
         console.log('Token recibido', token);
         console.log('Usuario recibido:', user);
 
+        // Guardamos el token
+        localStorage.setItem('token', token);
+
+        // Obtener información del usuario desde Google API
+        const userInfo = await axios.get(
+          `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${token}`
+        );
+
+        const { given_name, family_name, email, picture } = userInfo.data;
+
+        // Guardamos la información del usuario en localStorage
+        localStorage.setItem(
+          'user',
+          JSON.stringify({
+            firstname: given_name,
+            lastname: family_name,
+            email,
+            photo: picture,
+          })
+        );
+
+        // Redirigir a Dashboard o a la página principal
+        router.push('/Dashboard');
 
 
         // cami este lo agregue yo (facu) lo necesito para el dashboard, aunque no me funciona todavia 
@@ -47,9 +70,10 @@ const GoogleAuth = () => {
         localStorage.setItem('token', token);
 
         router.push('/dashboard');
+
       } catch (error) {
         console.error('Error durante la autenticación con Google', error);
-        router.push('/login');
+        router.push('/Login');
       }
     };
 

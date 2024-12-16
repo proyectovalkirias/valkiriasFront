@@ -1,10 +1,10 @@
-"use client"; // Asegúrate de que el código solo se ejecute en el cliente
+"use client";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { TbEyeHeart } from "react-icons/tb";
 
 const ChangePassword: React.FC = () => {
-  const router = useRouter(); // Usa useRouter() de next/navigation
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     newPassword: "",
@@ -68,9 +68,9 @@ const ChangePassword: React.FC = () => {
 
   return (
     <div className="flex h-screen items-center justify-center bg-[#7b548b]">
-      <div className="flex w-full max-w-md rounded-lg bg-[#7b548b] p-8">
+      <div className="flex w-full max-w-md rounded-lg bg-[#7b548b] p-8 sm:p-6 md:p-8 lg:p-10">
         <div className="w-full flex flex-col justify-center text-center text-white">
-          <h2 className="text-3xl font-bold flex items-center justify-center mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold flex items-center justify-center mb-6">
             Recuperar Contraseña <TbEyeHeart className="ml-2 text-white" size={24} />
           </h2>
           <form className="flex flex-col" onSubmit={handleSubmit}>
@@ -80,7 +80,7 @@ const ChangePassword: React.FC = () => {
               placeholder="Correo Electrónico"
               value={formData.email}
               onChange={handleChange}
-              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
             />
             <input
               type="password"
@@ -88,7 +88,7 @@ const ChangePassword: React.FC = () => {
               placeholder="Nueva Contraseña"
               value={formData.newPassword}
               onChange={handleChange}
-              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
             />
             <input
               type="password"
@@ -96,13 +96,13 @@ const ChangePassword: React.FC = () => {
               placeholder="Confirmar Contraseña"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="mb-6 border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              className="mb-6 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
             />
             {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
             {success && <p className="mt-4 text-sm text-green-500">{success}</p>}
             <button
               type="submit"
-              className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
+              className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
             >
               Cambiar Contraseña
             </button>
@@ -111,6 +111,6 @@ const ChangePassword: React.FC = () => {
       </div>
     </div>
   );
-};
+};  
 
 export default ChangePassword;

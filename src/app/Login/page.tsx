@@ -1,4 +1,4 @@
-"use client"; // Esto asegura que el componente se ejecute en el cliente
+"use client";
 
 import React, { useState } from "react";
 import Image from "next/image";
@@ -102,9 +102,9 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-[#7b548b]">
-      <div className="flex w-3/4 max-w-4xl rounded-lg bg-[#7b548b]">
-        <div className="w-1/2 p-8 flex flex-col items-center justify-center text-center text-white">
+    <div className="flex h-screen items-center justify-center bg-[#7b548b] p-4">
+      <div className="flex w-full max-w-4xl rounded-lg bg-[#7b548b] flex-col sm:flex-row">
+        <div className="w-full sm:w-1/2 p-8 flex flex-col items-center justify-center text-center text-white">
           <Image
             src="/images/valkiriaslogo.jpg"
             alt="Valkirias Logo"
@@ -118,7 +118,7 @@ const Login: React.FC = () => {
           </p>
         </div>
 
-        <div className="w-1/2 p-8 bg-[#7b548b] flex flex-col justify-center">
+        <div className="w-full sm:w-1/2 p-8 bg-[#7b548b] flex flex-col justify-center">
           <h2 className="mb-6 text-3xl font-bold text-white text-center">
             Iniciar Sesión
           </h2>
