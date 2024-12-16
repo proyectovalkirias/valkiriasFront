@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 // import Navbar from "@/components/Navbar";
 import Home from "./page";
+import Navbar from "@/components/Navbar";
 
 const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 
@@ -31,7 +32,7 @@ export default function RootLayout({
     <html lang="en" className="!scroll-smooth">
 
       <body>
-        {/* <Navbar/> */}
+        <Navbar/>
         {children}
       </body>
     </html>
