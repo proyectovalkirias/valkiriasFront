@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-// import Navbar from "@/components/Navbar";
+
 import Home from "./page";
+import Sidebar from "@/components/Sidebar";
 
 const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 
@@ -29,10 +30,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="!scroll-smooth">
+      <body className="flex h-screen   ">
+        <Sidebar />
 
-      <body>
-        {/* <Navbar/> */}
-        {children}
+        <main className="flex-1 overflow-auto ">{children}</main>
       </body>
     </html>
   );
