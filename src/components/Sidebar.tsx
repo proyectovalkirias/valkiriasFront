@@ -9,7 +9,7 @@ const Sidebar: React.FC = () => {
     <div
       className={`${
         isOpen ? "w-64" : "w-16"
-      } h-full bg-gray-800 text-white flex flex-col justify-between transition-width duration-300`}
+      } h-full bg-purple-dark text-white flex flex-col justify-between transition-width duration-300`}
     >
       <div>
         <div
