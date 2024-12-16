@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-// import Navbar from "@/components/Navbar";
 import Home from "./page";
 import Sidebar from "@/components/Sidebar";
 
@@ -30,11 +29,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="!scroll-smooth">
+    <body className="flex h-screen">
+      {/* Sidebar */}
+      <Sidebar />
 
-      <body>
-       <Sidebar/>
+      {/* Contenido principal */}
+      <main className="flex-1 overflow-auto">
         {children}
-      </body>
-    </html>
+      </main>
+    </body>
+  </html>
   );
 }

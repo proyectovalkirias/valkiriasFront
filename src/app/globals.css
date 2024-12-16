@@ -64,3 +64,14 @@ body {
   scroll-behavior: smooth;
 }
 
+.sidebar img {
+  width: 48px; /* Ajusta el tamaño deseado */
+  height: 48px;
+  object-fit: contain; /* Mantiene las proporciones sin deformarse */
+  transition: all 0.3s ease; /* Suaviza la animación */
+}
+
+.sidebar.closed img {
+  width: 32px; /* Tamaño más pequeño cuando la sidebar está cerrada */
+  height: 32px;
+}
