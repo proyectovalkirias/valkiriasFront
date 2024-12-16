@@ -54,7 +54,7 @@ const Login: React.FC = () => {
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
       // Redirigir al Dashboard sin usar useRouter
-      window.location.href = "/Dashboard"; // Redirige al dashboard en el cliente
+      window.location.href = "/"; // Redirige al dashboard en el cliente
     } catch (err) {
       setError("Hubo un problema al conectar con el servidor.");
       console.error(err);

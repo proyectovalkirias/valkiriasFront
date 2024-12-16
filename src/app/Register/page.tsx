@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -53,13 +53,23 @@ const Register: React.FC = () => {
         }),
       });
 
+      const contentType = response.headers.get("Content-Type");
+
       if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.message || "Error al registrarse.");
+        if (contentType?.includes("application/json")) {
+          const errorData = await response.json();
+          setError(errorData.message || "Error al registrarse.");
+        } else {
+          const errorText = await response.text();
+          setError(errorText || "Error al registrarse.");
+        }
         return;
       }
 
-      const data = await response.json();
+      const data = contentType?.includes("application/json")
+        ? await response.json()
+        : await response.text();
+
       setSuccess("Registro exitoso. ¡Ahora puedes iniciar sesión!");
 
       // Guardar los datos del usuario en el localStorage
@@ -81,14 +91,15 @@ const Register: React.FC = () => {
 
   return (
     <div className="flex h-screen items-center justify-center bg-[#7b548b]">
-      <div className="flex w-3/4 max-w-4xl rounded-lg bg-[#7b548b]">
-        <div className="w-1/2 p-8 flex flex-col items-center justify-center text-center text-white">
+      <div className="w-full max-w-4xl rounded-lg bg-[#7b548b] flex flex-col md:flex-row">
+        {/* Sección de la imagen */}
+        <div className="w-full md:w-1/2 p-8 flex flex-col items-center justify-start text-center text-white">
           <Image
             src="/images/valkiriaslogo.jpg"
             alt="Valkirias Logo"
             width={150}
             height={150}
-            className="mb-6"
+            className="sm:mt-6 xl:pt-24 md:pt-24"
           />
           <h2 className="text-2xl font-bold">¡Bienvenido!</h2>
           <p className="mt-4">
@@ -96,7 +107,8 @@ const Register: React.FC = () => {
           </p>
         </div>
 
-        <div className="w-1/2 p-8 bg-[#7b548b] flex flex-col justify-center">
+        {/* Sección del formulario */}
+        <div className="w-full md:w-1/2 p-8 bg-[#7b548b] flex flex-col justify-center">
           <h2 className="mb-6 text-3xl font-bold text-white text-center">
             Registro
           </h2>
@@ -154,7 +166,10 @@ const Register: React.FC = () => {
 
           <p className="mt-4 text-sm text-white">
             ¿Ya tienes cuenta?{" "}
-            <Link href="/Login" className="font-medium text-purple-300 hover:underline">
+            <Link
+              href="/Login"
+              className="font-medium text-purple-300 hover:underline"
+            >
               Iniciar sesión
             </Link>
           </p>
