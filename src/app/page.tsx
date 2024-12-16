@@ -11,7 +11,7 @@ import HomeSection8 from "./Home/Homesection8";
 
 export default function Home() {
   return ( 
-    <div>
+    <div className="flex flex-col overflow-x-hidden">
       {/* <Navbar/> */}
       <HomeSection1/>
       <HomeSection2/>
