@@ -1,30 +1,8 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
-
-// Función para obtener los datos de usuario desde localStorage
-const getUserData = () => {
-  try {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      return {
-        firstname: parsedUser.user.firstname || "",
-        lastname: parsedUser.user.lastname || "",
-        email: parsedUser.user.email || "",
-        photoUrl: parsedUser.user.photo || "/images/Avatar.png",
-      };
-    }
-    return null;
-  } catch (error) {
-    console.error("Error al obtener los datos del usuario:", error);
-    return null;
-  }
-};
+import React, { useState, useEffect } from "react";
 
 interface DashboardProps {
-  isOpen: boolean; // Para controlar si el dashboard está abierto o cerrado
-  closeDashboard: () => void; // Función para cerrar el dashboard
+  isOpen: boolean;
+  closeDashboard: () => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ isOpen, closeDashboard }) => {
@@ -40,6 +18,17 @@ const Dashboard: React.FC<DashboardProps> = ({ isOpen, closeDashboard }) => {
     photoUrl: "/images/Avatar.png", // Avatar predeterminado
   });
 
+  // Función para obtener los datos del usuario (simulada)
+  const getUserData = () => {
+    // Simulación de obtener los datos de un usuario (puedes cambiar esta parte)
+    return {
+      firstname: "Juan",
+      lastname: "Pérez",
+      email: "juanperez@gmail.com",
+      photoUrl: "/images/Avatar.png", // Cambiar por la URL real si hay una foto de perfil
+    };
+  };
+
   useEffect(() => {
     const userData = getUserData();
     if (userData) {
@@ -49,7 +38,6 @@ const Dashboard: React.FC<DashboardProps> = ({ isOpen, closeDashboard }) => {
 
   return (
     <>
-      {/* Fondo oscuro de overlay cuando el dashboard está abierto */}
       {isOpen && (
         <div
           onClick={closeDashboard}
@@ -58,47 +46,54 @@ const Dashboard: React.FC<DashboardProps> = ({ isOpen, closeDashboard }) => {
       )}
 
       <div
-        className={`fixed right-0 top-0 w-[300px] bg-[#66397c] shadow-lg z-50 h-screen 
+        className={`fixed right-0 top-0 
+        w-full sm:w-[300px] 
+        bg-[#66397c] shadow-lg z-50 h-screen 
         transform ${isOpen ? "translate-x-0" : "translate-x-full"} 
         transition-transform duration-300`}
       >
-        <div className="relative flex flex-col justify-center items-center h-full p-6">
-          
-          {/* Botón para cerrar el dashboard - Posicionado en la esquina superior izquierda */}
+        <div className="relative flex flex-col justify-center items-center h-full p-4 sm:p-6">
           <button
             onClick={closeDashboard}
-            className="absolute top-4 left-4 text-white font-bold text-xl"
+            className="absolute top-4 left-4 text-white font-bold text-xl sm:text-2xl"
           >
             ✕
           </button>
-          <div className="absolute top-1 pt-10">
-          <img
+
+          <div className="absolute top-2 pt-8 sm:pt-10">
+            <img
               src="/images/valkiriaslogo.jpg"
               alt="Logo de Valkirias"
-              className="h-20 w-auto object-contain"
+              className="h-16 sm:h-20 w-auto object-contain"
             />
-            </div>
-          <h1 className="text-3xl md:text-4xl text-[#e5ded3] mb-6 mt-10">Mi perfil</h1>
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl md:text-4xl text-[#e5ded3] mb-4 sm:mb-6 mt-10 sm:mt-14">
+            Mi perfil
+          </h1>
 
           <img
             src={user.photoUrl}
             alt="Foto de perfil"
-            className="w-32 h-32 mb-6 rounded-full border-b-2"
+            className="w-24 h-24 sm:w-32 sm:h-32 mb-4 sm:mb-6 rounded-full border-b-2"
           />
 
-          <div className="text-lg md:text-xl mt-4">
-            <h2 className="font-semibold mb-6 text-xl underline">Info personal:</h2>
+          <div className="text-base sm:text-lg md:text-xl mt-4">
+            <h2 className="font-semibold mb-4 sm:mb-6 text-lg sm:text-xl underline">Info personal:</h2>
           </div>
 
-          <div className="text-lg md:text-xl">
-            <p className="mb-3 text-center">
-              <span className="font-semibold">Nombre:</span> <span className="font-light">{user.firstname}</span>
+          <div className="text-sm sm:text-base md:text-lg">
+            <p className="mb-2 sm:mb-3 text-center">
+              <span className="font-semibold">Nombre:</span> 
+              <span className="font-light block sm:inline">{user.firstname}</span>
             </p>
-            <p className="mb-3 text-center">
-              <span className="font-semibold">Apellido:</span> <span className="font-light">{user.lastname}</span>
+            <p className="mb-2 sm:mb-3 text-center">
+              <span className="font-semibold">Apellido:</span> 
+              <span className="font-light block sm:inline">{user.lastname}</span>
             </p>
-            <p className="mb-3">
-              <span className="font-semibold"></span> <span className="font-light">{user.email}</span>
+            <p className="mb-2 sm:mb-3 text-center">
+              <span className="font-semibold">Email:</span> 
+              <span className="font-light block sm:inline">{user.email}</span>
             </p>
           </div>
         </div>

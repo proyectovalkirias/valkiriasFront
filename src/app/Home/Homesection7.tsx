@@ -26,9 +26,11 @@ const HomeSection7 = () => {
           <li>Asesoramiento personalizado para cada una de tus consultas.</li>
           <li>Apoyamos los pagos sin contacto y el pago en efectivo.</li>
         </ul>
+        <div className="sm:mb-16">
         <button className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition">
           COMPRA AHORA
         </button>
+        </div>
       </div>
     </section>
   );
