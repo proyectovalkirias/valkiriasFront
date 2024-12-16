@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 
+// Función para obtener los datos de usuario desde localStorage
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
-      // Verifica si existe la propiedad user en los datos
       return {
         firstname: parsedUser.user.firstname || "",
         lastname: parsedUser.user.lastname || "",
@@ -18,11 +18,16 @@ const getUserData = () => {
     return null;
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
-    return null;
+    return null;
   }
 };
 
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+  isOpen: boolean; // Para controlar si el dashboard está abierto o cerrado
+  closeDashboard: () => void; // Función para cerrar el dashboard
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ isOpen, closeDashboard }) => {
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -35,7 +40,6 @@ const Dashboard: React.FC = () => {
     photoUrl: "/images/Avatar.png", // Avatar predeterminado
   });
 
-  // UseEffect para cargar los datos del usuario cuando el componente se monta
   useEffect(() => {
     const userData = getUserData();
     if (userData) {
@@ -44,34 +48,70 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <h1 className="text-4xl md:text-5xl text-[#e5ded3] mb-6">Mi perfil</h1>
+    <>
+      {/* Fondo oscuro de overlay cuando el dashboard está abierto */}
+      {isOpen && (
+        <div
+          onClick={closeDashboard}
+          className="fixed inset-0 bg-black/50 z-40"
+        />
+      )}
 
-      {/* Imagen de perfil del usuario */}
-      <img
-        src={user.photoUrl}
-        alt="Foto de perfil"
-        className="border-b-2 w-[140px] md:w-[170px] lg:w-[200px] mb-2 rounded-full"
-      />
+      <div
+        className={`fixed right-0 top-0 w-full sm:w-[300px] bg-[#66397c] shadow-lg z-50 h-screen 
+        transform ${isOpen ? "translate-x-0" : "translate-x-full"} 
+        transition-transform duration-300`}
+      >
+        <div className="relative flex flex-col items-center h-full p-4 sm:p-6">
+          
+          {/* Botón para cerrar el dashboard */}
+          <button
+            onClick={closeDashboard}
+            className="absolute top-2 right-2 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-white font-bold text-lg sm:text-xl"
+          >
+            ✕
+          </button>
 
-      <div className="text-base md:text-xl mt-6">
-        <h2 className="font-semibold mb-6">Info personal</h2>
+          {/* Logo de la marca */}
+          <div className="absolute top-12">
+            <img
+              src="/images/valkiriaslogo.jpg"
+              alt="Logo de Valkirias"
+              className="h-16 sm:h-20 w-auto object-contain"
+            />
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl md:text-4xl text-[#e5ded3] mb-4 sm:mb-6 mt-24 sm:mt-32 text-center">
+            Mi perfil
+          </h1>
+
+          <img
+            src={user.photoUrl}
+            alt="Foto de perfil"
+            className="w-20 h-20 sm:w-32 sm:h-32 mb-4 sm:mb-6 rounded-full border-2 border-white object-cover"
+          />
+
+          <div className="mt-4 text-center">
+            <h2 className="font-semibold text-lg sm:text-xl mb-4 underline">
+              Info personal:
+            </h2>
+
+            <div className="space-y-3">
+              <p className="text-sm sm:text-lg">
+                <span className="font-semibold">Nombre:</span> {user.firstname || ""}
+              </p>
+              <p className="text-sm sm:text-lg">
+                <span className="font-semibold">Apellido:</span> {user.lastname || ""}
+              </p>
+              <p className="text-sm sm:text-lg">
+                <span className="font-semibold"></span> {user.email || ""}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Información personal del usuario */}
-      <div className="text-base md:text-xl">
-        <p className="mb-2">
-          Nombre: <span className="font-light">{user.firstname}</span>
-        </p>
-        <p className="mb-2">
-          Apellido: <span className="font-light">{user.lastname}</span>
-        </p>
-        <p className="mb-2">
-          Email: <span className="font-light">{user.email}</span>
-        </p>
-      </div>
-    </div>
+    </>
   );
 };
 
-export default Dashboard;
+export default Dashboard;
