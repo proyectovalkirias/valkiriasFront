@@ -70,6 +70,7 @@ const GoogleAuth = () => {
         localStorage.setItem('token', token);
 
         router.push('/dashboard');
+
       } catch (error) {
         console.error('Error durante la autenticación con Google', error);
         router.push('/Login');
