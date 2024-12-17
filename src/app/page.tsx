@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import HomeSection1 from "./Home/Homesection1";
 import HomeSection2 from "./Home/Homesection2";
 import HomeSection3 from "./Home/Homesection3";
@@ -9,17 +10,17 @@ import HomeSection7 from "./Home/Homesection7";
 import HomeSection8 from "./Home/Homesection8";
 
 export default function Home() {
-  return ( 
-    // <div className="flex flex-col overflow-x-hidden">
-    <div>
-      <HomeSection1/>
-      <HomeSection2/>
-      <HomeSection3/>
-      <HomeSection4/>
-      <HomeSection5/>
-      <HomeSection6/>
-      <HomeSection7/>
-      <HomeSection8/>
-      </div>
+  return (
+    <div className="overflow-x-hidden">
+      {/* <Navbar/> */}
+      <HomeSection1 />
+      <HomeSection2 />
+      <HomeSection3 />
+      <HomeSection4 />
+      <HomeSection5 />
+      <HomeSection6 />
+      <HomeSection7 />
+      <HomeSection8 />
+    </div>
   );
 }

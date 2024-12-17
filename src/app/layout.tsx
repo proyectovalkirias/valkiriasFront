@@ -29,15 +29,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="!scroll-smooth">
-    <body className="flex h-screen">
-      {/* Sidebar */}
-      <Sidebar />
+      <body className="flex h-screen   ">
+        <Sidebar />
 
-      {/* Contenido principal */}
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
-    </body>
-  </html>
+        <main className="flex-1 overflow-auto ">{children}</main>
+      </body>
+    </html>
   );
 }

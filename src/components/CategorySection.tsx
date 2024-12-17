@@ -1,21 +1,29 @@
-const CategorySection: React.FC<{ title: string; products: any[] }> = ({
-  title,
-  products,
-}) => {
+import React from "react";
+import { Product } from "@/interfaces/Product";
+
+interface Props {
+  title: string;
+  products: Product[];
+}
+
+const CategorySection: React.FC<Props> = ({ title, products }) => {
   return (
-    <div className="my-8">
-      <h2 className="text-2xl font-bold mb-4">{title}</h2>
-      <div className="grid grid-cols-4 gap-4">
-        {products.map((product, index) => (
+    <div className="mb-8 tra">
+      <h2 className="text-2xl font-bold text-white mb-4">{title}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {products.map((product) => (
           <div
-            key={index}
-            className="border rounded-lg p-4 flex flex-col justify-between"
+            key={product.name}
+            className="p-4 border rounded transform hover:scale-105  shadow bg-white"
           >
-            <div className="h-32 bg-gray-200 mb-4"></div>
-            <div className="text-sm mb-2">Descripción</div>
-            <button className="bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600">
-              Ver más
-            </button>
+            <img
+              src={product.photos[0]}
+              alt={product.name}
+              className="w-full h-40 object-cover"
+            />
+            <h3 className="mt-2 text-lg font-semibold">{product.name}</h3>
+            <p className="text-gray-500">${product.price}</p>
+            <p className="text-sm text-gray-500">{product.color}</p>
           </div>
         ))}
       </div>

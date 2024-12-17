@@ -166,7 +166,10 @@ const Register: React.FC = () => {
 
           <p className="mt-4 text-sm text-white">
             ¿Ya tienes cuenta?{" "}
-            <Link href="/Login" className="font-medium text-purple-300 hover:underline">
+            <Link
+              href="/Login"
+              className="font-medium text-purple-300 hover:underline"
+            >
               Iniciar sesión
             </Link>
           </p>
