@@ -53,13 +53,14 @@ const Login: React.FC = () => {
       // Guardar datos del usuario en el localStorage
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
- 
+
       window.location.href = "/"; // Redirige al dashboard en el cliente
     } catch (err) {
       setError("Hubo un problema al conectar con el servidor.");
       console.error(err);
     }
   };
+
 
   // const handleGoogleLogin = () => {
   //   const clientID =
@@ -84,6 +85,7 @@ const Login: React.FC = () => {
   `&scope=${encodeURIComponent(scope)}`;
 
     window.location.href = googleAuthUrl;
+
   };
 
   const handleForgotPassword = async () => {
@@ -163,7 +165,9 @@ const Login: React.FC = () => {
           </form>
 
           <button
+
             onClick={handleGoogleLogin2}
+
             className="mb-4 rounded-md bg-white px-4 py-2 w-full"
           >
             <div className="flex items-center justify-center space-x-2">
@@ -176,6 +180,7 @@ const Login: React.FC = () => {
               <span className="text-black">Iniciar sesión con Google</span>
             </div>
           </button>
+
 
 
           <button

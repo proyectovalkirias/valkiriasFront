@@ -7,6 +7,7 @@ import { FaRegUser } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
 import { useRouter } from "next/router";
 
+
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
@@ -20,6 +21,7 @@ const getUserData = () => {
         email: parsedUser.user.email || "",
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
       };
+
     } else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
 
@@ -33,6 +35,7 @@ const getUserData = () => {
       };
     }
 
+
     return null;
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
@@ -42,10 +45,12 @@ const getUserData = () => {
 
 
 
+
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isAccordionOpen, setIsAccordionOpen] = useState(false); 
   const [categories, setCategories] = useState<string[]>([]); 
+
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -66,6 +71,10 @@ const Sidebar: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const response = await fetch("http://localhost:3000/products");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
         const data = await response.json();
 
         const uniqueCategories = Array.from(
@@ -74,9 +83,12 @@ const Sidebar: React.FC = () => {
           )
         );
 
-        setCategories(uniqueCategories); 
+
+        setCategories(uniqueCategories);
       } catch (error) {
         console.error("Error al obtener las categorías:", error);
+        // Optionally set an error state here
+
       }
     };
 
@@ -86,18 +98,20 @@ const Sidebar: React.FC = () => {
  
   const handleNavigation = (path: string) => {
     window.location.href = path; 
+
   };
 
   const toggleAccordion = () => {
     setIsAccordionOpen(!isAccordionOpen);
     handleNavigation("/Products");
 
-    // Alternar el estado del acordeón
+ 
   };
 
   const handleLogout = () => {
     localStorage.removeItem("user"); // Eliminar los datos del usuario del localStorage
     localStorage.removeItem("user_info"); // Eliminar los datos de Google del localStorage
+
     setUser(null); // Limpiar el estado del usuario
     handleNavigation("/Login"); // Redirigir al login
   };
@@ -113,6 +127,7 @@ const Sidebar: React.FC = () => {
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
+
         {isOpen ? (
           <img
             src="/images/valkiriaslogo.jpg"
@@ -135,6 +150,7 @@ const Sidebar: React.FC = () => {
             }}
           />
         )}
+
       </div>
 
       {/* Navegación */}
@@ -149,6 +165,7 @@ const Sidebar: React.FC = () => {
           </li>
           {/* Acordeón para Productos */}
           <li>
+
             <div
               className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer"
               onClick={toggleAccordion}
@@ -158,6 +175,7 @@ const Sidebar: React.FC = () => {
                 {isOpen && <span>Productos</span>}
               </div>
               {isOpen && <span>{isAccordionOpen ? "▼" : "▶"}</span>}
+
             </div>
             {isAccordionOpen && (
               <ul className="ml-8">
@@ -165,7 +183,15 @@ const Sidebar: React.FC = () => {
                   <li
                     key={category}
                     className="py-1 hover:text-gray-300 cursor-pointer"
+
                     onClick={() => handleNavigation(`/products/${category}`)}
+
+                    onClick={() =>
+                      handleNavigation(
+                        `/Products/category?category=${category}`
+                      )
+                    }
+
                   >
                     {category}
                   </li>
