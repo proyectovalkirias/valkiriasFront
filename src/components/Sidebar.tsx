@@ -19,8 +19,12 @@ const getUserData = () => {
         email: parsedUser.user.email || "",
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
       };
+
+
     } else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
+
+      console.log("Google User:", googleUser);
 
       return {
         firstname: googleUser.given_name || "",
@@ -37,16 +41,22 @@ const getUserData = () => {
   }
 };
 
+
+
+
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
+
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
     email: string;
     photoUrl: string;
   } | null>(null);
+
+
 
   useEffect(() => {
     const userData = getUserData();
@@ -55,10 +65,14 @@ const Sidebar: React.FC = () => {
     }
   }, []);
 
+
+
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await fetch("http://localhost:3000/products");
+
         if (!response.ok) {
           throw new Error("Failed to fetch categories");
         }
@@ -70,6 +84,7 @@ const Sidebar: React.FC = () => {
           )
         );
 
+
         setCategories(uniqueCategories);
       } catch (error) {
         console.error("Error al obtener las categorías:", error);
@@ -79,6 +94,7 @@ const Sidebar: React.FC = () => {
     fetchCategories();
   }, []);
 
+
   const handleNavigation = (path: string) => {
     window.location.href = path;
   };
@@ -86,13 +102,18 @@ const Sidebar: React.FC = () => {
   const handleCategoryClick = (category: string) => {
     localStorage.setItem("selectedCategory", category);
     handleNavigation("/Products");
+
   };
 
   const toggleAccordion = () => {
     setIsAccordionOpen(!isAccordionOpen);
+    handleNavigation("/Products");
+
+ 
   };
 
   const handleLogout = () => {
+
     localStorage.removeItem("user");
     localStorage.removeItem("user_info");
     setUser(null);
@@ -102,6 +123,7 @@ const Sidebar: React.FC = () => {
   const handleProducts = () => {
     localStorage.removeItem("selectedCategory");
     handleNavigation("/Products");
+
   };
 
   return (
@@ -114,6 +136,7 @@ const Sidebar: React.FC = () => {
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
+
         {isOpen ? (
           <img
             src="/images/valkiriaslogo.jpg"
@@ -136,6 +159,7 @@ const Sidebar: React.FC = () => {
             }}
           />
         )}
+
       </div>
 
       <nav className="mt-4 flex-grow">
@@ -152,11 +176,13 @@ const Sidebar: React.FC = () => {
               className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer"
               onClick={toggleAccordion}
             >
+
               <div className="flex items-center gap-4">
                 <IoShirtOutline size={24} />
                 {isOpen && <span onClick={handleProducts}>Productos</span>}
               </div>
               {isOpen && <span>{isAccordionOpen ? "▼" : "▶"}</span>}
+
             </div>
             {isAccordionOpen && (
               <ul className="ml-8">
@@ -164,6 +190,7 @@ const Sidebar: React.FC = () => {
                   <li
                     key={category}
                     className="py-1 hover:text-gray-300 cursor-pointer"
+
                     onClick={() => handleCategoryClick(category)}
                   >
                     {category}
