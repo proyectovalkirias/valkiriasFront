@@ -61,14 +61,29 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
+  // const handleGoogleLogin = () => {
+  //   const clientID =
+  //     "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
+  //   const redirectURI = "http://localhost:3000/google/redirect";
+  //   const scope = "openid profile email";
+  //   const responseType = "code";
+
+  //   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientID}&redirect_uri=${redirectURI}&response_type=${responseType}&scope=${scope}`;
+  // };
+  const handleGoogleLogin2 = () => {
     const clientID =
       "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
-    const redirectURI = "http://localhost:3000/google/redirect";
+    const redirectURI = "http://localhost:3001/Logingoogle";
     const scope = "openid profile email";
     const responseType = "code";
 
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientID}&redirect_uri=${redirectURI}&response_type=${responseType}&scope=${scope}`;
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+  `client_id=${clientID}` +
+  `&redirect_uri=${encodeURIComponent(redirectURI)}` +
+  `&response_type=${responseType}` +
+  `&scope=${encodeURIComponent(scope)}`;
+
+    window.location.href = googleAuthUrl;
   };
 
   const handleForgotPassword = async () => {
@@ -148,7 +163,7 @@ const Login: React.FC = () => {
           </form>
 
           <button
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleLogin2}
             className="mb-4 rounded-md bg-white px-4 py-2 w-full"
           >
             <div className="flex items-center justify-center space-x-2">
@@ -161,6 +176,7 @@ const Login: React.FC = () => {
               <span className="text-black">Iniciar sesión con Google</span>
             </div>
           </button>
+
 
           <button
             onClick={handleForgotPassword}

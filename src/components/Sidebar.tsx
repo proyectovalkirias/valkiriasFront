@@ -7,10 +7,11 @@ import { FaRegUser } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
 import { useRouter } from "next/router";
 
-// Función para obtener los datos del usuario desde localStorage
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
+    const storedGoogleUser = localStorage.getItem("user_info");
+
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
@@ -19,7 +20,19 @@ const getUserData = () => {
         email: parsedUser.user.email || "",
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
       };
+    } else if (storedGoogleUser) {
+      const googleUser = JSON.parse(storedGoogleUser);
+
+      console.log("Google User:", googleUser);
+
+      return {
+        firstname: googleUser.given_name || "",
+        lastname: googleUser.family_name || "",
+        email: googleUser.email || "",
+        photoUrl: googleUser.picture || "/images/Avatar.png",
+      };
     }
+
     return null;
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
@@ -27,10 +40,12 @@ const getUserData = () => {
   }
 };
 
+
+
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const [isAccordionOpen, setIsAccordionOpen] = useState(false); // Estado para el acordeón
-  const [categories, setCategories] = useState<string[]>([]); // Categorías dinámicas
+  const [isAccordionOpen, setIsAccordionOpen] = useState(false); 
+  const [categories, setCategories] = useState<string[]>([]); 
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -38,7 +53,7 @@ const Sidebar: React.FC = () => {
     photoUrl: string;
   } | null>(null);
 
-  // Cargar los datos del usuario al montar el componente
+
   useEffect(() => {
     const userData = getUserData();
     if (userData) {
@@ -46,21 +61,20 @@ const Sidebar: React.FC = () => {
     }
   }, []);
 
-  // Cargar las categorías dinámicamente desde la API
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await fetch("http://localhost:3000/products");
         const data = await response.json();
 
-        // Asegúrate de tipar los datos correctamente
         const uniqueCategories = Array.from(
           new Set(
             (data as { category: string }[]).map((product) => product.category)
           )
         );
 
-        setCategories(uniqueCategories); // Ahora no habrá error
+        setCategories(uniqueCategories); 
       } catch (error) {
         console.error("Error al obtener las categorías:", error);
       }
@@ -69,9 +83,9 @@ const Sidebar: React.FC = () => {
     fetchCategories();
   }, []);
 
-  // Función para manejar la redirección
+ 
   const handleNavigation = (path: string) => {
-    window.location.href = path; // Redirige al path especificado
+    window.location.href = path; 
   };
 
   const toggleAccordion = () => {
@@ -83,6 +97,7 @@ const Sidebar: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("user"); // Eliminar los datos del usuario del localStorage
+    localStorage.removeItem("user_info"); // Eliminar los datos de Google del localStorage
     setUser(null); // Limpiar el estado del usuario
     handleNavigation("/Login"); // Redirigir al login
   };
