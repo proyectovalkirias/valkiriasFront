@@ -48,9 +48,6 @@ const GoogleAuth = () => {
         // Redirigir a Dashboard o a la página principal
         router.push('/Dashboard');
 
-
-        // cami este lo agregue yo (facu) lo necesito para el dashboard, aunque no me funciona todavia 
-
         // Hacer una solicitud para obtener los detalles del usuario, incluyendo foto de perfil
         const userRes = await axios.get('http://localhost:3000/api/user', {
           headers: { Authorization: `Bearer ${token}` },
@@ -69,7 +66,7 @@ const GoogleAuth = () => {
         // Guardamos el token
         localStorage.setItem('token', token);
 
-        router.push('/dashboard');
+        router.push('/Dashboard');
 
       } catch (error) {
         console.error('Error durante la autenticación con Google', error);

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import Home from "./page";
 import Sidebar from "@/components/Sidebar";
 
 const geistSans = localFont({
@@ -26,9 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="!scroll-smooth">
-      <body className="flex h-screen w-16">
+      <body className="flex h-screen   ">
         <Sidebar />
-        <main className="flex-1 overflow-auto">{children}</main>
+
+        <main className="flex-1 overflow-auto ">{children}</main>
       </body>
     </html>
   );
