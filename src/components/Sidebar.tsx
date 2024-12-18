@@ -5,12 +5,12 @@ import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
-import { useRouter } from "next/router";
 
-// Función para obtener los datos del usuario desde localStorage
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
+    const storedGoogleUser = localStorage.getItem("user_info");
+
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
@@ -19,7 +19,17 @@ const getUserData = () => {
         email: parsedUser.user.email || "",
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
       };
+    } else if (storedGoogleUser) {
+      const googleUser = JSON.parse(storedGoogleUser);
+
+      return {
+        firstname: googleUser.given_name || "",
+        lastname: googleUser.family_name || "",
+        email: googleUser.email || "",
+        photoUrl: googleUser.picture || "/images/Avatar.png",
+      };
     }
+
     return null;
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
@@ -29,8 +39,8 @@ const getUserData = () => {
 
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const [isAccordionOpen, setIsAccordionOpen] = useState(false); // Estado para el acordeón
-  const [categories, setCategories] = useState<string[]>([]); // Categorías dinámicas
+  const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -38,7 +48,6 @@ const Sidebar: React.FC = () => {
     photoUrl: string;
   } | null>(null);
 
-  // Cargar los datos del usuario al montar el componente
   useEffect(() => {
     const userData = getUserData();
     if (userData) {
@@ -46,7 +55,6 @@ const Sidebar: React.FC = () => {
     }
   }, []);
 
-  // Cargar las categorías dinámicamente desde la API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -65,16 +73,19 @@ const Sidebar: React.FC = () => {
         setCategories(uniqueCategories);
       } catch (error) {
         console.error("Error al obtener las categorías:", error);
-        // Optionally set an error state here
       }
     };
 
     fetchCategories();
   }, []);
 
-  // Función para manejar la redirección
   const handleNavigation = (path: string) => {
-    window.location.href = path; // Redirige al path especificado
+    window.location.href = path;
+  };
+
+  const handleCategoryClick = (category: string) => {
+    localStorage.setItem("selectedCategory", category);
+    handleNavigation("/Products");
   };
 
   const toggleAccordion = () => {
@@ -82,9 +93,15 @@ const Sidebar: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user"); // Eliminar los datos del usuario del localStorage
-    setUser(null); // Limpiar el estado del usuario
-    handleNavigation("/Login"); // Redirigir al login
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_info");
+    setUser(null);
+    handleNavigation("/Login");
+  };
+
+  const handleProducts = () => {
+    localStorage.removeItem("selectedCategory");
+    handleNavigation("/Products");
   };
 
   return (
@@ -93,24 +110,34 @@ const Sidebar: React.FC = () => {
         isOpen ? "w-64" : "w-16 closed"
       } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300`}
     >
-      {/* Logo */}
       <div
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <img
-          src={isOpen ? "/images/valkiriaslogo.jpg" : "/images/LogCircular.jpg"}
-          alt={isOpen ? "Logo Valkirias" : "Logo Circular"}
-          className={isOpen ? "" : "rounded-full"}
-          style={{
-            width: isOpen ? "150px" : "40px",
-            height: isOpen ? "auto" : "40px",
-            objectFit: "contain",
-          }}
-        />
+        {isOpen ? (
+          <img
+            src="/images/valkiriaslogo.jpg"
+            alt="Logo Valkirias"
+            style={{
+              width: isOpen ? "150px" : "40px",
+              height: isOpen ? "auto" : "40px",
+              objectFit: "contain",
+            }}
+          />
+        ) : (
+          <img
+            src="/images/LogCircular.jpg"
+            alt="Logo Circular"
+            className="rounded-full"
+            style={{
+              width: "40px",
+              height: "40px",
+              objectFit: "contain",
+            }}
+          />
+        )}
       </div>
 
-      {/* Navegación */}
       <nav className="mt-4 flex-grow">
         <ul>
           <li
@@ -120,22 +147,16 @@ const Sidebar: React.FC = () => {
             <TbHomeHeart size={24} />
             {isOpen && <span>Inicio</span>}
           </li>
-          {/* Acordeón para Productos */}
           <li>
-            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
+            <div
+              className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer"
+              onClick={toggleAccordion}
+            >
               <div className="flex items-center gap-4">
                 <IoShirtOutline size={24} />
-                {isOpen && (
-                  <span onClick={() => handleNavigation("/Products")}>
-                    Productos
-                  </span>
-                )}
+                {isOpen && <span onClick={handleProducts}>Productos</span>}
               </div>
-              {isOpen && (
-                <span onClick={toggleAccordion} className="hover:scale-110">
-                  {isAccordionOpen ? "▼" : "▶"}
-                </span>
-              )}
+              {isOpen && <span>{isAccordionOpen ? "▼" : "▶"}</span>}
             </div>
             {isAccordionOpen && (
               <ul className="ml-8">
@@ -143,11 +164,7 @@ const Sidebar: React.FC = () => {
                   <li
                     key={category}
                     className="py-1 hover:text-gray-300 cursor-pointer"
-                    onClick={() =>
-                      handleNavigation(
-                        `/Products/category?category=${category}`
-                      )
-                    }
+                    onClick={() => handleCategoryClick(category)}
                   >
                     {category}
                   </li>
@@ -181,8 +198,6 @@ const Sidebar: React.FC = () => {
           )}
         </ul>
       </nav>
-
-      {/* Información del usuario */}
       {user && (
         <div className="p-4 flex items-center gap-4">
           <img
