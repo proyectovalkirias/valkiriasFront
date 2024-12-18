@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Home from "./page";
+// import Home from "./page";
 import Sidebar from "@/components/Sidebar";
 
-const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
+// const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
