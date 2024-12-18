@@ -1,111 +1,75 @@
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import axios from 'axios';
+"use client";
+import React, { useEffect } from "react";
 
-const GoogleAuth = () => {
-  const router = useRouter();
-
+const Logingoogle: React.FC = () => {
   useEffect(() => {
-    const fetchGoogleAuth = async () => {
-      try {
-        const { code } = router.query;
-        console.log('Query params:', router.query);
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
 
-        if (!code) throw new Error('Authorization code is missing');
-        
-        const res = await axios.post(
-          // 'http://localhost:3000/google/redirect', 
-          // { code }
-          `http://localhost:3000/google/redirect?code=${code}`
-        );
-
-
-        const { token, user } = res.data;
-        console.log('Token recibido', token);
-        console.log('Usuario recibido:', user);
-
-        // Guardamos el token
-        localStorage.setItem('token', token);
-
-        // Obtener información del usuario desde Google API
-        const userInfo = await axios.get(
-          `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${token}`
-        );
-
-        const { given_name, family_name, email, picture } = userInfo.data;
-
-        // Guardamos la información del usuario en localStorage
-        localStorage.setItem(
-          'user',
-          JSON.stringify({
-            firstname: given_name,
-            lastname: family_name,
-            email,
-            photo: picture,
-          })
-        );
-
-        // Redirigir a Dashboard o a la página principal
-        router.push('/Dashboard');
-
-
-        // cami este lo agregue yo (facu) lo necesito para el dashboard, aunque no me funciona todavia 
-
-        // Hacer una solicitud para obtener los detalles del usuario, incluyendo foto de perfil
-        const userRes = await axios.get('http://localhost:3000/api/user', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const userData = {
-          name: userRes.data.name,
-          email: userRes.data.email,
-          photoUrl: userRes.data.photoUrl,
-        };
-
-        
-        // Guardamos la información del usuario
-        localStorage.setItem('user', JSON.stringify(userData));
-
-        // Guardamos el token
-        localStorage.setItem('token', token);
-
-        router.push('/dashboard');
-
-      } catch (error) {
-        console.error('Error durante la autenticación con Google', error);
-        router.push('/Login');
-      }
-    };
-
-    if (router.query.code) {
-      console.log('Redirigiendo con el código:', router.query.code);
-      fetchGoogleAuth();
+    if (code) {
+      exchangeCodeForToken(code);
     }
-  }, [router.isReady, router.query.code]);
-  
-  
-  const handleLogout = async () => {
+  }, []);
+
+  const exchangeCodeForToken = async (code: string) => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
+    const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI!;
+    const tokenUrl = process.env.TOKEN_URL!;
+   
+
+    const body = new URLSearchParams();
+    body.append("code", code);
+    body.append("client_id", clientId);
+    body.append("client_secret", clientSecret);
+    body.append("redirect_uri", redirectUri);
+    body.append("grant_type", "authorization_code");
+
+
     try {
-      const token = localStorage.getItem('token');
-      if(!token){
-        console.error('No token found');
-        return;
+      const response = await fetch(tokenUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+      });
+
+      const data = await response.json();
+
+      if (data.access_token) {
+        localStorage.setItem('access_token', data.access_token);
+        fetchUserInfo(data.access_token);
       }
-      
-      await axios.post('http://localhost:3000/google/logout', { token });
-      localStorage.removeItem('token');
-      console.log('Logout successfull');
-      router.push('/dashboard')
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('Error exchanging code:', error);
+    }
+  };
+
+  const fetchUserInfo = async (accessToken: string) => {
+    const userInfoUrl = 'https://www.googleapis.com/oauth2/v3/userinfo';
+
+    try {
+      const response = await fetch(userInfoUrl, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const userInfo = await response.json();
+      localStorage.setItem('user_info', JSON.stringify(userInfo));
+      alert(`Bienvenido, ${userInfo.name}! Tu email es: ${userInfo.email}`);
+      window.location.href = "/";
+    } catch (error) {
+      console.error('Error fetching user info:', error);
     }
   };
 
   return (
-    <div>
-    <button onClick={handleLogout}>Logout</button>
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1>Procesando Inicio de Sesión...</h1>
+      <p>Por favor, espera mientras procesamos tu inicio de sesión con Google.</p>
     </div>
   );
 };
 
-export default GoogleAuth;
+export default Logingoogle;
