@@ -4,8 +4,6 @@ import "./globals.css";
 // import Home from "./page";
 import Sidebar from "@/components/Sidebar";
 
-// const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
-
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
