@@ -51,18 +51,21 @@ const Sidebar: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const response = await fetch("http://localhost:3000/products");
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
         const data = await response.json();
 
-        // Asegúrate de tipar los datos correctamente
         const uniqueCategories = Array.from(
           new Set(
             (data as { category: string }[]).map((product) => product.category)
           )
         );
 
-        setCategories(uniqueCategories); // Ahora no habrá error
+        setCategories(uniqueCategories);
       } catch (error) {
         console.error("Error al obtener las categorías:", error);
+        // Optionally set an error state here
       }
     };
 
@@ -76,9 +79,6 @@ const Sidebar: React.FC = () => {
 
   const toggleAccordion = () => {
     setIsAccordionOpen(!isAccordionOpen);
-    handleNavigation("/Products");
-
-    // Alternar el estado del acordeón
   };
 
   const handleLogout = () => {
@@ -98,28 +98,16 @@ const Sidebar: React.FC = () => {
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? (
-          <img
-            src="/images/valkiriaslogo.jpg"
-            alt="Logo Valkirias"
-            style={{
-              width: isOpen ? "150px" : "40px",
-              height: isOpen ? "auto" : "40px",
-              objectFit: "contain",
-            }}
-          />
-        ) : (
-          <img
-            src="/images/LogCircular.jpg"
-            alt="Logo Circular"
-            className="rounded-full"
-            style={{
-              width: "40px",
-              height: "40px",
-              objectFit: "contain",
-            }}
-          />
-        )}
+        <img
+          src={isOpen ? "/images/valkiriaslogo.jpg" : "/images/LogCircular.jpg"}
+          alt={isOpen ? "Logo Valkirias" : "Logo Circular"}
+          className={isOpen ? "" : "rounded-full"}
+          style={{
+            width: isOpen ? "150px" : "40px",
+            height: isOpen ? "auto" : "40px",
+            objectFit: "contain",
+          }}
+        />
       </div>
 
       {/* Navegación */}
@@ -134,15 +122,20 @@ const Sidebar: React.FC = () => {
           </li>
           {/* Acordeón para Productos */}
           <li>
-            <div
-              className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer"
-              onClick={toggleAccordion}
-            >
-              <div className="flex items-center gap-4 ">
+            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
+              <div className="flex items-center gap-4">
                 <IoShirtOutline size={24} />
-                {isOpen && <span>Productos</span>}
+                {isOpen && (
+                  <span onClick={() => handleNavigation("/Products")}>
+                    Productos
+                  </span>
+                )}
               </div>
-              {isOpen && <span>{isAccordionOpen ? "▼" : "▶"}</span>}
+              {isOpen && (
+                <span onClick={toggleAccordion} className="hover:scale-110">
+                  {isAccordionOpen ? "▼" : "▶"}
+                </span>
+              )}
             </div>
             {isAccordionOpen && (
               <ul className="ml-8">
@@ -150,7 +143,11 @@ const Sidebar: React.FC = () => {
                   <li
                     key={category}
                     className="py-1 hover:text-gray-300 cursor-pointer"
-                    onClick={() => handleNavigation(`/products/${category}`)}
+                    onClick={() =>
+                      handleNavigation(
+                        `/Products/category?category=${category}`
+                      )
+                    }
                   >
                     {category}
                   </li>
