@@ -5,8 +5,6 @@ import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
-import { useRouter } from "next/router";
-
 
 const getUserData = () => {
   try {
@@ -22,6 +20,7 @@ const getUserData = () => {
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
       };
 
+
     } else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
 
@@ -35,7 +34,6 @@ const getUserData = () => {
       };
     }
 
-
     return null;
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
@@ -48,8 +46,8 @@ const getUserData = () => {
 
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const [isAccordionOpen, setIsAccordionOpen] = useState(false); 
-  const [categories, setCategories] = useState<string[]>([]); 
+  const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
 
   const [user, setUser] = useState<{
     firstname: string;
@@ -59,12 +57,15 @@ const Sidebar: React.FC = () => {
   } | null>(null);
 
 
+
   useEffect(() => {
     const userData = getUserData();
     if (userData) {
       setUser(userData);
     }
   }, []);
+
+
 
 
   useEffect(() => {
@@ -87,17 +88,20 @@ const Sidebar: React.FC = () => {
         setCategories(uniqueCategories);
       } catch (error) {
         console.error("Error al obtener las categorías:", error);
-        // Optionally set an error state here
-
       }
     };
 
     fetchCategories();
   }, []);
 
- 
+
   const handleNavigation = (path: string) => {
-    window.location.href = path; 
+    window.location.href = path;
+  };
+
+  const handleCategoryClick = (category: string) => {
+    localStorage.setItem("selectedCategory", category);
+    handleNavigation("/Products");
 
   };
 
@@ -109,11 +113,17 @@ const Sidebar: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user"); // Eliminar los datos del usuario del localStorage
-    localStorage.removeItem("user_info"); // Eliminar los datos de Google del localStorage
 
-    setUser(null); // Limpiar el estado del usuario
-    handleNavigation("/Login"); // Redirigir al login
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_info");
+    setUser(null);
+    handleNavigation("/Login");
+  };
+
+  const handleProducts = () => {
+    localStorage.removeItem("selectedCategory");
+    handleNavigation("/Products");
+
   };
 
   return (
@@ -122,7 +132,6 @@ const Sidebar: React.FC = () => {
         isOpen ? "w-64" : "w-16 closed"
       } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300`}
     >
-      {/* Logo */}
       <div
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={() => setIsOpen(!isOpen)}
@@ -153,7 +162,6 @@ const Sidebar: React.FC = () => {
 
       </div>
 
-      {/* Navegación */}
       <nav className="mt-4 flex-grow">
         <ul>
           <li
@@ -163,16 +171,15 @@ const Sidebar: React.FC = () => {
             <TbHomeHeart size={24} />
             {isOpen && <span>Inicio</span>}
           </li>
-          {/* Acordeón para Productos */}
           <li>
-
             <div
               className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer"
               onClick={toggleAccordion}
             >
-              <div className="flex items-center gap-4 ">
+
+              <div className="flex items-center gap-4">
                 <IoShirtOutline size={24} />
-                {isOpen && <span>Productos</span>}
+                {isOpen && <span onClick={handleProducts}>Productos</span>}
               </div>
               {isOpen && <span>{isAccordionOpen ? "▼" : "▶"}</span>}
 
@@ -184,14 +191,7 @@ const Sidebar: React.FC = () => {
                     key={category}
                     className="py-1 hover:text-gray-300 cursor-pointer"
 
-                    onClick={() => handleNavigation(`/products/${category}`)}
-
-                    onClick={() =>
-                      handleNavigation(
-                        `/Products/category?category=${category}`
-                      )
-                    }
-
+                    onClick={() => handleCategoryClick(category)}
                   >
                     {category}
                   </li>
@@ -225,8 +225,6 @@ const Sidebar: React.FC = () => {
           )}
         </ul>
       </nav>
-
-      {/* Información del usuario */}
       {user && (
         <div className="p-4 flex items-center gap-4">
           <img
