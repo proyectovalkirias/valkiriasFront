@@ -5,19 +5,18 @@ import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
-import { useRouter } from "next/router";
+import { useRouter, usePathname } from "next/navigation";
 
-// Función para obtener los datos del usuario desde localStorage
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
-        firstname: parsedUser.user.firstname || "",
-        lastname: parsedUser.user.lastname || "",
-        email: parsedUser.user.email || "",
-        photoUrl: parsedUser.user.photo || "/images/Avatar.png",
+        firstname: parsedUser.user?.firstname || parsedUser?.firstname || "",
+        lastname: parsedUser.user?.lastname || parsedUser?.lastname || "",
+        email: parsedUser.user?.email || parsedUser?.email || "",
+        photoUrl: parsedUser.user?.photo || parsedUser?.photo || "/images/Avatar.png",
       };
     }
     return null;
@@ -28,9 +27,12 @@ const getUserData = () => {
 };
 
 const Sidebar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [isAccordionOpen, setIsAccordionOpen] = useState(false); // Estado para el acordeón
-  const [categories, setCategories] = useState<string[]>([]); // Categorías dinámicas
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false); // La barra comienza cerrada por defecto
+  const [isProductMenuOpen, setIsProductMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -38,7 +40,6 @@ const Sidebar: React.FC = () => {
     photoUrl: string;
   } | null>(null);
 
-  // Cargar los datos del usuario al montar el componente
   useEffect(() => {
     const userData = getUserData();
     if (userData) {
@@ -46,21 +47,15 @@ const Sidebar: React.FC = () => {
     }
   }, []);
 
-  // Cargar las categorías dinámicamente desde la API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await fetch("http://localhost:3000/products");
         const data = await response.json();
-
-        // Asegúrate de tipar los datos correctamente
         const uniqueCategories = Array.from(
-          new Set(
-            (data as { category: string }[]).map((product) => product.category)
-          )
+          new Set(data.map((product: { category: string }) => product.category))
         );
-
-        setCategories(uniqueCategories); // Ahora no habrá error
+        setCategories(uniqueCategories);
       } catch (error) {
         console.error("Error al obtener las categorías:", error);
       }
@@ -69,57 +64,42 @@ const Sidebar: React.FC = () => {
     fetchCategories();
   }, []);
 
-  // Función para manejar la redirección
   const handleNavigation = (path: string) => {
-    window.location.href = path; // Redirige al path especificado
+    router.push(path);
   };
 
-  const toggleAccordion = () => {
-    setIsAccordionOpen(!isAccordionOpen);
-    handleNavigation("/Products");
+  const toggleProductMenu = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsProductMenuOpen(!isProductMenuOpen);
+  };
 
-    // Alternar el estado del acordeón
+  const toggleProfileMenu = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsProfileMenuOpen(!isProfileMenuOpen);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user"); // Eliminar los datos del usuario del localStorage
-    setUser(null); // Limpiar el estado del usuario
-    handleNavigation("/Login"); // Redirigir al login
+    localStorage.removeItem("user");
+    setUser(null);
+    handleNavigation("/Login");
   };
 
   return (
     <div
-      className={`${
-        isOpen ? "w-64" : "w-16 closed"
-      } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300`}
+      className={`fixed top-0 left-0 h-screen bg-purple-dark text-white transition-all duration-300 z-50 ${
+        isOpen ? "w-64" : "w-16"
+      }`}
     >
       {/* Logo */}
       <div
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? (
-          <img
-            src="/images/valkiriaslogo.jpg"
-            alt="Logo Valkirias"
-            style={{
-              width: isOpen ? "150px" : "40px",
-              height: isOpen ? "auto" : "40px",
-              objectFit: "contain",
-            }}
-          />
-        ) : (
-          <img
-            src="/images/LogCircular.jpg"
-            alt="Logo Circular"
-            className="rounded-full"
-            style={{
-              width: "40px",
-              height: "40px",
-              objectFit: "contain",
-            }}
-          />
-        )}
+        <img
+          src={isOpen ? "/images/valkiriaslogo.jpg" : "/images/LogCircular.jpg"}
+          alt="Logo Valkirias"
+          style={{ width: isOpen ? "150px" : "40px" }}
+        />
       </div>
 
       {/* Navegación */}
@@ -132,74 +112,59 @@ const Sidebar: React.FC = () => {
             <TbHomeHeart size={24} />
             {isOpen && <span>Inicio</span>}
           </li>
-          {/* Acordeón para Productos */}
+
           <li>
-            <div
-              className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer"
-              onClick={toggleAccordion}
-            >
-              <div className="flex items-center gap-4 ">
+            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
+              <div className="flex items-center gap-4" onClick={() => handleNavigation("/Products")}>
                 <IoShirtOutline size={24} />
                 {isOpen && <span>Productos</span>}
               </div>
-              {isOpen && <span>{isAccordionOpen ? "▼" : "▶"}</span>}
             </div>
-            {isAccordionOpen && (
+          </li>
+
+          <li>
+            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
+              <div className="flex items-center gap-4" onClick={() => handleNavigation("/Dashboard")}>
+                <FaRegUser size={24} />
+                {isOpen && <span>Mi Perfil</span>}
+              </div>
+              {isOpen && (
+                <span onClick={toggleProfileMenu}>
+                  {isProfileMenuOpen ? "▼" : "▶"}
+                </span>
+              )}
+            </div>
+            {isProfileMenuOpen && (
               <ul className="ml-8">
-                {categories.map((category) => (
+                {["ProfileConfiguration", "Directions", "Orders", "ChangePassword"].map((path, index) => (
                   <li
-                    key={category}
-                    className="py-1 hover:text-gray-300 cursor-pointer"
-                    onClick={() => handleNavigation(`/products/${category}`)}
+                    key={path}
+                    className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => handleNavigation(`/${path}`)}
                   >
-                    {category}
+                    {isOpen && <span>{["Configuración", "Direcciones", "Mis Compras", "Cambiar Contraseña"][index]}</span>}
                   </li>
                 ))}
               </ul>
             )}
           </li>
-          <li
-            className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-            onClick={() => handleNavigation("/About")}
-          >
-            <FaRegUser size={24} />
-            {isOpen && <span>Sobre Nosotros</span>}
+
+          <li className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer" onClick={handleLogout}>
+            <CiLogin size={24} />
+            {isOpen && <span>Cerrar Sesión</span>}
           </li>
-          {!user ? (
-            <li
-              className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-              onClick={() => handleNavigation("/Login")}
-            >
-              <CiLogin size={24} />
-              {isOpen && <span>Iniciar Sesión</span>}
-            </li>
-          ) : (
-            <li
-              className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-              onClick={handleLogout}
-            >
-              <CiLogin size={24} />
-              {isOpen && <span>Cerrar Sesión</span>}
-            </li>
-          )}
         </ul>
       </nav>
 
-      {/* Información del usuario */}
       {user && (
         <div className="p-4 flex items-center gap-4">
           <img
             src={user.photoUrl}
             alt="Foto de perfil"
-            className="rounded-full border-2 border-gray-500 transition-all duration-300"
-            style={{
-              objectFit: "contain",
-              width: isOpen ? "48px" : "32px",
-              height: isOpen ? "48px" : "32px",
-            }}
+            className="rounded-full w-12 h-12"
           />
           {isOpen && (
-            <div className="text-sm">
+            <div>
               <p className="font-semibold">
                 {user.firstname} {user.lastname}
               </p>

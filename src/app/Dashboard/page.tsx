@@ -9,10 +9,10 @@ const getUserData = () => {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
-        firstname: parsedUser.user.firstname || "",
-        lastname: parsedUser.user.lastname || "",
-        email: parsedUser.user.email || "",
-        photoUrl: parsedUser.user.photo || "/images/Avatar.png",
+        firstname: parsedUser.user?.firstname || "",
+        lastname: parsedUser.user?.lastname || "",
+        email: parsedUser.user?.email || "",
+        photoUrl: parsedUser.user?.photo || "/images/Avatar.png",
       };
     }
     return null;
@@ -22,12 +22,7 @@ const getUserData = () => {
   }
 };
 
-interface DashboardProps {
-  isOpen: boolean; // Para controlar si el dashboard está abierto o cerrado
-  closeDashboard: () => void; // Función para cerrar el dashboard
-}
-
-const Dashboard: React.FC<DashboardProps> = ({ isOpen, closeDashboard }) => {
+const Dashboard: React.FC = () => {
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -40,6 +35,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isOpen, closeDashboard }) => {
     photoUrl: "/images/Avatar.png", // Avatar predeterminado
   });
 
+  // Se ejecuta al cargar la página para obtener los datos de usuario
   useEffect(() => {
     const userData = getUserData();
     if (userData) {
@@ -48,69 +44,45 @@ const Dashboard: React.FC<DashboardProps> = ({ isOpen, closeDashboard }) => {
   }, []);
 
   return (
-    <>
-      {/* Fondo oscuro de overlay cuando el dashboard está abierto */}
-      {isOpen && (
-        <div
-          onClick={closeDashboard}
-          className="fixed inset-0 bg-black/50 z-40"
+    <div className="flex flex-col items-center justify-start min-h-screen bg-[#66397c] p-6">
+      {/* Logo de la marca */}
+      <div className="mb-8">
+        <img
+          src="/images/valkiriaslogo.jpg"
+          alt="Logo de Valkirias"
+          className="h-20 w-auto object-contain"
         />
-      )}
+      </div>
 
-      <div
-        className={`fixed right-0 top-0 w-full sm:w-[300px] bg-[#66397c] shadow-lg z-50 h-screen 
-        transform ${isOpen ? "translate-x-0" : "translate-x-full"} 
-        transition-transform duration-300`}
-      >
-        <div className="relative flex flex-col items-center h-full p-4 sm:p-6">
-          
-          {/* Botón para cerrar el dashboard */}
-          <button
-            onClick={closeDashboard}
-            className="absolute top-2 right-2 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-white font-bold text-lg sm:text-xl"
-          >
-            ✕
-          </button>
+      <h1 className="text-3xl sm:text-4xl text-[#e5ded3] mb-6 text-center font-bold">
+        Mi perfil
+      </h1>
 
-          {/* Logo de la marca */}
-          <div className="absolute top-12">
-            <img
-              src="/images/valkiriaslogo.jpg"
-              alt="Logo de Valkirias"
-              className="h-16 sm:h-20 w-auto object-contain"
-            />
-          </div>
+      {/* Foto de perfil */}
+      <img
+        src={user.photoUrl}
+        alt="Foto de perfil"
+        className="w-24 h-24 sm:w-32 sm:h-32 mb-6 rounded-full border-4 border-white object-cover"
+      />
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl text-[#e5ded3] mb-4 sm:mb-6 mt-24 sm:mt-32 text-center">
-            Mi perfil
-          </h1>
+      <div className="w-full max-w-md p-6">
+        <h2 className="text-xl font-bold mb-4 text-center underline">
+          Info personal:
+        </h2>
 
-          <img
-            src={user.photoUrl}
-            alt="Foto de perfil"
-            className="w-20 h-20 sm:w-32 sm:h-32 mb-4 sm:mb-6 rounded-full border-2 border-white object-cover"
-          />
-
-          <div className="mt-4 text-center">
-            <h2 className="font-semibold text-lg sm:text-xl mb-4 underline">
-              Info personal:
-            </h2>
-
-            <div className="space-y-3">
-              <p className="text-sm sm:text-lg">
-                <span className="font-semibold">Nombre:</span> {user.firstname || ""}
-              </p>
-              <p className="text-sm sm:text-lg">
-                <span className="font-semibold">Apellido:</span> {user.lastname || ""}
-              </p>
-              <p className="text-sm sm:text-lg">
-                <span className="font-semibold"></span> {user.email || ""}
-              </p>
-            </div>
-          </div>
+        <div className="space-y-4 text-center">
+          <p className="text-lg">
+            <span className="font-semibold">Nombre:</span> {user.firstname || "No disponible"}
+          </p>
+          <p className="text-lg">
+            <span className="font-semibold">Apellido:</span> {user.lastname || "No disponible"}
+          </p>
+          <p className="text-lg">
+            <span className="font-semibold">Email:</span> {user.email || "No disponible"}
+          </p>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

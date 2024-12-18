@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Home from "./page";
 import Sidebar from "@/components/Sidebar";
-
-const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -29,10 +26,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="!scroll-smooth">
-      <body className="flex h-screen   ">
+      <body className="flex h-screen w-16">
         <Sidebar />
-
-        <main className="flex-1 overflow-auto ">{children}</main>
+        <main className="flex-1 overflow-auto">{children}</main>
       </body>
     </html>
   );
