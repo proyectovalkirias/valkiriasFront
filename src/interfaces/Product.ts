@@ -8,4 +8,5 @@ export interface Product {
   photos: string[];
   stock: number;
   color: string;
+  stamped?: string[];
 }
