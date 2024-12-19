@@ -26,7 +26,7 @@ const ProductDetail: React.FC<ProductDetailProps> = async ({ params }) => {
   }
 
   return (
-    <div className="flex justify-center items-center ">
+    <div className="flex justify-center items-center bg-[#7b548b] min-h-screen  ">
       <div className="p-4 rounded-lg shadow-md flex flex-col items-center w-1/2">
         <img
           src={product?.photos[0]}
