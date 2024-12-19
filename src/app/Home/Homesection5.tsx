@@ -22,13 +22,13 @@ const HomeSection5 = () => {
           Accesorios
         </h2>
         <p className="text-lg text-gray-800 mb-6">
-          ¡Es hora de inspirarse y crear! Personalizamos tus productos con amor y
-          dedicación. Tenemos remeras, gorros de lana, gorras Trucker, buzos,
+          ¡Es hora de inspirarse y crear! Personalizamos tus productos con amor
+          y dedicación. Tenemos remeras, gorros de lana, gorras Trucker, buzos,
           tazas y más.
         </p>
         <div className="sm:mb-16">
           <Link
-            href={"/ProductDetail2"}
+            href={"/CreateAccesorio"}
             className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
           >
             COMPRA AHORA
@@ -40,4 +40,3 @@ const HomeSection5 = () => {
 };
 
 export default HomeSection5;
-

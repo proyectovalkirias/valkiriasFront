@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const ProductDetail: React.FC = () => {
+const CreateAccesorio: React.FC = () => {
   const [ideas, setIdeas] = useState("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [isKidsSize, setIsKidsSize] = useState<boolean>(false);
@@ -63,17 +63,26 @@ const ProductDetail: React.FC = () => {
   }, [isKidsSize, printOptions, selectedSize, quantity]);
 
   const handleAddToCart = () => {
-    console.log({
+    // Detalles del producto a agregar
+    const productDetails = {
       ideas,
-      selectedSize: isKidsSize
-        ? `Niño: ${selectedSize}`
-        : `Adulto: ${selectedSize}`,
+      size: isKidsSize ? `Niño: ${selectedSize}` : `Adulto: ${selectedSize}`,
       printOptions,
-      selectedColor,
-      totalPrice,
+      color: selectedColor,
+      price: totalPrice,
       imageFileName: imageFile ? imageFile.name : "No image uploaded",
-    });
+    };
 
+    // Obtener el carrito existente del localStorage
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]") as any[];
+
+    // Agregar el nuevo producto al carrito
+    cart.push(productDetails);
+
+    // Guardar el carrito actualizado en localStorage
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    // Mostrar alerta al usuario
     alert("Producto agregado al carrito");
   };
 
@@ -145,104 +154,6 @@ const ProductDetail: React.FC = () => {
             </div>
           </div>
 
-          {/* Selección de talles */}
-          <div>
-            <div className="flex items-center space-x-4 mb-2">
-              <label className="text-gray-800 text-sm">
-                <input
-                  type="checkbox"
-                  checked={isKidsSize}
-                  onChange={() => setIsKidsSize(!isKidsSize)}
-                  className="mr-2"
-                />
-                Talle para niños
-              </label>
-              <select
-                className="text-gray-800 text-sm p-1 rounded"
-                value={selectedSize}
-                onChange={(e) => setSelectedSize(e.target.value)}
-              >
-                <option value="">Selecciona un talle</option>
-                {isKidsSize
-                  ? ["4", "6", "8", "10", "12", "14", "16"].map((size) => (
-                      <option key={size} value={size}>
-                        {size}
-                      </option>
-                    ))
-                  : ["S", "M", "L", "XL", "XXL"].map((size) => (
-                      <option key={size} value={size}>
-                        {size}
-                      </option>
-                    ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Opciones de estampado */}
-          <div className="flex flex-col gap-4 text-center justify-start text-xs align-center">
-            <label htmlFor="printOption" className="text-gray-800 text-sm">
-              Opciones de estampado:
-            </label>
-
-            <div className="flex flex-col space-y-4">
-              {/* Estampas grandes */}
-              <div>
-                <h3 className="text-gray-800 text-sm font-bold mb-2">
-                  Estampas Grandes
-                </h3>
-                <div className="flex space-x-4">
-                  {Object.keys(printImages[selectedColor])
-                    .filter((option) => option.includes("Grande"))
-                    .map((option) => (
-                      <button
-                        key={option}
-                        className={`w-18 h-20 flex flex-col items-center justify-center ${
-                          printOptions.includes(option)
-                            ? "ring-2 ring-purple-500"
-                            : "border-gray-300"
-                        }`}
-                        onClick={() => handleTogglePrintOption(option)}
-                      >
-                        <img
-                          src={printImages[selectedColor][option]}
-                          alt={option}
-                          className="w-full h-full object-cover rounded"
-                        />
-                      </button>
-                    ))}
-                </div>
-              </div>
-
-              {/* Estampas pequeñas */}
-              <div>
-                <h3 className="text-gray-800 text-sm font-bold mb-2">
-                  Estampas Pequeñas
-                </h3>
-                <div className="flex space-x-4">
-                  {Object.keys(printImages[selectedColor])
-                    .filter((option) => option.includes("Pequeño"))
-                    .map((option) => (
-                      <button
-                        key={option}
-                        className={`w-18 h-20 flex flex-col items-center justify-center ${
-                          printOptions.includes(option)
-                            ? "ring-2 ring-purple-500"
-                            : "border-gray-300"
-                        }`}
-                        onClick={() => handleTogglePrintOption(option)}
-                      >
-                        <img
-                          src={printImages[selectedColor][option]}
-                          alt={option}
-                          className="w-full h-full object-cover rounded"
-                        />
-                      </button>
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Cantidad */}
           <div className="flex items-center mt-4">
             <label className="text-gray-800 text-sm mr-4">Cantidad:</label>
@@ -275,7 +186,7 @@ const ProductDetail: React.FC = () => {
       <div className="w-1/2 max-w-4xl h-[90%] p-6">
         <div className="h-2/3 flex flex-col justify-center">
           <h1 className="text-3xl lg:text-3xl font-bold text-gray-800 mb-4">
-            Abrigo unisex para estampa
+            Accesorios
           </h1>
 
           <div className="mb-6">
@@ -331,4 +242,4 @@ const ProductDetail: React.FC = () => {
   );
 };
 
-export default ProductDetail;
+export default CreateAccesorio;

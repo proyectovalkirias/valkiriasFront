@@ -2,58 +2,57 @@
 
 import { useState, useEffect } from "react";
 
-const ProductDetail: React.FC = () => {
+const CreateBuzo: React.FC = () => {
   const [ideas, setIdeas] = useState("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [isKidsSize, setIsKidsSize] = useState<boolean>(false);
   const [printOptions, setPrintOptions] = useState<string[]>([]); // Array para múltiples selecciones
-  const [selectedColor, setSelectedColor] = useState<string>("Blanco");
+  const [selectedColor, setSelectedColor] = useState<string>("Gris");
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [mainImage, setMainImage] = useState<string>(
-    "/images/TU_IMAGEN_AQUI_20241210_210305_0000-removebg-preview.png"
+    "/images/TU_IMAGEN_AQUI_20241210_210417_0000-removebg-preview.png"
   );
-  const basePrice = 10;
+  const basePrice = 20;
 
   // Asociación de colores con imágenes
   const colorImages: Record<string, string> = {
-    Blanco: "/images/white-tshirt.jpg",
-    Gris: "/images/gray-tshirt.jpg",
-    Negro: "/images/Remeraniñovalkiria.jpg",
+    Gris: "/images/TU_IMAGEN_AQUI_20241210_210417_0000-removebg-preview.png",
+    Negro: "/images/TU_IMAGEN_AQUI_20241210_211040_0000-removebg-preview.png",
   };
 
   const printImages: Record<string, Record<string, string>> = {
-    Blanco: {
-      "Grande en frente":
-        "/images/TU_IMAGEN_AQUI_20241210_210305_0000-removebg-preview.png",
-      "Grande atrás":
-        "/images/TU_IMAGEN_AQUI_20241210_205950_0000-removebg-preview.png",
-      "Pequeño en frente lado derecho":
-        "/images/TU_IMAGEN_AQUI_20241210_210225_0000-removebg-preview.png",
-      "Pequeño en frente centro":
-        "/images/TU_IMAGEN_AQUI_20241210_210208_0000-removebg-preview.png",
-      "Pequeño atrás":
-        "/images/TU_IMAGEN_AQUI_20241210_210122_0000-removebg-preview.png",
-    },
     Gris: {
       "Grande en frente":
-        "/images/TU_IMAGEN_AQUI_20241212_211953_0000-removebg-preview.png",
-      "Grande atrás": "/images/gray-back-large.png",
+        "/images/TU_IMAGEN_AQUI_20241210_210417_0000-removebg-preview.png",
+      "Grande atrás":
+        "/images/TU_IMAGEN_AQUI_20241210_205800_0000-removebg-preview.png",
       "Pequeño en frente lado derecho":
-        "/images/TU_IMAGEN_AQUI_20241212_211929_0000-removebg-preview.png",
+        "/images/TU_IMAGEN_AQUI_20241210_210522_0000-removebg-preview.png",
       "Pequeño en frente centro":
-        "/images/TU_IMAGEN_AQUI_20241212_211915_0000-removebg-preview.png",
-      "Pequeño atrás": "/images/gray-back-small.png",
+        "/images/TU_IMAGEN_AQUI_20241210_210500_0000-removebg-preview.png",
+      "Pequeño atrás":
+        "/images/TU_IMAGEN_AQUI_20241210_210726_0000-removebg-preview.png",
     },
     Negro: {
-      "Grande en frente": "/images/mockup1-removebg-preview.png",
-      "Grande atrás": "/images/mockup4-removebg-preview.png",
-      "Pequeño en frente lado derecho": "/images/mockup2-removebg-preview.png",
-      "Pequeño en frente centro": "/images/mockup3-removebg-preview.png",
-      "Pequeño atrás": "/images/mockup5-removebg-preview.png",
+      "Grande en frente":
+        "/images/TU_IMAGEN_AQUI_20241210_211040_0000-removebg-preview.png",
+      "Grande atrás":
+        "/images/TU_IMAGEN_AQUI_20241210_205617_0000-removebg-preview.png",
+      "Pequeño en frente lado derecho":
+        "/images/TU_IMAGEN_AQUI_20241210_211001_0000-removebg-preview.png",
+      "Pequeño en frente centro":
+        "/images/TU_IMAGEN_AQUI_20241210_210944_0000-removebg-preview.png",
+      "Pequeño atrás":
+        "/images/TU_IMAGEN_AQUI_20241210_210909_0000-removebg-preview.png",
     },
   };
+
+  // Actualiza la imagen principal al cambiar color
+  useEffect(() => {
+    setMainImage(colorImages[selectedColor]);
+  }, [selectedColor]);
 
   // Calcular precio total
   useEffect(() => {
@@ -64,17 +63,26 @@ const ProductDetail: React.FC = () => {
   }, [isKidsSize, printOptions, selectedSize, quantity]);
 
   const handleAddToCart = () => {
-    console.log({
+    // Detalles del producto a agregar
+    const productDetails = {
       ideas,
-      selectedSize: isKidsSize
-        ? `Niño: ${selectedSize}`
-        : `Adulto: ${selectedSize}`,
+      size: isKidsSize ? `Niño: ${selectedSize}` : `Adulto: ${selectedSize}`,
       printOptions,
-      selectedColor,
-      totalPrice,
+      color: selectedColor,
+      price: totalPrice,
       imageFileName: imageFile ? imageFile.name : "No image uploaded",
-    });
+    };
 
+    // Obtener el carrito existente del localStorage
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]") as any[];
+
+    // Agregar el nuevo producto al carrito
+    cart.push(productDetails);
+
+    // Guardar el carrito actualizado en localStorage
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    // Mostrar alerta al usuario
     alert("Producto agregado al carrito");
   };
 
@@ -138,12 +146,7 @@ const ProductDetail: React.FC = () => {
                     selectedColor === color ? "ring-2" : ""
                   }`}
                   style={{
-                    backgroundColor:
-                      color === "Blanco"
-                        ? "#ffffff"
-                        : color === "Gris"
-                        ? "#d3d3d3"
-                        : "#000000",
+                    backgroundColor: color === "Gris" ? "#d3d3d3" : "#000000",
                   }}
                   onClick={() => setSelectedColor(color)}
                 ></button>
@@ -281,7 +284,7 @@ const ProductDetail: React.FC = () => {
       <div className="w-1/2 max-w-4xl h-[90%] p-6">
         <div className="h-2/3 flex flex-col justify-center">
           <h1 className="text-3xl lg:text-3xl font-bold text-gray-800 mb-4">
-            Remera unisex para estampa
+            Abrigo unisex para estampa
           </h1>
 
           <div className="mb-6">
@@ -298,7 +301,9 @@ const ProductDetail: React.FC = () => {
         </div>
 
         <div className="flex flex-col">
-          <label className="text-gray-800 text-sm mb-2">Tu idea:</label>
+          <label className="text-gray-800 w-full font-medium text-lg mb-2">
+            Tu idea:
+          </label>
           <textarea
             className="border flex w-full border-gray-300 text-gray-800 rounded-lg p-3 h-12 mb-4"
             placeholder="Contanos tu idea..."
@@ -335,4 +340,4 @@ const ProductDetail: React.FC = () => {
   );
 };
 
-export default ProductDetail;
+export default CreateBuzo;
