@@ -1,6 +1,6 @@
 "use client";
 import { useForm, Controller } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Product } from "@/interfaces/Product";
 
 const CreateProduct: React.FC = () => {
@@ -8,9 +8,10 @@ const CreateProduct: React.FC = () => {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
     reset,
-  } = useForm<Product>();
+  } = useForm<Product>({defaultValues: { color: [] },});
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -21,13 +22,14 @@ const CreateProduct: React.FC = () => {
   const [productDescription, setProductDescription] = useState("");
   const [price, setPrice] = useState<number | null>(null);
   const [stock, setStock] = useState<number | null>(null);
-  const [color, setColor] = useState<string>("#000000");
+  const [colors, setColors] = useState<string[]>([]); // Inicializar con negro por defecto
   const [category, setCategory] = useState<string>("");
   // const [isSuccess, setIsSuccess] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const onSubmit = (data: Product) => {
     console.log("Formulario enviado", data);
+    console.log("Colores seleccionados antes del envío:", colors);
     setLoading(true);
     const formData = new FormData();
 
@@ -39,8 +41,8 @@ const CreateProduct: React.FC = () => {
     if (data.stock !== null) {
       formData.append("stock", data.stock.toString());
     }
-    formData.append("color", data.color);
-    formData.append("category", data.category);
+    colors.forEach((color) => formData.append("colors", color));
+    formData.append("category", category || "Sin categoría");
 
     photos.forEach((photo) => formData.append("photos", photo));
 
@@ -70,11 +72,12 @@ const CreateProduct: React.FC = () => {
         setPrice(null);
         setStock(null);
         setCategory("");
+        setColors(["#000000"]);
       })
       .catch((error) => {
         console.error("Error al crear el producto:", error);
         setLoading(false);
-        // setIsSuccess(false); 
+        // setIsSuccess(false);
       });
   };
 
@@ -119,6 +122,20 @@ const CreateProduct: React.FC = () => {
     );
   };
 
+  const toggleColor = (selectedColor: string) => {
+    setColors((prevColors) => {
+      if (prevColors.includes(selectedColor)) {
+        return prevColors.filter((color) => color !== selectedColor);
+      } else {
+        return [...prevColors, selectedColor];
+      }
+    });
+  };
+  
+  useEffect(() => {
+    setValue("color", colors);  // Sincroniza el valor de colors con react-hook-form
+  }, [colors, setValue]);
+  
   const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
     if (type === "kids") {
       setKidsSizes((prevSizes) =>
@@ -139,7 +156,7 @@ const CreateProduct: React.FC = () => {
     const confirmCancel = window.confirm(
       "¿Estás seguro de que deseas eliminar el producto y restablecer el formulario?"
     );
-  
+
     if (confirmCancel) {
       reset();
       setPhotos([]);
@@ -158,22 +175,24 @@ const CreateProduct: React.FC = () => {
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col p-4 w-1/2 text-white"
       >
-          {/* Modal de éxito */}
-    {isModalVisible && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-        <div className="bg-creativity-purple p-6 rounded-lg shadow-lg max-w-sm w-full">
-          <h3 className="text-lg font-semibold text-center">Producto creado correctamente!</h3>
-          <div className="mt-4 flex justify-center">
-            <button
-              onClick={() => setIsModalVisible(false)} // Ocultar el modal al hacer clic en "OK"
-              className="bg-[#5e3a6e] text-white px-4 py-2 rounded-md hover:bg-purple-dark"
-            >
-              OK
-            </button>
+        {/* Modal de éxito */}
+        {isModalVisible && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-creativity-purple p-6 rounded-lg shadow-lg max-w-sm w-full">
+              <h3 className="text-lg font-semibold text-center">
+                Producto creado correctamente!
+              </h3>
+              <div className="mt-4 flex justify-center">
+                <button
+                  onClick={() => setIsModalVisible(false)} // Ocultar el modal al hacer clic en "OK"
+                  className="bg-[#5e3a6e] text-white px-4 py-2 rounded-md hover:bg-purple-dark"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    )}
+        )}
         <h2 className="mb-6 text-3xl font-bold text-center">
           Creación Producto
         </h2>
@@ -239,32 +258,32 @@ const CreateProduct: React.FC = () => {
           </div>
         </div>
 
-        {/* Color */}
+        {/* Colores */}
         <div className="mb-4">
           <label htmlFor="color" className="block text-sm font-medium">
-            Color:
+            Colores:
           </label>
           <Controller
-            name="color"
-            control={control}
-            defaultValue={color}
-            render={({ field }) => (
-              <div className="flex space-x-4">
-                {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
-                  <div
-                    key={c}
-                    onClick={() => {
-                      field.onChange(c);
-                      setColor(c);
-                    }}
-                    style={{ backgroundColor: c }}
-                    className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
-                      color === c ? "border-white" : "border-transparent"
-                    }`}
-                  ></div>
-                ))}
-              </div>
-            )}
+          name="color"
+          control={control}
+          render={({ field }) => (
+            <div className="flex space-x-4">
+              {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
+                <div
+                  key={c}
+                  onClick={() => {
+                    toggleColor(c);
+                    // Actualizamos los valores de color en el formulario
+                    field.onChange(colors); // Asegura que react-hook-form se actualice con los colores seleccionados
+                  }}
+                  style={{ backgroundColor: c }}
+                  className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
+                    colors.includes(c) ? "border-white" : "border-transparent"
+                  }`}
+                ></div>
+              ))}
+            </div>
+          )}
           />
         </div>
 
@@ -319,6 +338,7 @@ const CreateProduct: React.FC = () => {
               name="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
+              required
               className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none focus:ring-2 focus:ring-violet-500"
             >
               <option value="" className="text-black">
@@ -415,21 +435,21 @@ const CreateProduct: React.FC = () => {
           </p>
 
           {/* Precio y Stock */}
-          <div className="flex gap-4">
-            <p className="text-sm">
-              Precio: ${price !== null ? price : "0.00"}
-            </p>
-            <p className="text-sm">Stock: {stock !== null ? stock : "0"}</p>
-          </div>
-          {/* Categoría y Color */}
-          <div className="flex gap-4">
+          {/* Categoría y Colores */}
+          <div className="flex flex-col gap-2 items-center">
             <p className="text-sm">Categoría: {category || "Ninguna"}</p>
-            <div className="flex items-center gap-1">
-              <p className="text-sm">Color:</p>
-              <span
-                style={{ backgroundColor: color }}
-                className="inline-block w-4 h-4 rounded-full"
-              ></span>
+            <div className="flex items-center gap-2">
+              <p className="text-sm">Colores:</p>
+              <div className="flex gap-2">
+                {colors.map((color, index) => (
+                  <span
+                    key={index}
+                    style={{ backgroundColor: color }}
+                    className="inline-block w-4 h-4 rounded-full border-2 border-white"
+                    title={color}
+                  ></span>
+                ))}
+              </div>
             </div>
           </div>
 

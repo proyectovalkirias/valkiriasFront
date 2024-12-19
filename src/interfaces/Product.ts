@@ -7,5 +7,5 @@ export interface Product {
   category: string;
   photos: string[];
   stock: number;
-  color: string;
+  color: string[];
 }
