@@ -31,7 +31,7 @@ const OrderList: React.FC<OrderListProps> = ({ userToken }) => {
   }, [userToken]);
 
   return (
-    <div className="p-6 rounded-lg shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] max-w-screen-2xl mx-auto my-20 flex flex-col">
+    <div className="p-6 max-w-screen-2xl mx-auto my-20 flex flex-col">
       <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">
         Your Order History
       </h2>
@@ -46,7 +46,7 @@ const OrderList: React.FC<OrderListProps> = ({ userToken }) => {
         ) : userOrders.length === 0 ? (
           <div className="col-span-full text-center text-gray-500">
             <img
-              src="https://i.pinimg.com/736x/b6/8a/bd/b68abd5a13b62a30170409f0e0ad9027.jpg"
+              src="/images/EmptyBox.png"
               alt="Empty orders illustration"
               className="w-96 h-96 mx-auto mb-6 object-contain"
             />
