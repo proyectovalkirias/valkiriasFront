@@ -1,33 +1,12 @@
 "use client";
-import { getOrders } from "@/helpers/order";
-import { IUserOrder } from "@/interfaces/index";
-import { useEffect, useState } from "react";
 
+import OrderList from "@/components/Orders/OrderList";
+import { IUserSession } from "@/interfaces";
+import Cookies from "js-cookie";
+import React from "react";
 
-interface OrderListProps {
-  userToken: string;
-}
-
-const OrderList: React.FC<OrderListProps> = ({ userToken }) => {
-  const [userOrders, setUserOrders] = useState<IUserOrder[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const orders = await getOrders(userToken);
-        setUserOrders(orders);
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (userToken) {
-      fetchOrders();
-    }
-  }, [userToken]);
+const Orders: React.FC = () => {
+const userData: IUserSession = JSON.parse(Cookies.get("userData") || "{}");
 
   return (
     <div className="bg-valkyrie-purple">

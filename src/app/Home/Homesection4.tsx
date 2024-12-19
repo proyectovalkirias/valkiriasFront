@@ -26,7 +26,7 @@ const HomeSection4 = () => {
         </p>
         <div className="sm:mb-16">
           <Link
-            href={"/ProductDetail1"}
+            href={"/CreateBuzo"}
             className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
           >
             COMPRA AHORA
