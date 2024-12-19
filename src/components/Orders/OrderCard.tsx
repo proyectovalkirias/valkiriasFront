@@ -1,4 +1,4 @@
-import { IUserOrder } from "@/interfaces";
+import { IUserOrder } from "@/interfaces/index";
 
 interface IOrderCardProps {
   order: IUserOrder;

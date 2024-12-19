@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 
-// Función para obtener los datos de usuario desde localStorage
+// Función para obtener los datos de usuario
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");

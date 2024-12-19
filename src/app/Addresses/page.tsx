@@ -1,11 +1,11 @@
 import React from 'react'
 
-const Directions = () => {
+const Addresses = () => {
   return (
-    <div>
-      Directions
+    <div className='bg-[#7b548b] min-h-full min-w-full'>
+      direcciones
     </div>
   )
 }
 
-export default Directions
+export default Addresses
