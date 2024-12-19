@@ -7,6 +7,7 @@ import { FaRegUser } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
 import { fetchCategories } from "@/api/productAPI"; // Asegúrate de que esta función esté configurada correctamente.
 import { useRouter } from "next/navigation";
+import { log } from "console";
 
 const getUserData = () => {
   try {
@@ -69,6 +70,7 @@ const Sidebar: React.FC = () => {
   const handleCategoryClick = (category: string) => {
     localStorage.setItem("selectedCategory", category); // Guardar categoría en localStorage
     handleNavigation("/Products");
+    window.location.reload();
   };
 
   const toggleProductsAccordion = () =>
@@ -82,6 +84,12 @@ const Sidebar: React.FC = () => {
     localStorage.removeItem("user_info");
     setUser(null);
     handleNavigation("/Login");
+  };
+
+  const handleProducts = () => {
+    localStorage.removeItem("selectedCategory");
+    handleNavigation("/Products");
+    window.location.reload();
   };
 
   return (
@@ -124,19 +132,16 @@ const Sidebar: React.FC = () => {
 
           {/* BOTÓN PRODUCTOS */}
           <li>
-            <div
-              className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer"
-              onClick={toggleProductsAccordion}
-            >
+            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
               <div className="flex items-center gap-4">
                 <IoShirtOutline size={24} />
-                {isOpen && (
-                  <span onClick={() => handleNavigation("/Products")}>
-                    Productos
-                  </span>
-                )}
+                {isOpen && <span onClick={handleProducts}>Productos</span>}
               </div>
-              {isOpen && <span>{isProductsAccordionOpen ? "▼" : "▶"}</span>}
+              {isOpen && (
+                <span onClick={toggleProductsAccordion}>
+                  {isProductsAccordionOpen ? "▼" : "▶"}
+                </span>
+              )}
             </div>
 
             {isProductsAccordionOpen && (
