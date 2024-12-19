@@ -28,29 +28,31 @@ const AddToCart: React.FC<AddToCartProps> = ({ product }) => {
 
   const handleAddToCart = () => {
     if (userData) {
+      // Obtener el carrito del localStorage o inicializar uno vacío
       const cart: Product[] = JSON.parse(localStorage.getItem("cart") || "[]");
-      const isProductInCart = cart.some((item) => item.id === product.id);
 
-      if (!isProductInCart) {
-        cart.push(product);
-        localStorage.setItem("cart", JSON.stringify(cart));
-        Swal.fire({
-          icon: "success",
-          title: "Product added to cart",
-          background: "#000000",
-          color: "#ffffff",
-          confirmButtonColor: "#1d4ed8",
-        });
-        router.push("/cart");
-      } else {
-        Swal.fire({
-          icon: "info",
-          title: "Product already in cart",
-          background: "#000000",
-        });
-      }
+      // Agregar el producto al carrito (sin verificar duplicados)
+      cart.push(product);
+
+      // Guardar el carrito actualizado en el localStorage
+      localStorage.setItem("cart", JSON.stringify(cart));
+
+      // Mostrar un mensaje de éxito
+      Swal.fire({
+        icon: "success",
+        title: "Product added to cart",
+        background: "#000000",
+        color: "#ffffff",
+        confirmButtonColor: "#1d4ed8",
+      });
     } else {
-      router.push("/Login");
+      Swal.fire({
+        icon: "error",
+        title: "Please log in to add products to the cart",
+        background: "#000000",
+        color: "#ffffff",
+        confirmButtonColor: "#1d4ed8",
+      });
     }
   };
 

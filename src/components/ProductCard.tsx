@@ -20,10 +20,6 @@ const ProductCard: React.FC<Product> = ({
         className="   max-w-xs  rounded   overflow-hidden p-4 bg-white/95 hover:scale-105  hover:bg-white  ease-in-out"
         key={name}
       >
-        <h1 className="text-lg font-bold mb-2  text-center text-gray-800   ">
-          {" "}
-          {category}
-        </h1>
         <img
           className=" w-full h-auto  mix-blend-multiply   rounded-lg "
           src={photos[0]}
