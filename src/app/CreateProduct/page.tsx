@@ -11,7 +11,7 @@ const CreateProduct: React.FC = () => {
     setValue,
     formState: { errors },
     reset,
-  } = useForm<Product>({defaultValues: { color: [] },});
+  } = useForm<Product>({ defaultValues: { color: [] } });
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -48,6 +48,10 @@ const CreateProduct: React.FC = () => {
 
     const allSizes = [...kidsSizes.map(String), ...adultSizes];
     allSizes.forEach((size) => formData.append("sizes", size));
+
+    [...formData.entries()].forEach(([key, value]) =>
+      console.log(key, value instanceof File ? value.name : value)
+    );
 
     fetch("http://localhost:3000/products", {
       method: "POST",
@@ -131,11 +135,11 @@ const CreateProduct: React.FC = () => {
       }
     });
   };
-  
+
   useEffect(() => {
-    setValue("color", colors);  // Sincroniza el valor de colors con react-hook-form
+    setValue("color", colors); // Sincroniza el valor de colors con react-hook-form
   }, [colors, setValue]);
-  
+
   const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
     if (type === "kids") {
       setKidsSizes((prevSizes) =>
@@ -264,26 +268,24 @@ const CreateProduct: React.FC = () => {
             Colores:
           </label>
           <Controller
-          name="color"
-          control={control}
-          render={({ field }) => (
-            <div className="flex space-x-4">
-              {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
-                <div
-                  key={c}
-                  onClick={() => {
-                    toggleColor(c);
-                    // Actualizamos los valores de color en el formulario
-                    field.onChange(colors); // Asegura que react-hook-form se actualice con los colores seleccionados
-                  }}
-                  style={{ backgroundColor: c }}
-                  className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
-                    colors.includes(c) ? "border-white" : "border-transparent"
-                  }`}
-                ></div>
-              ))}
-            </div>
-          )}
+            name="color"
+            control={control}
+            render={({ field }) => (
+              <div className="flex space-x-4">
+                {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
+                  <div
+                    key={c}
+                    onClick={() => {
+                      toggleColor(c);
+                    }}
+                    style={{ backgroundColor: c }}
+                    className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
+                      colors.includes(c) ? "border-white" : "border-transparent"
+                    }`}
+                  ></div>
+                ))}
+              </div>
+            )}
           />
         </div>
 
@@ -333,42 +335,56 @@ const CreateProduct: React.FC = () => {
             <label htmlFor="category" className="block text-sm font-medium">
               Categoría:
             </label>
-            <select
-              id="category"
+            <Controller
               name="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
-              className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none focus:ring-2 focus:ring-violet-500"
-            >
-              <option value="" className="text-black">
-                Seleccione una categoría
-              </option>
-              <option
-                value="Remeras"
-                className="text-black hover:bg-violet-500"
-              >
-                Remeras
-              </option>
-              <option value="Buzos" className="text-black hover:bg-violet-500">
-                Buzos
-              </option>
-              <option value="Gorras" className="text-black hover:bg-violet-500">
-                Gorras
-              </option>
-              <option
-                value="Gorros de lana"
-                className="text-black hover:bg-violet-500"
-              >
-                Gorros de Lana
-              </option>
-              <option
-                value="Totebags"
-                className="text-black hover:bg-violet-500"
-              >
-                Totebags
-              </option>
-            </select>
+              control={control}
+              render={({ field }) => (
+                <select
+                  {...field}
+                  value={category} // Asegúrate de que esté sincronizado
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    field.onChange(e.target.value); // Actualiza tanto el estado como el formulario
+                  }}
+                  required
+                  className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none focus:ring-2 focus:ring-violet-500"
+                >
+                  <option value="" className="text-black">
+                    Seleccione una categoría
+                  </option>
+                  <option
+                    value="Remeras"
+                    className="text-black hover:bg-violet-500"
+                  >
+                    Remeras
+                  </option>
+                  <option
+                    value="Buzos"
+                    className="text-black hover:bg-violet-500"
+                  >
+                    Buzos
+                  </option>
+                  <option
+                    value="Gorras"
+                    className="text-black hover:bg-violet-500"
+                  >
+                    Gorras
+                  </option>
+                  <option
+                    value="Gorros de lana"
+                    className="text-black hover:bg-violet-500"
+                  >
+                    Gorros de Lana
+                  </option>
+                  <option
+                    value="Totebags"
+                    className="text-black hover:bg-violet-500"
+                  >
+                    Totebags
+                  </option>
+                </select>
+              )}
+            />
           </div>
 
           {/* Agregar Imágenes */}
@@ -377,20 +393,28 @@ const CreateProduct: React.FC = () => {
               Agregar imágenes:
             </label>
             <div className="relative">
-              <input
-                id="photos"
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                className="hidden"
+              <Controller
+                name="photos"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    id="photos"
+                    type="file"
+                    multiple
+                    onChange={(e) => {
+                      handleFileChange(e); // Actualiza el estado local
+                      field.onChange(e); // Sincroniza con react-hook-form
+                    }}
+                  />
+                )}
               />
-              <button
+              {/* <button
                 type="button"
                 onClick={() => document.getElementById("photos")?.click()}
                 className="w-full bg-purple-dark text-white font-medium py-2 px-4 rounded-md shadow-md"
               >
                 Cargar imágenes
-              </button>
+              </button> */}
             </div>
             {/* {isSuccess && (
         <div className="bg-green-500 text-white p-3 rounded-md mb-4">

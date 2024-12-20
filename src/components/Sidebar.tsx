@@ -5,9 +5,7 @@ import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
-import { fetchCategories } from "@/api/productAPI"; // Asegúrate de que esta función esté configurada correctamente.
 import { useRouter } from "next/navigation";
-import { log } from "console";
 
 const getUserData = () => {
   try {
@@ -42,9 +40,7 @@ const getUserData = () => {
 const Sidebar: React.FC = () => {
   const router = useRouter(); // Usar useRouter para navegación en Next.js
   const [isOpen, setIsOpen] = useState(true);
-  const [isProductsAccordionOpen, setIsProductsAccordionOpen] = useState(false);
   const [isProfileAccordionOpen, setIsProfileAccordionOpen] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -57,24 +53,7 @@ const Sidebar: React.FC = () => {
     if (userData) setUser(userData);
   }, []);
 
-  useEffect(() => {
-    const fetchCategoriesData = async () => {
-      const categories = await fetchCategories();
-      setCategories(categories);
-    };
-    fetchCategoriesData();
-  }, []);
-
   const handleNavigation = (path: string) => router.push(path);
-
-  const handleCategoryClick = (category: string) => {
-    localStorage.setItem("selectedCategory", category); // Guardar categoría en localStorage
-    handleNavigation("/Products");
-    window.location.reload();
-  };
-
-  const toggleProductsAccordion = () =>
-    setIsProductsAccordionOpen(!isProductsAccordionOpen);
 
   const toggleProfileAccordion = () =>
     setIsProfileAccordionOpen(!isProfileAccordionOpen);
@@ -86,17 +65,9 @@ const Sidebar: React.FC = () => {
     handleNavigation("/Login");
   };
 
-  const handleProducts = () => {
-    localStorage.removeItem("selectedCategory");
-    handleNavigation("/Products");
-    window.location.reload();
-  };
-
   return (
     <div
-      className={`${
-        isOpen ? "w-64" : "w-16 closed"
-      } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300`}
+      className={`${isOpen ? "w-64" : "w-16 closed"} h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300}`}
     >
       {/* LOGO */}
       <div
@@ -131,83 +102,65 @@ const Sidebar: React.FC = () => {
           </li>
 
           {/* BOTÓN PRODUCTOS */}
-          <li>
-            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
-              <div className="flex items-center gap-4">
-                <IoShirtOutline size={24} />
-                {isOpen && <span onClick={handleProducts}>Productos</span>}
-              </div>
-              {isOpen && (
-                <span onClick={toggleProductsAccordion}>
-                  {isProductsAccordionOpen ? "▼" : "▶"}
-                </span>
-              )}
-            </div>
-
-            {isProductsAccordionOpen && (
-              <ul className="ml-8">
-                {categories.map((category) => (
-                  <li
-                    key={category}
-                    className="py-1 hover:text-gray-300 cursor-pointer"
-                    onClick={() => handleCategoryClick(category)}
-                  >
-                    {category}
-                  </li>
-                ))}
-              </ul>
-            )}
+          <li
+            className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
+            onClick={() => handleNavigation("/Products")}
+          >
+            <IoShirtOutline size={24} />
+            {isOpen && <span>Productos</span>}
           </li>
 
           {/* BOTÓN MI PERFIL */}
-          <li>
-            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
-              <div
-                className="flex items-center gap-4"
-                onClick={() => handleNavigation("/Dashboard")}
-              >
-                <FaRegUser size={24} />
-                {isOpen && <span>Mi Perfil</span>}
+          {user && (
+            <li>
+              <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
+                <div
+                  className="flex items-center gap-4"
+                  onClick={() => handleNavigation("/Dashboard")}
+                >
+                  <FaRegUser size={24} />
+                  {isOpen && <span>Mi Perfil</span>}
+                </div>
+                {isOpen && (
+                  <span
+                    onClick={toggleProfileAccordion}
+                    className="cursor-pointer"
+                  >
+                    {isProfileAccordionOpen ? "▼" : "▶"}
+                  </span>
+                )}
               </div>
-              {isOpen && (
-                <span
-                  onClick={toggleProfileAccordion}
-                  className="cursor-pointer"
-                >
-                  {isProfileAccordionOpen ? "▼" : "▶"}
-                </span>
-              )}
-            </div>
 
-            {isProfileAccordionOpen && (
-              <ul className="ml-8">
-                <li
-                  className="py-1 hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleNavigation("/ProfileConfiguration")}
-                >
-                  Configuración
-                </li>
-                <li
-                  className="py-1 hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleNavigation("/Addresses")}
-                >
-                  Direcciones
-                </li>
-                <li
-                  className="py-1 hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleNavigation("/Orders")}
-                >
-                  Mis Compras
-                </li>
-                <li
-                  className="py-1 hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleNavigation("/ChangePassword")}
-                >
-                  Cambiar Contraseña
-                </li>
-              </ul>
-            )}
-          </li>
+              {isProfileAccordionOpen && (
+                <ul className="ml-8">
+                  <li
+                    className="py-1 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => handleNavigation("/ProfileConfiguration")}
+                  >
+                    Configuración
+                  </li>
+                  <li
+                    className="py-1 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => handleNavigation("/Addresses")}
+                  >
+                    Direcciones
+                  </li>
+                  <li
+                    className="py-1 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => handleNavigation("/Orders")}
+                  >
+                    Mis Compras
+                  </li>
+                  <li
+                    className="py-1 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => handleNavigation("/ChangePassword")}
+                  >
+                    Cambiar Contraseña
+                  </li>
+                </ul>
+              )}
+            </li>
+          )}
 
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
@@ -244,7 +197,11 @@ const Sidebar: React.FC = () => {
             src={user.photoUrl}
             alt="Foto de perfil"
             className="rounded-full border-2 border-gray-500"
-            style={{ width: isOpen ? "48px" : "32px" }}
+            style={{
+              width: isOpen ? "48px" : "32px", // Ajusta el tamaño según el estado
+              height: isOpen ? "48px" : "32px", // Para mantener las proporciones
+              objectFit: "cover", // Asegura que la imagen no se deforme
+            }}
           />
           {isOpen && (
             <div className="text-sm">

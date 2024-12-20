@@ -13,3 +13,5 @@ const Products: React.FC = () => {
 };
 
 export default Products;
+
+//hacer el fetch a products y traer el listado de los productos 
