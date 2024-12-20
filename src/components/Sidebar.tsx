@@ -89,7 +89,7 @@ const Sidebar: React.FC = () => {
   const handleProducts = () => {
     localStorage.removeItem("selectedCategory");
     handleNavigation("/Products");
-    window.location.reload();
+    setTimeout(() => window.location.reload(), 100);
   };
 
   return (
