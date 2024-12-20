@@ -4,20 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { getProductById } from "@/api/productAPI";
 import { useRouter } from "next/navigation";
-
-interface Product {
-  id: string | number;
-  name: string;
-  description: string;
-  price: number;
-  sizes: string[];
-  color: string[];
-  isAvailable?: boolean;
-  category: string;
-  photos: string[];
-  stamped: string[];
-  stock: number;
-}
+import { Product } from "@/interfaces/Product";
 
 const ProductDetail: React.FC = () => {
   const params = useParams();
@@ -75,27 +62,38 @@ const ProductDetail: React.FC = () => {
       alert("Por favor, selecciona un tamaño antes de añadir al carrito.");
       return;
     }
-
+  
+    // Aquí preparas la información del producto con todos los detalles personalizados
     const personalizedProduct = {
-      product,
-      selectedColor,
-      selectedSize,
-      quantity,
-      totalPrice,
+      id: product?.id, // El ID del producto
+      name: product?.name, // El nombre del producto
+      price: product?.price, // El precio
+      description: product?.description, // Descripción (si quieres agregarla)
+      color: selectedColor, // El color seleccionado
+      size: selectedSize, // El tamaño seleccionado
+      quantity, // La cantidad seleccionada
+      photos: product?.photos, // Las fotos del producto
+      totalPrice, // El precio total, calculado con la cantidad
     };
-
-    // Guardar en el carrito
+  
+    // Obtener el carrito actual del localStorage
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  
+    // Agregar el nuevo producto al carrito
     cart.push(personalizedProduct);
+  
+    // Guardar el carrito actualizado en localStorage
     localStorage.setItem("cart", JSON.stringify(cart));
-
+  
     console.log("Producto agregado al carrito:", personalizedProduct);
-
-    // Redirigir a la página de carrito
-    router.push("/cart");
-
+  
+    // Redirigir a la página de carrito
+    router.push("/Cart");
+  
+    // Confirmación visual
     alert("Producto añadido al carrito.");
   };
+  
 
   if (loading) {
     return (
@@ -151,28 +149,37 @@ const ProductDetail: React.FC = () => {
         </div>
 
         {/* Opciones de estampado */}
-        <div className="mb-4">
-          <label className="text-gray-800">Opciones de estampado:</label>
-          <div className="flex flex-wrap gap-4 mt-2">
-            {product?.stamped.map((stamped, index) => (
-              <button
-                key={index}
-                className={`p-2 border rounded ${
-                  mainImage === stamped
-                    ? "ring-2 ring-purple-500"
-                    : "border-gray-300"
-                }`}
-                onClick={() => setMainImage(stamped)}
-              >
-                <img
-                  src={stamped}
-                  alt={`Estampa ${index}`}
-                  className="w-20 h-20 object-cover rounded"
-                />
-              </button>
-            ))}
+        {Array.isArray((product as any)?.stamped) &&
+        (product as any).stamped.length ? (
+          <div className="mb-4">
+            <label className="text-gray-800">Opciones de estampado:</label>
+            <div className="flex flex-wrap gap-4 mt-2">
+              {(product as any).stamped.map(
+                (stamped: string, index: number) => (
+                  <button
+                    key={index}
+                    className={`p-2 border rounded ${
+                      mainImage === stamped
+                        ? "ring-2 ring-purple-500"
+                        : "border-gray-300"
+                    }`}
+                    onClick={() => setMainImage(stamped)}
+                  >
+                    <img
+                      src={stamped}
+                      alt={`Estampa ${index}`}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                  </button>
+                )
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <p className="text-gray-500">
+            No hay opciones de estampado disponibles.
+          </p>
+        )}
 
         {/* Talla y cantidad */}
         <div className="mb-4">

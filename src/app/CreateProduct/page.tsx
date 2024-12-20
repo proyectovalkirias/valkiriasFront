@@ -24,12 +24,13 @@ const CreateProduct: React.FC = () => {
   const [stock, setStock] = useState<number | null>(null);
   const [colors, setColors] = useState<string[]>([]); // Inicializar con negro por defecto
   const [category, setCategory] = useState<string>("");
-  // const [isSuccess, setIsSuccess] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const onSubmit = (data: Product) => {
     console.log("Formulario enviado", data);
     console.log("Colores seleccionados antes del envío:", colors);
+    console.log("Tamaños niños:", kidsSizes);
+    console.log("Tamaños adultos:", adultSizes);
     setLoading(true);
     const formData = new FormData();
 
@@ -46,12 +47,15 @@ const CreateProduct: React.FC = () => {
 
     photos.forEach((photo) => formData.append("photos", photo));
 
-    const allSizes = [...kidsSizes.map(String), ...adultSizes];
-    allSizes.forEach((size) => formData.append("sizes", size));
-
-    [...formData.entries()].forEach(([key, value]) =>
-      console.log(key, value instanceof File ? value.name : value)
-    );
+    const allSizes = [...kidsSizes.map(String), ...adultSizes.map(String)];
+    console.log("Tamaños combinados:", allSizes);
+  
+    allSizes.forEach((size) => {
+      formData.append("sizes", size); // Asegúrate de usar 'sizes' como clave
+    });
+  // [...formData.entries()].forEach(([key, value]) =>
+  //   console.log(key, value instanceof File ? value.name : value)
+  // );
 
     fetch("http://localhost:3000/products", {
       method: "POST",
@@ -387,34 +391,26 @@ const CreateProduct: React.FC = () => {
             />
           </div>
 
-          {/* Agregar Imágenes */}
-          <div className="w-1/2">
+     {/* Agregar Imágenes */}
+     <div className="w-1/2">
             <label htmlFor="photos" className="block text-sm font-medium">
               Agregar imágenes:
             </label>
             <div className="relative">
-              <Controller
-                name="photos"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    id="photos"
-                    type="file"
-                    multiple
-                    onChange={(e) => {
-                      handleFileChange(e); // Actualiza el estado local
-                      field.onChange(e); // Sincroniza con react-hook-form
-                    }}
-                  />
-                )}
+              <input
+                id="photos"
+                type="file"
+                multiple
+                onChange={handleFileChange}
+                className="hidden"
               />
-              {/* <button
+              <button
                 type="button"
                 onClick={() => document.getElementById("photos")?.click()}
                 className="w-full bg-purple-dark text-white font-medium py-2 px-4 rounded-md shadow-md"
               >
                 Cargar imágenes
-              </button> */}
+              </button>
             </div>
             {/* {isSuccess && (
         <div className="bg-green-500 text-white p-3 rounded-md mb-4">

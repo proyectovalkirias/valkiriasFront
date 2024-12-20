@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast"; // Importar Toaster
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
+import LogCircular from "@/../../public/images/LogCircular.jpg"
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,6 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="!scroll-smooth">
+      
       <body className="flex h-screen">
         <Sidebar />
 
