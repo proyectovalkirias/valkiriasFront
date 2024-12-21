@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios"; // Para hacer solicitudes HTTP al back-end
+import axios from "axios";
 
 // FUNCIÓN PARA OBTENER LOS DATOS DEL USUARIO 
 const getUserData = async () => {
