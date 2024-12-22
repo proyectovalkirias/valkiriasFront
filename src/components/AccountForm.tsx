@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-// Función para obtener los datos del usuario desde localStorage o Google
-const getUserData = () => {
+// FUNCIÓN PARA OBTENER LOS DATOS DEL USUARIO 
+const getUserData = async () => {
   try {
     const storedUser = localStorage.getItem("user");
     const storedGoogleUser = localStorage.getItem("user_info");
@@ -11,6 +12,7 @@ const getUserData = () => {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
+        id: parsedUser.user.id || "", // Identificador para la base de datos
         firstname: parsedUser.user.firstname || "",
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
@@ -21,6 +23,7 @@ const getUserData = () => {
     } else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
       return {
+        id: googleUser.id || "", // Identificador para la base de datos
         firstname: googleUser.given_name || "",
         lastname: googleUser.family_name || "",
         email: googleUser.email || "",
@@ -38,6 +41,7 @@ const getUserData = () => {
 
 const AccountForm: React.FC = () => {
   const [formData, setFormData] = useState({
+    id: "",
     email: "",
     nombre: "",
     apellido: "",
@@ -45,21 +49,25 @@ const AccountForm: React.FC = () => {
     telefonoNumero: "",
   });
 
-  // Se ejecuta cuando el componente se monta, recuperando los datos del usuario
+  // 🔥 OBTIENE LOS DATOS DEL USUARIO AL MONTAR EL COMPONENTE 🔥
   useEffect(() => {
-    const userData = getUserData();
-    if (userData) {
-      setFormData({
-        email: userData.email || "",
-        nombre: userData.firstname || "",
-        apellido: userData.lastname || "",
-        documento: userData.documento || "",
-        telefonoNumero: userData.telefonoNumero || "",
-      });
-    }
+    const fetchData = async () => {
+      const userData = await getUserData();
+      if (userData) {
+        setFormData({
+          id: userData.id || "",
+          email: userData.email || "",
+          nombre: userData.firstname || "",
+          apellido: userData.lastname || "",
+          documento: userData.documento || "",
+          telefonoNumero: userData.telefonoNumero || "",
+        });
+      }
+    };
+    fetchData();
   }, []);
 
-  // Actualiza los valores de los inputs
+  // 🔥 ACTUALIZA LOS VALORES DEL FORMULARIO 🔥
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -68,43 +76,66 @@ const AccountForm: React.FC = () => {
     }));
   };
 
-  // Guarda la información y actualiza la información principal del usuario
-  const handleSubmit = (e: React.FormEvent) => {
+  // 🔥 ENVÍA LOS DATOS AL BACK-END Y ACTUALIZA LOCALSTORAGE 🔥
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const updatedUserData = {
-      user: {
+    try {
+      const updatedUserData = {
+        id: formData.id, // Necesario para identificar al usuario en la base de datos
         firstname: formData.nombre,
         lastname: formData.apellido,
         email: formData.email,
         documento: formData.documento,
         telefonoNumero: formData.telefonoNumero,
         photo: "/images/Avatar.png", // Imagen predeterminada
-      },
-    };
+      };
 
-    // Guarda los datos actualizados en localStorage
-    localStorage.setItem("user", JSON.stringify(updatedUserData));
-    localStorage.setItem("updated_user", JSON.stringify(updatedUserData));
+      //  ENVÍA LOS DATOS AL BACK-END 
+      const response = await axios.put(
+        `http://localhost:3000/users/${formData.id}`, // URL de la API
+        updatedUserData
+      );
 
-    console.log("Información guardada:", updatedUserData);
-    alert("¡Datos guardados correctamente!");
+      if (response.status === 200) {
+        console.log("Información actualizada correctamente en la base de datos:", response.data);
+
+        // ACTUALIZA EL LOCALSTORAGE CON LA NUEVA INFORMACIÓN
+        const userLocalData = {
+          user: updatedUserData,
+        };
+
+        localStorage.setItem("user", JSON.stringify(userLocalData));
+
+        alert("¡Datos guardados correctamente!");
+      } else {
+        console.error("Error al actualizar los datos:", response);
+        alert("Hubo un problema al actualizar los datos.");
+      }
+    } catch (error) {
+      console.error("Error en la solicitud de actualización:", error);
+      alert("Error al actualizar la información. Inténtalo nuevamente.");
+    }
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-[#7b548b]">
+    <div className="flex flex-col md:flex-row h-screen items-center justify-center bg-[#7b548b] p-6">
+      {/* Contenedor de la imagen */}
       <div className="w-full md:w-1/3 flex justify-center mb-8 md:mb-0">
         <img
           src="/images/Gear1.png"
-          alt="Imagen izquierda"
-          className="w-full h-auto max-w-[250px] md:max-w-[300px]" 
+          alt="Imagen ajustes"
+          className="w-full h-auto max-w-[200px] sm:max-w-[250px] md:max-w-[300px]"
         />
       </div>
-      <div className="flex w-full max-w-lg rounded-lg bg-[#7b548b] p-8 sm:p-6 md:p-8 lg:p-10">
+
+      {/* Contenedor del formulario */}
+      <div className="w-full max-w-lg rounded-lg bg-[#7b548b] p-6 sm:p-8 md:p-10">
         <div className="w-full flex flex-col justify-center text-center text-white">
           <h2 className="text-2xl sm:text-3xl font-bold flex items-center justify-center mb-6">
             Datos de la Cuenta
           </h2>
+
           <form className="flex flex-col" onSubmit={handleSubmit}>
             <input
               type="email"
