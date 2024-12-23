@@ -3,12 +3,22 @@
 import React, { useState, useEffect } from "react";
 import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
-import { FaRegUser } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
+import { FiUser, FiUsers } from "react-icons/fi";
 
 const SidebarMini: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Simula el estado de autenticación
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Estado de autenticación
+
+  // Verifica si el usuario está logueado leyendo del localStorage
+  useEffect(() => {
+    const checkUserLoggedIn = () => {
+      const user = localStorage.getItem("user");
+      const googleUser = localStorage.getItem("user_info");
+      setIsLoggedIn(!!user || !!googleUser); // Actualiza el estado según la existencia de datos de usuario
+    };
+    checkUserLoggedIn();
+  }, []);
 
   // Cierra el menú cuando se hace clic fuera
   useEffect(() => {
@@ -34,11 +44,11 @@ const SidebarMini: React.FC = () => {
 
   const handleAuthAction = () => {
     if (isLoggedIn) {
-      // Lógica para cerrar sesión (aquí simulado)
+      localStorage.removeItem("user");
+      localStorage.removeItem("user_info");
       setIsLoggedIn(false);
       alert("Sesión cerrada");
     } else {
-      // Redirigir a iniciar sesión
       handleNavigation("/Login");
     }
   };
@@ -48,16 +58,8 @@ const SidebarMini: React.FC = () => {
       id="sidebar-mini"
       className="fixed bottom-0 left-0 w-full bg-purple-dark text-white flex justify-around items-center py-2 shadow-lg z-50"
     >
-      {/* Verifica si hay un menú activo */}
       {activeMenu ? (
         <div className="w-full h-10 bg-purple-dark relative px-4 flex justify-center">
-          {/* <button
-            className="absolute top-2 left-2 text-gray-300 py-2 hover:text-white"
-            onClick={() => setActiveMenu(null)} // Regresa al estado base
-          >
-            ← Volver
-          </button> */}
-
           {activeMenu === "products" && (
             <div className="flex gap-4 text-xs">
               <button
@@ -102,13 +104,13 @@ const SidebarMini: React.FC = () => {
                 Direcciones
               </button>
               <button
-                className="py-1 px-2  hover:bg-gray-600 rounded"
+                className="py-1 px-2 hover:bg-gray-600 rounded"
                 onClick={() => handleNavigation("/Orders")}
               >
                 Mis Compras
               </button>
               <button
-                className="py-1 px-2  hover:bg-gray-600 rounded"
+                className="py-1 px-2 hover:bg-gray-600 rounded"
                 onClick={() => handleNavigation("/ChangePassword")}
               >
                 Cambiar contraseña
@@ -138,8 +140,16 @@ const SidebarMini: React.FC = () => {
             className="flex flex-col items-center text-gray-300 hover:text-white"
             onClick={() => toggleMenu("profile")}
           >
-            <FaRegUser size={24} />
+            <FiUser size={24} />
             <span className="text-xs">Perfil</span>
+          </button>
+
+          <button
+            className="flex flex-col items-center text-gray-300 hover:text-white"
+            onClick={() => handleNavigation("/About")}
+          >
+            <FiUsers size={24} />
+            <span className="text-xs">Nosotros</span>
           </button>
 
           <button
