@@ -1,54 +1,94 @@
 import React from "react";
 
-const AboutUs: React.FC = () => {
+const AboutPage: React.FC = () => {
   return (
-    <section className="h-screen grid grid-cols-1 md:grid-cols-2 grid-rows-3 md:grid-rows-2 gap-4">
-      {/* Sección Izquierda Superior */}
-      <div className="bg-pink-200 flex items-center justify-center text-center p-6">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-          Bienvenido a <span className="text-purple-600">VALKIRIAS</span>
-        </h1>
+    <div className="bg-white h-screen md:h-screen overflow-auto">
+      {/* Hero Section */}
+      <div className="flex flex-col md:flex-row h-auto md:h-1/3">
+        {/* Left Section */}
+        <div className="flex-1 bg-pink-300 p-4 flex flex-col justify-center items-center">
+          <p className="text-white text-center text-sm md:text-lg lg:text-xl">
+            Bienvenido a VALKIRIAS,
+            <br />
+            ¡donde la moda se encuentra con la personalización!
+            <br />
+            Descubrí una amplia variedad de remeras, buzos y accesorios que podés
+            personalizar a tu estilo.
+            <br />
+            Nuestro objetivo es ofrecerte opciones únicas para expresar tu personalidad
+            a través de prendas diseñadas especialmente para vos.
+          </p>
+        </div>
+
+        {/* Right Section */}
+        <div className="flex-1 relative h-40 md:h-full">
+          <img
+            src="/images/love.jpg"
+            alt="Dos mujeres acostadas, mirando hacia la cámara"
+            className="w-full h-full object-cover"
+          />
+        </div>
       </div>
 
-      {/* Imagen Superior Derecha */}
-      <div
-        className="bg-cover bg-center h-full"
-        style={{ backgroundImage: "url('/images/valkiriashirt.jpg')" }}
-      >
-        {/* Imagen decorativa */}
+      {/* About Section */}
+      <div className="flex flex-col md:flex-row h-auto md:h-2/5">
+        {/* Rotated Text */}
+        <div className="bg-pink-200 p-4 flex items-center justify-center md:w-1/4">
+          <p className="text-black text-xl md:text-3xl lg:text-5xl font-bold tracking-wider transform md:-rotate-90 text-center">
+            SOBRE NOSOTROS
+          </p>
+        </div>
+
+        {/* Description */}
+        <div className="p-4 md:w-3/4 overflow-auto flex items-center justify-center bg-pink">
+          <p className="text-black text-xs md:text-sm lg:text-base text-center">
+            Desde 2011, Valkirias ha estado ayudando a las personas, jóvenes y adultos,
+            a expresar su estilo único con prendas personalizadas. Ofrecemos una amplia
+            variedad de remeras, buzos y accesorios que podés personalizar con estampados,
+            colores y diseños exclusivos. 
+            <br />
+            <br />
+            Creemos en la importancia de la moda como una forma de expresión personal,
+            y estamos aquí para ayudarte a encontrar la prenda perfecta que hable sobre ti.
+            Nuestras colecciones incluyen eventos especiales y colaboraciones con diseñadores
+            emergentes para ofrecerte siempre lo último en tendencias y estilo personalizado.
+          </p>
+        </div>
+
+        <div className="bg-pink-200 p-4 flex items-center justify-center md:w-1/4">
+          <img
+            src="/images/valkiriaslogo.jpg"
+            alt="Logo de Valkirias"
+            className="h-16 md:h-20 w-auto object-contain"
+          />
+        </div>
       </div>
 
-      {/* Título "Sobre Nosotros" */}
-      <div className="bg-pink-300 flex items-center justify-center rotate-90 md:rotate-0">
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
-          Sobre Nosotros
-        </h2>
-      </div>
+      {/* Goal Section */}
+      <div className="flex flex-col md:flex-row h-auto md:h-1/3">
+        {/* Image Section */}
+        <div className="flex-1 relative h-40 md:h-full">
+          <img
+            src="/images/valkiriashirt.jpg"
+            alt="Mujer de cabello oscuro, mirando hacia abajo"
+            className="w-full h-full object-cover"
+          />
+        </div>
 
-      {/* Texto principal */}
-      <div className="bg-white p-6 text-gray-700 row-span-2">
-        <p className="text-sm md:text-base leading-relaxed">
-          En <span className="font-bold">VALKIRIAS</span>, estamos comprometidos
-          con el cambio. Desde 2020, hemos creado
-          <span className="italic"> experiencias únicas</span> para transformar
-          el día a día de las mujeres. Nuestro objetivo es proporcionar
-          herramientas, conocimientos y productos que inspiren confianza y
-          estilo.
-        </p>
-        <p className="mt-4 text-sm md:text-base">
-          Nuestro equipo está formado por visionarios apasionados que creen en
-          un futuro inclusivo y empoderado. Juntos, estamos aquí para redefinir
-          los estándares.
-        </p>
+        {/* Goal Text */}
+        <div className="flex-1 bg-purple-300 p-4 flex items-center justify-center">
+          <p className="text-white text-xs md:text-sm lg:text-base text-center">
+            Nuestro objetivo es permitirte personalizar tus compras y crear piezas únicas
+            que te representen. Con Valkirias, podés transformar tus prendas en algo
+            verdaderamente especial, con estampados personalizados y diseños únicos.
+            Creemos que cada prenda debe contar una historia y ser un reflejo de quien eres,
+            por eso trabajamos para ofrecerte la máxima calidad y variedad para que puedas
+            expresar tu estilo sin límites.
+          </p>
+        </div>
       </div>
-
-      {/* Imagen Inferior Izquierda */}
-      <div
-        className="bg-cover bg-center h-100 md:h-full"
-        style={{ backgroundImage: "url('/images/love.jpg')" }}
-      ></div>
-    </section>
+    </div>
   );
 };
 
-export default AboutUs;
+export default AboutPage;
