@@ -163,32 +163,13 @@ const Sidebar: React.FC = () => {
           </li>
 
           {/* BOTÓN PRODUCTOS */}
-          <li>
+          <li onClick={() => handleNavigation("/Products")}>
             <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
               <div className="flex items-center gap-4">
                 <IoShirtOutline size={24} />
-                {isOpen && <span onClick={handleProducts}>Productos</span>}
+                {isOpen && <span>Productos</span>}
               </div>
-              {isOpen && (
-                <span onClick={toggleProductsAccordion}>
-                  {isProductsAccordionOpen ? "▼" : "▶"}
-                </span>
-              )}
             </div>
-
-            {isProductsAccordionOpen && (
-              <ul className="ml-8">
-                {categories.map((category) => (
-                  <li
-                    key={category}
-                    className="py-1 hover:text-gray-300 cursor-pointer"
-                    onClick={() => handleCategoryClick(category)}
-                  >
-                    {category}
-                  </li>
-                ))}
-              </ul>
-            )}
           </li>
 
           {/* BOTÓN MI PERFIL */}
