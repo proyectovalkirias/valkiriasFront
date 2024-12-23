@@ -1,10 +1,8 @@
 import { Product } from "@/interfaces/Product";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
 export async function getProducts(): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_URL}/products`, {
+    const res = await fetch(`http://localhost:3000/products`, {
       cache: "no-cache",
       next: { revalidate: 1500 },
     });
@@ -32,7 +30,7 @@ export async function getProductById(id: string): Promise<Product> {
 
 export const fetchCategories = async (): Promise<string[]> => {
   try {
-    const response = await fetch(`${API_URL}/products`, {
+    const response = await fetch(`http://localhost:3000/products`, {
       cache: "no-cache",
       next: { revalidate: 1500 },
     });
@@ -54,7 +52,9 @@ export async function getProductsByCategory(
 ): Promise<Product[]> {
   try {
     const res = await fetch(
-      `http://localhost:3000/products?category=${encodeURIComponent(category)}`
+      `http://localhost:3000/products/filter?category=${encodeURIComponent(
+        category
+      )}`
     );
     if (!res.ok) {
       throw new Error("Error fetching products by category");
@@ -62,6 +62,33 @@ export async function getProductsByCategory(
     return (await res.json()) as Product[];
   } catch (error) {
     console.error(error);
+    throw error;
+  }
+}
+export async function getFilteredProducts(
+  category: string | null,
+  color: string | null,
+  size: string | null
+): Promise<Product[]> {
+  try {
+    const params = new URLSearchParams();
+
+    if (category) params.append("category", category);
+    if (color) params.append("color", color);
+    if (size) params.append("size", size);
+
+    const response = await fetch(
+      `http://localhost:3000/products/filter?${params.toString()}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Error al obtener productos filtrados");
+    }
+
+    const data = await response.json();
+    return data as Product[];
+  } catch (error) {
+    console.error("Error en getFilteredProducts:", error);
     throw error;
   }
 }

@@ -5,19 +5,7 @@ import { useParams } from "next/navigation";
 import { getProductById } from "@/api/productAPI";
 import { useRouter } from "next/navigation";
 
-interface Product {
-  id: string | number;
-  name: string;
-  description: string;
-  price: number;
-  sizes: string[];
-  color: string[];
-  isAvailable?: boolean;
-  category: string;
-  photos: string[];
-  stamped: string[];
-  stock: number;
-}
+import { Product } from "@/interfaces/Product";
 
 const ProductDetail: React.FC = () => {
   const params = useParams();
@@ -34,6 +22,35 @@ const ProductDetail: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [selectedSmallPrint, setSelectedSmallPrint] = useState<string>("");
+  const [selectedLargePrint, setSelectedLargePrint] = useState<string>("");
+  const [remainingStock, setRemainingStock] = useState<number>(0);
+
+  useEffect(() => {
+    if (product) {
+      setRemainingStock(product.stock);
+    }
+  }, [product]);
+
+  // Sincronizar stock con el carrito
+  useEffect(() => {
+    const syncStockWithCart = async () => {
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      const currentProductInCart = cart.filter(
+        (item: any) => item.product.id === product?.id
+      );
+      const usedStock = currentProductInCart.reduce(
+        (acc: number, item: any) => acc + item.quantity,
+        0
+      );
+
+      if (product) {
+        setRemainingStock(product.stock - usedStock);
+      }
+    };
+
+    syncStockWithCart();
+  }, [product]);
 
   // Cargar el producto por ID
   useEffect(() => {
@@ -47,12 +64,13 @@ const ProductDetail: React.FC = () => {
       try {
         setLoading(true);
         const fetchedProduct = await getProductById(productId);
+        console.log(fetchedProduct); // Depurar datos
         setProduct({
           ...fetchedProduct,
-          id: String(fetchedProduct.id), // Convertir a cadena si es necesario
+          id: String(fetchedProduct.id),
         });
-        setSelectedColor(fetchedProduct.color[0] || "");
-        setMainImage(fetchedProduct.photos[0] || "");
+        setSelectedColor(fetchedProduct.color?.[0] || "");
+        setMainImage(fetchedProduct.photos?.[0] || "");
       } catch (err) {
         setError("No se pudo cargar el producto. Intenta nuevamente.");
       } finally {
@@ -70,9 +88,29 @@ const ProductDetail: React.FC = () => {
     }
   }, [quantity, product]);
 
+  const handleQuantityChange = (value: number) => {
+    if (value > remainingStock) {
+      alert(
+        `Solo puedes agregar hasta ${remainingStock} unidades de este producto.`
+      );
+      return;
+    }
+    setQuantity(value);
+  };
+
   const handleAddToCart = () => {
     if (!selectedSize) {
       alert("Por favor, selecciona un tamaño antes de añadir al carrito.");
+      return;
+    }
+    if (!selectedSmallPrint || !selectedLargePrint) {
+      alert("Por favor, selecciona un estampado pequeño y uno grande.");
+      return;
+    }
+    if (quantity > remainingStock) {
+      alert(
+        `No puedes agregar más de ${remainingStock} unidades de este producto.`
+      );
       return;
     }
 
@@ -80,20 +118,21 @@ const ProductDetail: React.FC = () => {
       product,
       selectedColor,
       selectedSize,
+      selectedSmallPrint,
+      selectedLargePrint,
       quantity,
       totalPrice,
     };
 
-    // Guardar en el carrito
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     cart.push(personalizedProduct);
     localStorage.setItem("cart", JSON.stringify(cart));
 
+    setRemainingStock((prev) => prev - quantity);
+
     console.log("Producto agregado al carrito:", personalizedProduct);
 
-    // Redirigir a la página de carrito
-    router.push("/cart");
-
+    router.push("/Cart");
     alert("Producto añadido al carrito.");
   };
 
@@ -113,31 +152,36 @@ const ProductDetail: React.FC = () => {
     );
   }
 
+  if (!product) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-gray-500 text-xl">Producto no encontrado.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-purple-100 flex flex-col items-center py-8 px-4">
-      {/* Detalle del producto */}
       <div className="p-4 rounded-lg shadow-md flex flex-col items-center w-full max-w-3xl bg-white mb-8">
         <img
           src={mainImage}
-          alt={product?.name}
+          alt={product.name}
           className="mb-4 rounded-xl shadow-md hover:scale-105 ease-in-out duration-300"
         />
-        <h1 className="mb-4 text-2xl font-bold">{product?.name}</h1>
-        <p className="font-bold mb-4">Precio: ${product?.price}</p>
-        <p className="mb-4 text-gray-700">{product?.description}</p>
+        <h1 className="mb-4 text-2xl font-bold">{product.name}</h1>
+        <p className="font-bold mb-4">Precio: ${product.price}</p>
+        <p className="mb-4 text-gray-700">{product.description}</p>
       </div>
 
-      {/* Personalización */}
       <div className="w-full max-w-3xl p-4 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-4 text-center">
-          Personaliza tu {product?.category}
+          Personaliza tu {product.category}
         </h2>
 
-        {/* Selección de colores */}
         <div className="mb-4">
           <label className="text-gray-800">Color:</label>
           <div className="flex flex-wrap gap-2">
-            {product?.color.map((color) => (
+            {(product.color || []).map((color) => (
               <button
                 key={color}
                 className={`w-10 h-10 rounded-full border ${
@@ -150,23 +194,22 @@ const ProductDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Opciones de estampado */}
         <div className="mb-4">
-          <label className="text-gray-800">Opciones de estampado:</label>
+          <label className="text-gray-800">Estampado pequeño:</label>
           <div className="flex flex-wrap gap-4 mt-2">
-            {product?.stamped.map((stamped, index) => (
+            {(product.smallPrint || []).map((smallPrint, index) => (
               <button
-                key={index}
+                key={`small-${index}`}
                 className={`p-2 border rounded ${
-                  mainImage === stamped
+                  selectedSmallPrint === smallPrint
                     ? "ring-2 ring-purple-500"
                     : "border-gray-300"
                 }`}
-                onClick={() => setMainImage(stamped)}
+                onClick={() => setSelectedSmallPrint(smallPrint)}
               >
                 <img
-                  src={stamped}
-                  alt={`Estampa ${index}`}
+                  src={smallPrint}
+                  alt={`Estampa pequeña ${index}`}
                   className="w-20 h-20 object-cover rounded"
                 />
               </button>
@@ -174,7 +217,29 @@ const ProductDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Talla y cantidad */}
+        <div className="mb-4">
+          <label className="text-gray-800">Estampado grande:</label>
+          <div className="flex flex-wrap gap-4 mt-2">
+            {(product.largePrint || []).map((largePrint, index) => (
+              <button
+                key={`large-${index}`}
+                className={`p-2 border rounded ${
+                  selectedLargePrint === largePrint
+                    ? "ring-2 ring-purple-500"
+                    : "border-gray-300"
+                }`}
+                onClick={() => setSelectedLargePrint(largePrint)}
+              >
+                <img
+                  src={largePrint}
+                  alt={`Estampa grande ${index}`}
+                  className="w-20 h-20 object-cover rounded"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mb-4">
           <label className="text-gray-800">Tamaño:</label>
           <select
@@ -183,7 +248,7 @@ const ProductDetail: React.FC = () => {
             onChange={(e) => setSelectedSize(e.target.value)}
           >
             <option value="">Selecciona un tamaño</option>
-            {product?.sizes.map((size) => (
+            {(product.sizes || []).map((size) => (
               <option key={size} value={size}>
                 {size}
               </option>
@@ -196,25 +261,31 @@ const ProductDetail: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               className="px-2 py-1 bg-gray-200 text-gray-800 rounded"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              onClick={() => handleQuantityChange(quantity - 1)}
+              disabled={quantity === 1}
             >
               -
             </button>
             <input
               type="number"
+              min="1"
               className="w-12 text-center border rounded"
               value={quantity}
               onChange={(e) =>
-                setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                handleQuantityChange(Math.max(1, parseInt(e.target.value) || 1))
               }
             />
             <button
               className="px-2 py-1 bg-gray-200 text-gray-800 rounded"
-              onClick={() => setQuantity(quantity + 1)}
+              onClick={() => handleQuantityChange(quantity + 1)}
+              disabled={quantity >= remainingStock}
             >
               +
             </button>
           </div>
+          <p className="text-gray-800 mt-2">
+            Stock disponible: {remainingStock}
+          </p>
         </div>
 
         <div className="flex justify-between items-center mt-4">

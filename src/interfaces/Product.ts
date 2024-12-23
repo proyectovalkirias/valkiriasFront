@@ -1,5 +1,6 @@
 export interface Product {
-  id: number;
+  quantity?: number;
+  id: string;
   name: string;
   description: string;
   price: number;
@@ -7,6 +8,8 @@ export interface Product {
   category: string;
   photos: string[];
   stock: number;
-  color: string;
-  stamped?: string[];
+  color: string[];
+  smallPrint?: string[];
+  largePrint?: string[];
+  isAvailable?: boolean;
 }
