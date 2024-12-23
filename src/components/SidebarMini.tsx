@@ -50,30 +50,30 @@ const SidebarMini: React.FC = () => {
     >
       {/* Verifica si hay un menú activo */}
       {activeMenu ? (
-        <div className="flex flex-col items-start w-full h-full bg-purple-dark relative px-4">
-          <button
-            className="text-left text-gray-300 py-2 w-full hover:text-white"
+        <div className="w-full h-10 bg-purple-dark relative px-4 flex justify-center">
+          {/* <button
+            className="absolute top-2 left-2 text-gray-300 py-2 hover:text-white"
             onClick={() => setActiveMenu(null)} // Regresa al estado base
           >
             ← Volver
-          </button>
+          </button> */}
 
           {activeMenu === "products" && (
-            <div className="flex flex-col gap-2">
+            <div className="flex gap-4 text-xs">
               <button
-                className="py-2 px-4 text-left hover:bg-gray-700"
+                className="py-1 px-2 hover:bg-gray-600 rounded"
                 onClick={() => handleNavigation("/Products")}
               >
                 Todos los productos
               </button>
               <button
-                className="py-2 px-4 text-left hover:bg-gray-700"
+                className="py-1 px-2 hover:bg-gray-600 rounded"
                 onClick={() => handleNavigation("/Category1")}
               >
                 Categoría 1
               </button>
               <button
-                className="py-2 px-4 text-left hover:bg-gray-700"
+                className="py-1 px-2 hover:bg-gray-600 rounded"
                 onClick={() => handleNavigation("/Category2")}
               >
                 Categoría 2
@@ -82,24 +82,36 @@ const SidebarMini: React.FC = () => {
           )}
 
           {activeMenu === "profile" && (
-            <div className="flex flex-col gap-2">
+            <div className="flex gap-1 text-xs">
               <button
-                className="py-2 px-4 text-left hover:bg-gray-700"
+                className="py-1 px-2 hover:bg-gray-600 rounded"
+                onClick={() => handleNavigation("/Dashboard")}
+              >
+                Mi Perfil
+              </button>
+              <button
+                className="py-1 px-2 hover:bg-gray-600 rounded"
                 onClick={() => handleNavigation("/ProfileConfiguration")}
               >
                 Configuración
               </button>
               <button
-                className="py-2 px-4 text-left hover:bg-gray-700"
+                className="py-1 px-2 hover:bg-gray-600 rounded"
                 onClick={() => handleNavigation("/Addresses")}
               >
                 Direcciones
               </button>
               <button
-                className="py-2 px-4 text-left hover:bg-gray-700"
+                className="py-1 px-2  hover:bg-gray-600 rounded"
                 onClick={() => handleNavigation("/Orders")}
               >
                 Mis Compras
+              </button>
+              <button
+                className="py-1 px-2  hover:bg-gray-600 rounded"
+                onClick={() => handleNavigation("/ChangePassword")}
+              >
+                Cambiar contraseña
               </button>
             </div>
           )}
