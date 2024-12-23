@@ -13,3 +13,5 @@ export interface Product {
   largePrint?: string[];
   isAvailable?: boolean;
 }
+
+

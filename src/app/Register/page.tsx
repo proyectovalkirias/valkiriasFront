@@ -50,6 +50,7 @@ const Register: React.FC = () => {
           lastname: lastName,
           email: email,
           password: password,
+          confirmPassword: password
         }),
       });
 
