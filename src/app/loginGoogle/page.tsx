@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 
-const Logingoogle: React.FC = () => {
+const Landingoogle: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
@@ -56,56 +56,95 @@ const Logingoogle: React.FC = () => {
 
       const userInfo = await response.json();
       localStorage.setItem("user_info", JSON.stringify(userInfo));
-
-      toast.custom((t) => (
-        <div
-          className={`${
-            t.visible ? "animate-enter" : "animate-leave"
-          } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
-        >
-          <div className="flex-1 w-0 p-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 pt-0.5">
-                <img
-                  className="h-10 w-10 rounded-full"
-                  src={userInfo.picture}
-                  alt={userInfo.name}
-                />
-              </div>
-              <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-gray-900">
-                  {userInfo.name}
-                </p>
-                <p className="mt-1 text-sm text-gray-500">
-                  {userInfo.email}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="flex border-l border-gray-200">
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                window.location.href = "/";
-              }}
-              className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      ));
+      showToast(userInfo);
     } catch (error) {
       console.error("Error fetching user info:", error);
     }
   };
 
+  const revokeToken = async () => {
+  const accessToken = localStorage.getItem("access_token");
+
+  if (!accessToken) {
+    console.error("No access token found");
+    return;
+  }
+
+  try {
+    // Revocar el token en Google
+    await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
+    // Limpiar la sesión de tu app
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user_info");
+    toast.success("Has cerrado sesión correctamente");
+
+    // Opcional: Redirigir al usuario a la página de inicio
+    window.location.href = "/";
+  } catch (error) {
+    console.error("Error revoking token:", error);
+    toast.error("Error cerrando sesión");
+  }
+};
+
+
+
+  const showToast = (userInfo: any) => {
+    toast.custom((t) => (
+      <div
+        className={`${
+          t.visible ? "animate-enter" : "animate-leave"
+        } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+        onClick={() => {
+          toast.dismiss(t.id);
+          window.location.href = "/";
+        }}
+      >
+        <div className="flex-1 w-0 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 pt-0.5">
+              <img
+                className="h-10 w-10 rounded-full"
+                src={userInfo.picture}
+                alt={userInfo.name}
+              />
+            </div>
+            <div className="ml-3 flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                {userInfo.name}
+              </p>
+              <p className="mt-1 text-sm text-gray-500">{userInfo.email}</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex border-l border-gray-200">
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              window.location.href = "/";
+            }}
+            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    ));
+  };
+
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h1>Procesando Inicio de Sesión...</h1>
-      <p>Por favor, espera mientras procesamos tu inicio de sesión con Google.</p>
+      <p>
+        Por favor, espera mientras procesamos tu inicio de sesión con Google.
+      </p>
     </div>
   );
 };
 
-export default Logingoogle;
+export default Landingoogle;

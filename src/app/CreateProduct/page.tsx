@@ -1,6 +1,6 @@
 "use client";
 import { useForm, Controller } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Product } from "@/interfaces/Product";
 
 const CreateProduct: React.FC = () => {
@@ -8,55 +8,41 @@ const CreateProduct: React.FC = () => {
     register,
     handleSubmit,
     control,
-    setValue,
     formState: { errors },
     reset,
-  } = useForm<Product>({ defaultValues: { color: [] } });
+  } = useForm<Product>();
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [kidsSizes, setKidsSizes] = useState<number[]>([]);
+  const [kidsSizes, setKidsSizes] = useState<string[]>([]);
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
   const [price, setPrice] = useState<number | null>(null);
   const [stock, setStock] = useState<number | null>(null);
-  const [colors, setColors] = useState<string[]>([]); // Inicializar con negro por defecto
+  const [color, setColor] = useState<string[]>([]);
   const [category, setCategory] = useState<string>("");
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const onSubmit = (data: Product) => {
-    console.log("Formulario enviado", data);
-    console.log("Colores seleccionados antes del envío:", colors);
-    console.log("Tamaños niños:", kidsSizes);
-    console.log("Tamaños adultos:", adultSizes);
     setLoading(true);
+  
     const formData = new FormData();
-
     formData.append("name", data.name);
     formData.append("description", data.description);
-    if (data.price !== null) {
-      formData.append("price", data.price.toString());
-    }
-    if (data.stock !== null) {
-      formData.append("stock", data.stock.toString());
-    }
-    colors.forEach((color) => formData.append("colors", color));
-    formData.append("category", category || "Sin categoría");
+    formData.append("price", data.price.toString());
+    formData.append("stock", data.stock.toString());
+    formData.append("color", JSON.stringify(data.color));
+    formData.append("category", category);
+    
+    const allSizes = [...kidsSizes, ...adultSizes];
+    formData.append("sizes", JSON.stringify(allSizes));
 
-    photos.forEach((photo) => formData.append("photos", photo));
-
-    const allSizes = [...kidsSizes.map(String), ...adultSizes.map(String)];
-    console.log("Tamaños combinados:", allSizes);
-  
-    allSizes.forEach((size) => {
-      formData.append("sizes", size); // Asegúrate de usar 'sizes' como clave
+    photos.forEach((photo, index) => {
+      formData.append("photos", photo);
     });
-  // [...formData.entries()].forEach(([key, value]) =>
-  //   console.log(key, value instanceof File ? value.name : value)
-  // );
-
+  
     fetch("http://localhost:3000/products", {
       method: "POST",
       body: formData,
@@ -68,26 +54,25 @@ const CreateProduct: React.FC = () => {
         return response.json();
       })
       .then((data) => {
-        console.log("Producto creado:", data);
+        console.log("Producto creado exitosamente:", data);
+  
+       
         setLoading(false);
         reset();
         setPhotos([]);
-        // setIsSuccess(true);
-        setIsModalVisible(true);
         setPreviewImages([]);
         setKidsSizes([]);
         setAdultSizes([]);
         setPrice(null);
         setStock(null);
         setCategory("");
-        setColors(["#000000"]);
       })
       .catch((error) => {
         console.error("Error al crear el producto:", error);
         setLoading(false);
-        // setIsSuccess(false);
       });
   };
+  
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -130,35 +115,16 @@ const CreateProduct: React.FC = () => {
     );
   };
 
-  const toggleColor = (selectedColor: string) => {
-    setColors((prevColors) => {
-      if (prevColors.includes(selectedColor)) {
-        return prevColors.filter((color) => color !== selectedColor);
-      } else {
-        return [...prevColors, selectedColor];
-      }
-    });
-  };
-
-  useEffect(() => {
-    setValue("color", colors); // Sincroniza el valor de colors con react-hook-form
-  }, [colors, setValue]);
-
   const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
-    if (type === "kids") {
-      setKidsSizes((prevSizes) =>
-        prevSizes.includes(size as number)
-          ? prevSizes.filter((s) => s !== size)
-          : [...prevSizes, size as number]
-      );
-    } else {
-      setAdultSizes((prevSizes) =>
-        prevSizes.includes(size as string)
-          ? prevSizes.filter((s) => s !== size)
-          : [...prevSizes, size as string]
-      );
-    }
+    const updateSizes = type === "kids" ? setKidsSizes : setAdultSizes;
+  
+    updateSizes((prevSizes) =>
+      prevSizes.includes(size as string)
+        ? prevSizes.filter((s) => s !== size)
+        : [...prevSizes, size as string]
+    );
   };
+  
 
   const handleCancel = () => {
     const confirmCancel = window.confirm(
@@ -266,71 +232,70 @@ const CreateProduct: React.FC = () => {
           </div>
         </div>
 
-        {/* Colores */}
-        <div className="mb-4">
-          <label htmlFor="color" className="block text-sm font-medium">
-            Colores:
-          </label>
-          <Controller
-            name="color"
-            control={control}
-            render={({ field }) => (
-              <div className="flex space-x-4">
-                {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
-                  <div
-                    key={c}
-                    onClick={() => {
-                      toggleColor(c);
-                    }}
-                    style={{ backgroundColor: c }}
-                    className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
-                      colors.includes(c) ? "border-white" : "border-transparent"
-                    }`}
-                  ></div>
-                ))}
-              </div>
-            )}
-          />
-        </div>
-
-        {/* Tamaños */}
-        <div className="flex space-x-8 mb-4">
-          <div>
-            <label className="block text-sm font-medium">Talle Niños:</label>
-            <div className="flex space-x-2">
-              {[4, 6, 8, 10, 12, 14, 16].map((size) => (
-                <label key={size} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    value={size}
-                    onChange={() => handleSizeChange(size, "kids")}
-                    checked={kidsSizes.includes(size)}
-                    className="mr-1"
-                  />
-                  {size}
-                </label>
+        <Controller
+          name="color"
+          control={control}
+          defaultValue={color} // color es ahora un arreglo de strings
+          render={({ field }) => (
+            <div className="flex space-x-4">
+              {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
+                <div
+                  key={c}
+                  onClick={() => {
+                    const newColorArray = color.includes(c)
+                      ? color.filter((selectedColor) => selectedColor !== c) // Elimina el color si ya está seleccionado
+                      : [...color, c]; // Agrega el color si no está seleccionado
+                    field.onChange(newColorArray);
+                    setColor(newColorArray);
+                  }}
+                  style={{ backgroundColor: c }}
+                  className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
+                    color.includes(c) ? "border-white" : "border-transparent"
+                  }`}
+                ></div>
               ))}
             </div>
-          </div>
+          )}
+        />
 
-          <div>
-            <label className="block text-sm font-medium">Talle Adultos:</label>
-            <div className="flex space-x-2">
-              {["S", "M", "L", "XL", "XXL"].map((size) => (
-                <label key={size} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    value={size}
-                    onChange={() => handleSizeChange(size, "adults")}
-                    checked={adultSizes.includes(size)}
-                    className="mr-1"
-                  />
-                  {size}
-                </label>
-              ))}
-            </div>
+      {/* Tamaños */}
+      <div className="flex space-x-8 mb-4">
+        <div>
+          <label className="block text-sm font-medium">Talle Niños:</label>
+          <div className="flex space-x-2">
+            {[4, 6, 8, 10, 12, 14, 16].map((size) => (
+              <label key={size} className="flex items-center">
+                <input
+                  type="checkbox"
+                  value={size}
+                  onChange={() => handleSizeChange(size.toString(), "kids")}
+                  checked={kidsSizes.includes(size.toString())}
+                  className="mr-1"
+                />
+                {size}
+              </label>
+            ))}
           </div>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium">Talle Adultos:</label>
+          <div className="flex space-x-2">
+            {["S", "M", "L", "XL", "XXL"].map((size) => (
+              <label key={size} className="flex items-center">
+                <input
+                  type="checkbox"
+                  value={size}
+                  onChange={() => handleSizeChange(size, "adults")}
+                  checked={adultSizes.includes(size)}
+                  className="mr-1"
+                />
+                {size}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
 
         {/* Categoría y Agregar Imágenes */}
         <div className="mb-4 flex items-center gap-4">
@@ -339,60 +304,45 @@ const CreateProduct: React.FC = () => {
             <label htmlFor="category" className="block text-sm font-medium">
               Categoría:
             </label>
-            <Controller
+            <select
+              id="category"
               name="category"
-              control={control}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  value={category} // Asegúrate de que esté sincronizado
-                  onChange={(e) => {
-                    setCategory(e.target.value);
-                    field.onChange(e.target.value); // Actualiza tanto el estado como el formulario
-                  }}
-                  required
-                  className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none focus:ring-2 focus:ring-violet-500"
-                >
-                  <option value="" className="text-black">
-                    Seleccione una categoría
-                  </option>
-                  <option
-                    value="Remeras"
-                    className="text-black hover:bg-violet-500"
-                  >
-                    Remeras
-                  </option>
-                  <option
-                    value="Buzos"
-                    className="text-black hover:bg-violet-500"
-                  >
-                    Buzos
-                  </option>
-                  <option
-                    value="Gorras"
-                    className="text-black hover:bg-violet-500"
-                  >
-                    Gorras
-                  </option>
-                  <option
-                    value="Gorros de lana"
-                    className="text-black hover:bg-violet-500"
-                  >
-                    Gorros de Lana
-                  </option>
-                  <option
-                    value="Totebags"
-                    className="text-black hover:bg-violet-500"
-                  >
-                    Totebags
-                  </option>
-                </select>
-              )}
-            />
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none focus:ring-2 focus:ring-violet-500"
+            >
+              <option value="" className="text-black">
+                Seleccione una categoría
+              </option>
+              <option
+                value="Remeras"
+                className="text-black hover:bg-violet-500"
+              >
+                Remeras
+              </option>
+              <option value="Buzos" className="text-black hover:bg-violet-500">
+                Buzos
+              </option>
+              <option value="Gorras" className="text-black hover:bg-violet-500">
+                Gorras
+              </option>
+              <option
+                value="Gorros de lana"
+                className="text-black hover:bg-violet-500"
+              >
+                Gorros de Lana
+              </option>
+              <option
+                value="Totebags"
+                className="text-black hover:bg-violet-500"
+              >
+                Totebags
+              </option>
+            </select>
           </div>
 
-     {/* Agregar Imágenes */}
-     <div className="w-1/2">
+          {/* Agregar Imágenes */}
+          <div className="w-1/2">
             <label htmlFor="photos" className="block text-sm font-medium">
               Agregar imágenes:
             </label>
@@ -455,20 +405,30 @@ const CreateProduct: React.FC = () => {
           </p>
 
           {/* Precio y Stock */}
-          {/* Categoría y Colores */}
-          <div className="flex flex-col gap-2 items-center">
+          <div className="flex gap-4">
+            <p className="text-sm">
+              Precio: ${price !== null ? price : "0.00"}
+            </p>
+            <p className="text-sm">Stock: {stock !== null ? stock : "0"}</p>
+          </div>
+          {/* Categoría y Color */}
+          {/* Categoría y Color */}
+          <div className="flex gap-4">
             <p className="text-sm">Categoría: {category || "Ninguna"}</p>
-            <div className="flex items-center gap-2">
-              <p className="text-sm">Colores:</p>
+            <div className="flex items-center gap-1">
+              <p className="text-sm">Color:</p>
               <div className="flex gap-2">
-                {colors.map((color, index) => (
-                  <span
-                    key={index}
-                    style={{ backgroundColor: color }}
-                    className="inline-block w-4 h-4 rounded-full border-2 border-white"
-                    title={color}
-                  ></span>
-                ))}
+                {color.length > 0 ? (
+                  color.map((c, index) => (
+                    <span
+                      key={index}
+                      style={{ backgroundColor: c }}
+                      className="inline-block w-4 h-4 rounded-full"
+                    ></span>
+                  ))
+                ) : (
+                  <p>No se seleccionaron colores</p>
+                )}
               </div>
             </div>
           </div>

@@ -58,12 +58,33 @@ const Sidebar: React.FC = () => {
   const toggleProfileAccordion = () =>
     setIsProfileAccordionOpen(!isProfileAccordionOpen);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("user_info");
-    setUser(null);
-    handleNavigation("/Login");
+  const handleLogout = async () => {
+    try {
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Si el usuario está logueado con Google, revocar el token
+      if (accessToken) {
+        await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        });
+      }
+  
+      // Eliminar datos de usuario del almacenamiento local
+      localStorage.removeItem("user");
+      localStorage.removeItem("user_info");
+      localStorage.removeItem("access_token");
+      setUser(null);
+  
+      // Redirigir al usuario a la página de inicio de sesión
+      handleNavigation("/Login");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
   };
+  
 
   return (
     <div
