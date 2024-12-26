@@ -8,10 +8,8 @@ export interface Product {
   category: string;
   photos: string[];
   stock: number;
-  color: string[] | string;
+  color: string[];
   smallPrint?: string[];
   largePrint?: string[];
   isAvailable?: boolean;
-  kidsSizes?: string[]; 
-  adultSizes?: string[]; 
 }

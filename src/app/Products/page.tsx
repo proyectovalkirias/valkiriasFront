@@ -3,24 +3,44 @@
 import React, { useEffect, useState } from "react";
 import { getProducts } from "@/api/productAPI";
 import { Product } from "@/interfaces/Product";
-import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Estados para filtros
+  const [categories, setCategories] = useState<string[]>([]);
+  const [colors, setColors] = useState<string[]>([]);
+  const [sizes, setSizes] = useState<string[]>([]);
+
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  const pathname = usePathname();
-
-  // Obtener productos y categoría seleccionada
+  // Obtener todos los productos y opciones de filtrado
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
         const allProducts = await getProducts();
         setProducts(allProducts);
+
+        // Extraer categorías, colores y talles únicos
+        const uniqueCategories = Array.from(
+          new Set(allProducts.map((p) => p.category).filter(Boolean))
+        );
+        const uniqueColors = Array.from(
+          new Set(allProducts.flatMap((p) => p.color || []).filter(Boolean))
+        );
+        const uniqueSizes = Array.from(
+          new Set(allProducts.flatMap((p) => p.sizes || []).filter(Boolean))
+        );
+
+        setCategories(uniqueCategories);
+        setColors(uniqueColors);
+        setSizes(uniqueSizes);
       } catch (err: any) {
         setError("Error al cargar los productos. Intenta nuevamente.");
       } finally {
@@ -29,16 +49,26 @@ const Products: React.FC = () => {
     };
 
     fetchProducts();
-  }, [pathname]);
+  }, []);
 
-  // Filtrar productos si hay una categoría seleccionada
-  const filteredProducts =
-    selectedCategory && selectedCategory !== "all"
-      ? products.filter(
-          (product) =>
-            product.category?.toLowerCase() === selectedCategory.toLowerCase()
-        )
-      : products;
+  // Filtrar productos según los filtros seleccionados
+  const filteredProducts = products.filter((product) => {
+    const matchesCategory =
+      !selectedCategory ||
+      product.category?.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesColor =
+      !selectedColor ||
+      product.color?.some(
+        (c) => c.toLowerCase() === selectedColor.toLowerCase()
+      );
+    const matchesSize =
+      !selectedSize ||
+      product.sizes?.some(
+        (s) => s.toLowerCase() === selectedSize.toLowerCase()
+      );
+
+    return matchesCategory && matchesColor && matchesSize;
+  });
 
   // Agrupar productos por categoría
   const groupedProducts = filteredProducts.reduce(
@@ -59,6 +89,57 @@ const Products: React.FC = () => {
         Explora nuestra colección y encuentra el producto perfecto para ti.
       </p>
 
+      {/* Formulario de Filtros */}
+      <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
+        <h2 className="text-lg font-bold mb-4 text-center text-gray-800">
+          Filtrar Productos
+        </h2>
+        <div className="flex flex-wrap gap-4 justify-center">
+          {/* Filtro por Categoría */}
+          <select
+            className="p-2 border rounded"
+            value={selectedCategory || ""}
+            onChange={(e) => setSelectedCategory(e.target.value || null)}
+          >
+            <option value="">Todas las categorías</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+
+          {/* Filtro por Color */}
+          <select
+            className="p-2 border rounded"
+            value={selectedColor || ""}
+            onChange={(e) => setSelectedColor(e.target.value || null)}
+          >
+            <option value="">Todos los colores</option>
+            {colors.map((color) => (
+              <option key={color} value={color}>
+                {color}
+              </option>
+            ))}
+          </select>
+
+          {/* Filtro por Talle */}
+          <select
+            className="p-2 border rounded"
+            value={selectedSize || ""}
+            onChange={(e) => setSelectedSize(e.target.value || null)}
+          >
+            <option value="">Todos los talles</option>
+            {sizes.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Productos Agrupados */}
       <div className="mb-4">
         {Object.keys(groupedProducts).length > 0 ? (
           Object.keys(groupedProducts).map((category) => (

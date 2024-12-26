@@ -123,12 +123,13 @@ const Sidebar: React.FC = () => {
           </li>
 
           {/* BOTÓN PRODUCTOS */}
-          <li
-            className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-            onClick={() => handleNavigation("/Products")}
-          >
-            <IoShirtOutline size={24} />
-            {isOpen && <span>Productos</span>}
+          <li onClick={() => handleNavigation("/Products")}>
+            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
+              <div className="flex items-center gap-4">
+                <IoShirtOutline size={24} />
+                {isOpen && <span>Productos</span>}
+              </div>
+            </div>
           </li>
 
           {/* BOTÓN MI PERFIL */}
