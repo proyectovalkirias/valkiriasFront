@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
-import { FaRegUser } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
-import { fetchCategories } from "@/api/productAPI"; // Asegúrate de que esta función esté configurada correctamente.
+import { fetchCategories } from "@/api/productAPI";
 import { useRouter } from "next/navigation";
-import { log } from "console";
+import { FiUser, FiUsers } from "react-icons/fi";
 
 const getUserData = () => {
   try {
@@ -40,7 +39,7 @@ const getUserData = () => {
 };
 
 const Sidebar: React.FC = () => {
-  const router = useRouter(); // Usar useRouter para navegación en Next.js
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
   const [isProductsAccordionOpen, setIsProductsAccordionOpen] = useState(false);
   const [isProfileAccordionOpen, setIsProfileAccordionOpen] = useState(false);
@@ -51,6 +50,7 @@ const Sidebar: React.FC = () => {
     email: string;
     photoUrl: string;
   } | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null); // Referencia para la Sidebar
 
   useEffect(() => {
     const userData = getUserData();
@@ -68,16 +68,23 @@ const Sidebar: React.FC = () => {
   const handleNavigation = (path: string) => router.push(path);
 
   const handleCategoryClick = (category: string) => {
-    localStorage.setItem("selectedCategory", category); // Guardar categoría en localStorage
+    if (!isOpen) return; // Si el menú está cerrado, no se puede abrir
+    localStorage.setItem("selectedCategory", category);
     handleNavigation("/Products");
     window.location.reload();
   };
 
-  const toggleProductsAccordion = () =>
-    setIsProductsAccordionOpen(!isProductsAccordionOpen);
+  const toggleProductsAccordion = () => {
+    if (isOpen) {
+      setIsProductsAccordionOpen(!isProductsAccordionOpen);
+    }
+  };
 
-  const toggleProfileAccordion = () =>
-    setIsProfileAccordionOpen(!isProfileAccordionOpen);
+  const toggleProfileAccordion = () => {
+    if (isOpen) {
+      setIsProfileAccordionOpen(!isProfileAccordionOpen);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -86,17 +93,43 @@ const Sidebar: React.FC = () => {
     handleNavigation("/Login");
   };
 
+  const handleSidebarClick = () => {
+    if (!isOpen) {
+      setIsOpen(true); // Expandir si está cerrado
+    }
+  };
+
   const handleProducts = () => {
+    if (!isOpen) return;
     localStorage.removeItem("selectedCategory");
     handleNavigation("/Products");
     setTimeout(() => window.location.reload(), 100);
   };
 
+  // Detectar clics fuera de la Sidebar para cerrarla
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setIsOpen(false); // Cerrar Sidebar si el clic es fuera de ella
+        // Cerrar los acordeones cuando se cierre la sidebar
+        setIsProductsAccordionOpen(false);
+        setIsProfileAccordionOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div
+      ref={sidebarRef} // Asignamos la referencia a la Sidebar
       className={`${
         isOpen ? "w-64" : "w-16 closed"
       } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300`}
+      onClick={handleSidebarClick}
     >
       {/* LOGO */}
       <div
@@ -124,8 +157,7 @@ const Sidebar: React.FC = () => {
         <ul>
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-            onClick={() => handleNavigation("/")}
-          >
+            onClick={() => handleNavigation("/")}>
             <TbHomeHeart size={24} />
             {isOpen && <span>Inicio</span>}
           </li>
@@ -147,7 +179,7 @@ const Sidebar: React.FC = () => {
                 className="flex items-center gap-4"
                 onClick={() => handleNavigation("/Dashboard")}
               >
-                <FaRegUser size={24} />
+                <FiUser size={24} />
                 {isOpen && <span>Mi Perfil</span>}
               </div>
               {isOpen && (
@@ -194,7 +226,7 @@ const Sidebar: React.FC = () => {
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/About")}
           >
-            <FaRegUser size={24} />
+            <FiUsers size={24} />
             {isOpen && <span>Sobre Nosotros</span>}
           </li>
 
