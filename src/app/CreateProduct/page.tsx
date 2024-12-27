@@ -2,6 +2,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { useState } from "react";
 import { Product } from "@/interfaces/Product";
+import ProductPreview from "./PreviewPorduct/page";
 
 const CreateProduct: React.FC = () => {
   const {
@@ -14,6 +15,8 @@ const CreateProduct: React.FC = () => {
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [smallPrints, setSmallPrints] = useState<File[]>([]);
+  const [largePrints, setLargePrints] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [kidsSizes, setKidsSizes] = useState<string[]>([]);
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
@@ -24,6 +27,8 @@ const CreateProduct: React.FC = () => {
   const [color, setColor] = useState<string[]>([]);
   const [category, setCategory] = useState<string>("");
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [smallPrintsPreview, setSmallPrintsPreview] = useState<string[]>([]);
+  const [largePrintsPreview, setLargePrintsPreview] = useState<string[]>([]);
 
   const onSubmit = (data: Product) => {
     setLoading(true);
@@ -35,12 +40,20 @@ const CreateProduct: React.FC = () => {
     formData.append("stock", data.stock.toString());
     formData.append("color", JSON.stringify(data.color));
     formData.append("category", category);
-    
+  
     const allSizes = [...kidsSizes, ...adultSizes];
     formData.append("sizes", JSON.stringify(allSizes));
-
-    photos.forEach((photo, index) => {
+  
+    photos.forEach((photo) => {
       formData.append("photos", photo);
+    });
+  
+    smallPrints.forEach((print) => {
+      formData.append("smallPrint", print);
+    });
+  
+    largePrints.forEach((print) => {
+      formData.append("largePrint", print);
     });
   
     fetch("http://localhost:3000/products", {
@@ -55,17 +68,28 @@ const CreateProduct: React.FC = () => {
       })
       .then((data) => {
         console.log("Producto creado exitosamente:", data);
-  
-       
         setLoading(false);
-        reset();
-        setPhotos([]);
-        setPreviewImages([]);
-        setKidsSizes([]);
-        setAdultSizes([]);
-        setPrice(null);
-        setStock(null);
-        setCategory("");
+        setIsModalVisible(true); // Mostrar el modal de éxito
+  
+        // Restablecer los estados solo después de que el modal se haya mostrado
+        setTimeout(() => {
+          reset();
+          setSmallPrintsPreview([]);
+          setLargePrintsPreview([]);
+          setProductName("");
+          setProductDescription("");
+          setPhotos([]);
+          setPreviewImages([]);
+          setSmallPrints([]);
+          setLargePrints([]);
+          setKidsSizes([]);
+          setAdultSizes([]);
+          setPrice(null);
+          setStock(null);
+          setCategory("");
+          setColor([]);
+          setIsModalVisible(false); // Cerrar el modal después de un tiempo
+        }, 3000); // Puedes ajustar el tiempo de espera según sea necesario
       })
       .catch((error) => {
         console.error("Error al crear el producto:", error);
@@ -108,6 +132,27 @@ const CreateProduct: React.FC = () => {
     }
   };
 
+  const handlePrintChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: "small" | "large"
+  ) => {
+    const files = event.target.files;
+    if (files) {
+      const newPrints = Array.from(files);
+      const newPrintsPreviews = newPrints.map((file) =>
+        URL.createObjectURL(file)
+      );
+
+      if (type === "small") {
+        setSmallPrints((prev) => [...prev, ...newPrints]);
+        setSmallPrintsPreview((prev) => [...prev, ...newPrintsPreviews]);
+      } else {
+        setLargePrints((prev) => [...prev, ...newPrints]);
+        setLargePrintsPreview((prev) => [...prev, ...newPrintsPreviews]);
+      }
+    }
+  };
+
   const handleRemoveImage = (index: number) => {
     setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index));
     setPreviewImages((prevPreviews) =>
@@ -115,26 +160,36 @@ const CreateProduct: React.FC = () => {
     );
   };
 
+  const handleRemoveSmallPrint = (index: number) => {
+    setSmallPrints((prev) => prev.filter((_, i) => i !== index));
+    setSmallPrintsPreview((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveLargePrint = (index: number) => {
+    setLargePrints((prev) => prev.filter((_, i) => i !== index));
+    setLargePrintsPreview((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
     const updateSizes = type === "kids" ? setKidsSizes : setAdultSizes;
-  
+
     updateSizes((prevSizes) =>
       prevSizes.includes(size as string)
         ? prevSizes.filter((s) => s !== size)
         : [...prevSizes, size as string]
     );
   };
-  
 
   const handleCancel = () => {
     const confirmCancel = window.confirm(
       "¿Estás seguro de que deseas eliminar el producto y restablecer el formulario?"
     );
-
     if (confirmCancel) {
       reset();
       setPhotos([]);
       setPreviewImages([]);
+      setSmallPrints([]);
+      setLargePrints([]);
       setKidsSizes([]);
       setAdultSizes([]);
       setPrice(null);
@@ -232,76 +287,84 @@ const CreateProduct: React.FC = () => {
           </div>
         </div>
 
-        <Controller
-          name="color"
-          control={control}
-          defaultValue={color} // color es ahora un arreglo de strings
-          render={({ field }) => (
-            <div className="flex space-x-4">
-              {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
-                <div
-                  key={c}
-                  onClick={() => {
-                    const newColorArray = color.includes(c)
-                      ? color.filter((selectedColor) => selectedColor !== c) // Elimina el color si ya está seleccionado
-                      : [...color, c]; // Agrega el color si no está seleccionado
-                    field.onChange(newColorArray);
-                    setColor(newColorArray);
-                  }}
-                  style={{ backgroundColor: c }}
-                  className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
-                    color.includes(c) ? "border-white" : "border-transparent"
-                  }`}
-                ></div>
+        {/* Tamaños */}
+        <div className="flex space-x-8 mb-4">
+          <div>
+            <label className="block text-sm font-medium">Talle Niños:</label>
+            <div className="flex space-x-2">
+              {[4, 6, 8, 10, 12, 14, 16].map((size) => (
+                <label key={size} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value={size}
+                    onChange={() => handleSizeChange(size.toString(), "kids")}
+                    checked={kidsSizes.includes(size.toString())}
+                    className="mr-1"
+                  />
+                  {size}
+                </label>
               ))}
             </div>
-          )}
-        />
+          </div>
 
-      {/* Tamaños */}
-      <div className="flex space-x-8 mb-4">
-        <div>
-          <label className="block text-sm font-medium">Talle Niños:</label>
-          <div className="flex space-x-2">
-            {[4, 6, 8, 10, 12, 14, 16].map((size) => (
-              <label key={size} className="flex items-center">
-                <input
-                  type="checkbox"
-                  value={size}
-                  onChange={() => handleSizeChange(size.toString(), "kids")}
-                  checked={kidsSizes.includes(size.toString())}
-                  className="mr-1"
-                />
-                {size}
-              </label>
-            ))}
+          <div>
+            <label className="block text-sm font-medium">Talle Adultos:</label>
+            <div className="flex space-x-2">
+              {["S", "M", "L", "XL", "XXL"].map((size) => (
+                <label key={size} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value={size}
+                    onChange={() => handleSizeChange(size, "adults")}
+                    checked={adultSizes.includes(size)}
+                    className="mr-1"
+                  />
+                  {size}
+                </label>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium">Talle Adultos:</label>
-          <div className="flex space-x-2">
-            {["S", "M", "L", "XL", "XXL"].map((size) => (
-              <label key={size} className="flex items-center">
-                <input
-                  type="checkbox"
-                  value={size}
-                  onChange={() => handleSizeChange(size, "adults")}
-                  checked={adultSizes.includes(size)}
-                  className="mr-1"
-                />
-                {size}
-              </label>
-            ))}
+        <div className="mb-4 flex items-start gap-8">
+          {/* Colores */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Colores:</label>
+            <Controller
+              name="color"
+              control={control}
+              defaultValue={color} // color es ahora un arreglo de strings
+              render={({ field }) => (
+                <div className="flex space-x-4">
+                  {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
+                    <div
+                      key={c}
+                      onClick={() => {
+                        const newColorArray = color.includes(c)
+                          ? color.filter((selectedColor) => selectedColor !== c) // Elimina el color si ya está seleccionado
+                          : [...color, c]; // Agrega el color si no está seleccionado
+                        field.onChange(newColorArray);
+                        setColor(newColorArray);
+                      }}
+                      style={{ backgroundColor: c }}
+                      className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
+                        color.includes(c)
+                          ? "border-white"
+                          : "border-transparent"
+                      }`}
+                    ></div>
+                  ))}
+                </div>
+              )}
+            />
           </div>
-        </div>
-      </div>
 
-        {/* Categoría y Agregar Imágenes */}
-        <div className="mb-4 flex items-center gap-4">
           {/* Categoría */}
           <div className="w-1/2">
-            <label htmlFor="category" className="block text-sm font-medium">
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium mb-2"
+            >
               Categoría:
             </label>
             <select
@@ -340,33 +403,74 @@ const CreateProduct: React.FC = () => {
               </option>
             </select>
           </div>
+        </div>
 
-          {/* Agregar Imágenes */}
-          <div className="w-1/2">
-            <label htmlFor="photos" className="block text-sm font-medium">
-              Agregar imágenes:
+        {/* Agregar Imágenes */}
+        <div className="mt-4">
+          <label htmlFor="photos" className="block text-sm font-medium">
+            Agregar imágenes:
+          </label>
+          <div className="relative">
+            <input
+              type="file"
+              id="photos"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => document.getElementById("photos")?.click()}
+              className="w-full bg-purple-dark text-white font-medium py-2 px-4 rounded-md shadow-md"
+            >
+              Cargar imágenes
+            </button>
+          </div>
+        </div>
+
+        {/* Cargar Estampas */}
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="smallPrint" className="block text-sm font-medium">
+              Cargar estampas pequeñas:
             </label>
             <div className="relative">
               <input
-                id="photos"
                 type="file"
+                id="smallPrint"
                 multiple
-                onChange={handleFileChange}
+                onChange={(e) => handlePrintChange(e, "small")}
                 className="hidden"
               />
               <button
                 type="button"
-                onClick={() => document.getElementById("photos")?.click()}
+                onClick={() => document.getElementById("smallPrint")?.click()}
                 className="w-full bg-purple-dark text-white font-medium py-2 px-4 rounded-md shadow-md"
               >
-                Cargar imágenes
+                Cargar estampas pequeñas
               </button>
             </div>
-            {/* {isSuccess && (
-        <div className="bg-green-500 text-white p-3 rounded-md mb-4">
-          Producto creado correctamente!
-        </div>
-      )} */}
+          </div>
+          <div>
+            <label htmlFor="largePrint" className="block text-sm font-medium">
+              Cargar estampas grandes:
+            </label>
+            <div className="relative">
+              <input
+                type="file"
+                id="largePrint"
+                multiple
+                onChange={(e) => handlePrintChange(e, "large")}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => document.getElementById("largePrint")?.click()}
+                className="w-full bg-purple-dark text-white font-medium py-2 px-4 rounded-md shadow-md"
+              >
+                Cargar estampas grandes
+              </button>
+            </div>
           </div>
         </div>
 
@@ -389,86 +493,22 @@ const CreateProduct: React.FC = () => {
         </div>
       </form>
 
-      {/* Vista previa */}
-      <div className="w-1/2 p-4 text-white">
-        <h2 className="mb-6 text-2xl font-bold text-center">Vista Previa</h2>
-
-        <div className="bg-[#5e3a6e] p-4 rounded-md flex flex-col items-center justify-center gap-4">
-          {/* Nombre */}
-          <h3 className="text-lg font-semibold">
-            {productName || "Nombre del Producto"}
-          </h3>
-
-          {/* Descripción */}
-          <p className="text-sm text-center">
-            {productDescription || "Descripción del producto"}
-          </p>
-
-          {/* Precio y Stock */}
-          <div className="flex gap-4">
-            <p className="text-sm">
-              Precio: ${price !== null ? price : "0.00"}
-            </p>
-            <p className="text-sm">Stock: {stock !== null ? stock : "0"}</p>
-          </div>
-          {/* Categoría y Color */}
-          {/* Categoría y Color */}
-          <div className="flex gap-4">
-            <p className="text-sm">Categoría: {category || "Ninguna"}</p>
-            <div className="flex items-center gap-1">
-              <p className="text-sm">Color:</p>
-              <div className="flex gap-2">
-                {color.length > 0 ? (
-                  color.map((c, index) => (
-                    <span
-                      key={index}
-                      style={{ backgroundColor: c }}
-                      className="inline-block w-4 h-4 rounded-full"
-                    ></span>
-                  ))
-                ) : (
-                  <p>No se seleccionaron colores</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <h4 className="font-medium mb-2 text-center">
-              Tamaños seleccionados:
-            </h4>
-            <div className="flex gap-4">
-              <p className="text-sm">
-                Niños: {kidsSizes.length ? kidsSizes.join(", ") : "Ninguno"}
-              </p>
-              <p className="text-sm">
-                Adultos: {adultSizes.length ? adultSizes.join(", ") : "Ninguno"}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <h4 className="font-medium">Imágenes:</h4>
-            <div className="flex space-x-2 mt-2">
-              {previewImages.map((src, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={src}
-                    alt={`Vista previa ${index + 1}`}
-                    className="w-16 h-16 object-cover rounded-md"
-                  />
-                  <button
-                    onClick={() => handleRemoveImage(index)}
-                    className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1"
-                  >
-                    X
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <ProductPreview
+        productName={productName}
+        productDescription={productDescription}
+        price={price}
+        stock={stock}
+        category={category}
+        color={color}
+        kidsSizes={kidsSizes}
+        adultSizes={adultSizes}
+        previewImages={previewImages}
+        onRemoveImage={handleRemoveImage}
+        smallPrintsPreview={smallPrintsPreview}
+        largePrintsPreview={largePrintsPreview}
+        onRemoveSmallPrint={handleRemoveSmallPrint}
+        onRemoveLargePrint={handleRemoveLargePrint}
+      />
     </div>
   );
 };

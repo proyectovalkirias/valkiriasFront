@@ -91,16 +91,15 @@ const AccountForm: React.FC = () => {
         photo: "/images/Avatar.png", // Imagen predeterminada
       };
 
-      //  ENVÍA LOS DATOS AL BACK-END 
+ 
       const response = await axios.put(
-        `http://localhost:3000/users/${formData.id}`, // URL de la API
+        `http://localhost:3000/users/${formData.id}`, 
         updatedUserData
       );
 
       if (response.status === 200) {
         console.log("Información actualizada correctamente en la base de datos:", response.data);
 
-        // ACTUALIZA EL LOCALSTORAGE CON LA NUEVA INFORMACIÓN
         const userLocalData = {
           user: updatedUserData,
         };

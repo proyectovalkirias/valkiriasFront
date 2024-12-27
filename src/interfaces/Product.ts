@@ -9,7 +9,7 @@ export interface Product {
   photos: string[];
   stock: number;
   color: string[];
-  smallPrint?: string[];
-  largePrint?: string[];
+  smallPrint: string[];
+  largePrint: string[];
   isAvailable?: boolean;
 }
