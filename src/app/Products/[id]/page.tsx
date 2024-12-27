@@ -27,12 +27,41 @@ const ProductDetail: React.FC = () => {
   const [remainingStock, setRemainingStock] = useState<number>(0);
 
   useEffect(() => {
-    if (product) {
-      setRemainingStock(product.stock);
+    if (!productId) {
+      setError("El ID del producto no es válido.");
+      setLoading(false);
+      return;
     }
-  }, [product]);
 
-  // Sincronizar stock con el carrito
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const fetchedProduct = await getProductById(productId);
+        const cleanedSizes = fetchedProduct.sizes.map((size: string) =>
+          size.replace(/["\[\]]/g, "")
+        );
+        const cleanedColors = fetchedProduct.color.map((color: string) =>
+          color.replace(/["\[\]]/g, "")
+        );
+
+        setProduct({
+          ...fetchedProduct,
+          sizes: cleanedSizes,
+          color: cleanedColors,
+        });
+        setSelectedColor(cleanedColors[0] || "");
+        setMainImage(fetchedProduct.photos?.[0] || "");
+        setRemainingStock(fetchedProduct.stock);
+      } catch (err) {
+        setError("No se pudo cargar el producto. Intenta nuevamente.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
   useEffect(() => {
     const syncStockWithCart = async () => {
       const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -52,36 +81,6 @@ const ProductDetail: React.FC = () => {
     syncStockWithCart();
   }, [product]);
 
-  // Cargar el producto por ID
-  useEffect(() => {
-    if (!productId) {
-      setError("El ID del producto no es válido.");
-      setLoading(false);
-      return;
-    }
-
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        const fetchedProduct = await getProductById(productId);
-        console.log(fetchedProduct); // Depurar datos
-        setProduct({
-          ...fetchedProduct,
-          id: String(fetchedProduct.id),
-        });
-        setSelectedColor(fetchedProduct.color?.[0] || "");
-        setMainImage(fetchedProduct.photos?.[0] || "");
-      } catch (err) {
-        setError("No se pudo cargar el producto. Intenta nuevamente.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [productId]);
-
-  // Calcular precio total
   useEffect(() => {
     if (product) {
       setTotalPrice(quantity * product.price);
@@ -164,7 +163,7 @@ const ProductDetail: React.FC = () => {
     <div className="min-h-screen bg-purple-100 flex flex-col items-center py-8 px-4">
       <div className="p-4 rounded-lg shadow-md flex flex-col items-center w-full max-w-3xl bg-white mb-8">
         <img
-          src={mainImage}
+          src={mainImage || undefined}
           alt={product.name}
           className="mb-4 rounded-xl shadow-md hover:scale-105 ease-in-out duration-300"
         />
@@ -188,7 +187,11 @@ const ProductDetail: React.FC = () => {
                   selectedColor === color ? "ring-2 ring-purple-500" : ""
                 }`}
                 style={{ backgroundColor: color }}
-                onClick={() => setSelectedColor(color)}
+                onClick={() => {
+                  setSelectedColor(color);
+                  console.log(`Color seleccionado: ${color}`);
+                }}
+                title={color}
               ></button>
             ))}
           </div>
