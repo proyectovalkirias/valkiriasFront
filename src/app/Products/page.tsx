@@ -5,6 +5,19 @@ import { getProducts } from "@/api/productAPI";
 import { Product } from "@/interfaces/Product";
 import Link from "next/link";
 
+const colorNameMap: Record<string, string> = {
+  "#ff0000": "Rojo",
+  "#00ff00": "Verde",
+  "#0000ff": "Azul",
+  "#ffffff": "Blanco",
+  "#000000": "Negro",
+  "#ffff00": "Amarillo",
+  "#ff00ff": "Fucsia",
+  "#00ffff": "Cian",
+  "#a6a6a6": "Gris",
+  "#f5f5ef": "Marfil",
+};
+
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +32,24 @@ const Products: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
+  // Orden de referencia para talles
+  const sizeOrder = [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "XXXL",
+    "4",
+    "6",
+    "8",
+    "10",
+    "12",
+    "14",
+    "16",
+  ];
+
   // Obtener todos los productos y opciones de filtrado
   useEffect(() => {
     const fetchProducts = async () => {
@@ -32,11 +63,21 @@ const Products: React.FC = () => {
           new Set(allProducts.map((p) => p.category).filter(Boolean))
         );
         const uniqueColors = Array.from(
-          new Set(allProducts.flatMap((p) => p.color || []).filter(Boolean))
+          new Set(
+            allProducts
+              .flatMap((p) => p.color || [])
+              .filter(Boolean)
+              .map((color) => color.replace(/"|\[|\]/g, ""))
+          )
         );
         const uniqueSizes = Array.from(
-          new Set(allProducts.flatMap((p) => p.sizes || []).filter(Boolean))
-        );
+          new Set(
+            allProducts
+              .flatMap((p) => p.sizes || [])
+              .filter(Boolean)
+              .map((size) => size.replace(/"|\[|\]/g, ""))
+          )
+        ).sort((a, b) => sizeOrder.indexOf(a) - sizeOrder.indexOf(b));
 
         setCategories(uniqueCategories);
         setColors(uniqueColors);
@@ -59,12 +100,15 @@ const Products: React.FC = () => {
     const matchesColor =
       !selectedColor ||
       product.color?.some(
-        (c) => c.toLowerCase() === selectedColor.toLowerCase()
+        (c) =>
+          colorNameMap[c.replace(/"|\[|\]/g, "")]?.toLowerCase() ===
+          selectedColor.toLowerCase()
       );
     const matchesSize =
       !selectedSize ||
       product.sizes?.some(
-        (s) => s.toLowerCase() === selectedSize.toLowerCase()
+        (s) =>
+          s.replace(/"|\[|\]/g, "").toLowerCase() === selectedSize.toLowerCase()
       );
 
     return matchesCategory && matchesColor && matchesSize;
@@ -117,8 +161,8 @@ const Products: React.FC = () => {
           >
             <option value="">Todos los colores</option>
             {colors.map((color) => (
-              <option key={color} value={color}>
-                {color}
+              <option key={color} value={colorNameMap[color] || color}>
+                {colorNameMap[color] || color}
               </option>
             ))}
           </select>
