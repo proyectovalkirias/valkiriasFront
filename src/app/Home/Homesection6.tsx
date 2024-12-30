@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const HomeSection6 = () => {
   return (
@@ -20,12 +21,15 @@ const HomeSection6 = () => {
           Estampados para niños
         </h2>
         <p className="text-lg text-gray-800 mb-6">
-          Dale vida a la ropa de tus pequeños con diseños únicos y llenos de magia. ¡Hacemos de cada prenda un mundo de imaginación!
+          Dale vida a la ropa de tus pequeños con diseños únicos y llenos de
+          magia. ¡Hacemos de cada prenda un mundo de imaginación!
         </p>
+
         <div className="sm:mb-16">
-        <button className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition">
-          COMPRA AHORA
-        </button>
+          <p className="text-lg text-gray-800 mb-6">
+            Encuentra los talles adecuados para tus pequeños en nuestra tabla de
+            talles.
+          </p>
         </div>
       </div>
     </section>

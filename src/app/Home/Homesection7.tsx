@@ -22,15 +22,14 @@ const HomeSection7 = () => {
         </h2>
         <ul className="text-lg text-gray-800 mb-6 list-disc list-inside">
           <li>Tenemos envíos a todo el país.</li>
-          <li>Tabla de talles disponibles para que puedas elegir la prenda justa para vos.</li>
+          <li>
+            Tabla de talles disponibles para que puedas elegir la prenda justa
+            para vos.
+          </li>
           <li>Asesoramiento personalizado para cada una de tus consultas.</li>
           <li>Apoyamos los pagos sin contacto y el pago en efectivo.</li>
         </ul>
-        <div className="sm:mb-16">
-        <button className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition">
-          COMPRA AHORA
-        </button>
-        </div>
+        <div className="sm:mb-16"></div>
       </div>
     </section>
   );

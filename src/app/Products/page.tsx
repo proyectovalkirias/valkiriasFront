@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { getProducts } from "@/api/productAPI";
 import { Product } from "@/interfaces/Product";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 const colorNameMap: Record<string, string> = {
   "#ff0000": "Rojo",
@@ -31,6 +32,9 @@ const Products: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const category = searchParams.get("category");
 
   // Orden de referencia para talles
   const sizeOrder = [
@@ -92,6 +96,13 @@ const Products: React.FC = () => {
     fetchProducts();
   }, []);
 
+  // Establecer el filtro de categoría si viene de la URL
+  useEffect(() => {
+    if (category) {
+      setSelectedCategory(category);
+    }
+  }, [category]);
+
   // Filtrar productos según los filtros seleccionados
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
@@ -129,14 +140,13 @@ const Products: React.FC = () => {
 
   return (
     <div className="bg-[#7b548b] min-h-screen p-8">
-      <p className="mt-4 text-lg font-semibold mb-4 text-center text-white">
-        Explora nuestra colección y encuentra el producto perfecto para ti.
-      </p>
-
       {/* Formulario de Filtros */}
-      <div className="mb-8 bg-white p-4 rounded-lg shadow-md">
-        <h2 className="text-lg font-bold mb-4 text-center text-gray-800">
-          Filtrar Productos
+      <div className="mb-8  p-4 rounded-lg">
+        <h2
+          className="text-lg font-bold mb-4 text-center 
+        "
+        >
+          Explora nuestra colección y encuentra el producto perfecto para ti.
         </h2>
         <div className="flex flex-wrap gap-4 justify-center">
           {/* Filtro por Categoría */}
@@ -191,12 +201,12 @@ const Products: React.FC = () => {
               <h2 className="text-2xl font-bold mb-4 text-center text-white">
                 {category}
               </h2>
-              <div className="flex flex-wrap gap-4 justify-center items-center">
+              <div className="flex flex-wrap gap-4 justify-center items-center  ">
                 {groupedProducts[category].map((product) => (
                   <Link key={product.id} href={`/Products/${product.id}`}>
-                    <div className="max-w-xs rounded overflow-hidden p-4 bg-white hover:scale-105 ease-in-out shadow-lg">
+                    <div className="w-64 h-96  rounded overflow-hidden p-4 bg-white hover:scale-105 ease-in-out shadow-lg">
                       <img
-                        className="w-full h-auto rounded-lg object-cover"
+                        className=" rounded-lg object-cover w-48 h-48 48mb-4 mx-auto"
                         src={product.photos?.[0] || "/placeholder.png"}
                         alt={product.name}
                       />
@@ -208,7 +218,7 @@ const Products: React.FC = () => {
                       </p>
                       <div className="flex justify-between items-center mt-4">
                         <span className="text-gray-600 font-bold">
-                          $ {product.price}.00
+                          $ {product.prices[0]}.00
                         </span>
                         <p className="text-gray-600">Stock: {product.stock}</p>
                       </div>
