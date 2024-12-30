@@ -41,9 +41,9 @@ const getUserData = () => {
 const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
-  const [isProductsAccordionOpen, setIsProductsAccordionOpen] = useState(false);
+
   const [isProfileAccordionOpen, setIsProfileAccordionOpen] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
+
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -57,33 +57,17 @@ const Sidebar: React.FC = () => {
     if (userData) setUser(userData);
   }, []);
 
-  useEffect(() => {
-    const fetchCategoriesData = async () => {
-      const categories = await fetchCategories();
-      setCategories(categories);
-    };
-    fetchCategoriesData();
-  }, []);
-
   const handleNavigation = (path: string) => router.push(path);
-
-  const handleCategoryClick = (category: string) => {
-    if (!isOpen) return; // Si el menú está cerrado, no se puede abrir
-    localStorage.setItem("selectedCategory", category);
-    handleNavigation("/Products");
-    window.location.reload();
-  };
-
-  const toggleProductsAccordion = () => {
-    if (isOpen) {
-      setIsProductsAccordionOpen(!isProductsAccordionOpen);
-    }
-  };
 
   const toggleProfileAccordion = () => {
     if (isOpen) {
       setIsProfileAccordionOpen(!isProfileAccordionOpen);
     }
+  };
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+    setIsProfileAccordionOpen(false);
   };
 
   const handleLogout = () => {
@@ -93,26 +77,16 @@ const Sidebar: React.FC = () => {
     handleNavigation("/Login");
   };
 
-  const handleSidebarClick = () => {
-    if (!isOpen) {
-      setIsOpen(true); // Expandir si está cerrado
-    }
-  };
-
-  const handleProducts = () => {
-    if (!isOpen) return;
-    localStorage.removeItem("selectedCategory");
-    handleNavigation("/Products");
-    setTimeout(() => window.location.reload(), 100);
-  };
-
   // Detectar clics fuera de la Sidebar para cerrarla
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false); // Cerrar Sidebar si el clic es fuera de ella
         // Cerrar los acordeones cuando se cierre la sidebar
-        setIsProductsAccordionOpen(false);
+
         setIsProfileAccordionOpen(false);
       }
     };
@@ -129,12 +103,11 @@ const Sidebar: React.FC = () => {
       className={`${
         isOpen ? "w-64" : "w-16 closed"
       } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300`}
-      onClick={handleSidebarClick}
     >
       {/* LOGO */}
       <div
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleSidebar}
       >
         {isOpen ? (
           <img
@@ -157,7 +130,8 @@ const Sidebar: React.FC = () => {
         <ul>
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-            onClick={() => handleNavigation("/")}>
+            onClick={() => handleNavigation("/")}
+          >
             <TbHomeHeart size={24} />
             {isOpen && <span>Inicio</span>}
           </li>
