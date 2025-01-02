@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Toaster } from "react-hot-toast"; // Importar Toaster
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
+import LogCircular from "@/../../public/images/LogCircular.jpg";
 import SidebarMini from "@/components/SidebarMini";
+
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,7 +35,7 @@ export default function RootLayout({
         <div className="hidden md:block">
           <Sidebar />
         </div>
-
+        <Toaster />
         {/* Contenido principal */}
         <main className="flex-1 overflow-auto">{children}</main>
 

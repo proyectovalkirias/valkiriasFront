@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Importa useRouter
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,8 @@ const Register: React.FC = () => {
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const router = useRouter(); // Inicializa useRouter
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -50,7 +53,7 @@ const Register: React.FC = () => {
           lastname: lastName,
           email: email,
           password: password,
-          confirmPassword: password
+          confirmPassword: password,
         }),
       });
 
@@ -67,14 +70,12 @@ const Register: React.FC = () => {
         return;
       }
 
-      const data = contentType?.includes("application/json")
-        ? await response.json()
-        : await response.text();
+      setSuccess("Registro exitoso. Redirigiendo a la página de inicio de sesión...");
 
-      setSuccess("Registro exitoso. ¡Ahora puedes iniciar sesión!");
-
-      // Guardar los datos del usuario en el localStorage
-      localStorage.setItem("user", JSON.stringify(data));
+      // Redirigir al usuario a la página de login
+      setTimeout(() => {
+        router.push("/Login");
+      }, 2000); // Da 2 segundos para mostrar el mensaje de éxito
 
       // Limpiar el formulario
       setFormData({
