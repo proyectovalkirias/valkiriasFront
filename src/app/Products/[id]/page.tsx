@@ -223,7 +223,7 @@ const ProductDetail: React.FC = () => {
           <img
             src={mainImage || undefined}
             alt={product.name}
-            className="w-[600px] aspect-square mx-auto rounded-xl shadow-md object-cover"
+            className="w-[500px] aspect-square mx-auto rounded-xl shadow-md "
           />
           <button
             onClick={handleNextPhoto}
