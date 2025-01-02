@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import LogCircular from "@/../../public/images/LogCircular.jpg";
 import SidebarMini from "@/components/SidebarMini";
 
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
