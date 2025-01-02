@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { getProductById } from "@/api/productAPI";
 import { useRouter } from "next/navigation";
-
+import Swal from "sweetalert2";
 import { Product } from "@/interfaces/Product";
 
 const ProductDetail: React.FC = () => {
@@ -16,7 +16,6 @@ const ProductDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados para personalización
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [mainImage, setMainImage] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
@@ -39,8 +38,13 @@ const ProductDetail: React.FC = () => {
         setLoading(true);
         const fetchedProduct = await getProductById(productId);
 
+        const processedColors =
+          fetchedProduct.color?.map((color) => color.replace(/\[|\]|"/g, "")) ||
+          [];
+
         setProduct({
           ...fetchedProduct,
+          color: processedColors,
         });
 
         setMainImage(
@@ -60,6 +64,9 @@ const ProductDetail: React.FC = () => {
 
     fetchProduct();
   }, [productId]);
+  const getMaxPrice = (prices: number[]): number => {
+    return Math.max(...prices.map(Number));
+  };
 
   useEffect(() => {
     if (selectedSize && product) {
@@ -77,9 +84,12 @@ const ProductDetail: React.FC = () => {
 
   const handleQuantityChange = (value: number) => {
     if (value > remainingStock) {
-      alert(
-        `Solo puedes agregar hasta ${remainingStock} unidades de este producto.`
-      );
+      Swal.fire({
+        icon: "warning",
+        title: "Por favor, selecciona una cantidad válida.",
+        confirmButtonColor: "#9333ea",
+        timer: 2000,
+      });
       return;
     }
     setQuantity(value);
@@ -87,17 +97,39 @@ const ProductDetail: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!selectedSize) {
-      alert("Por favor, selecciona un tamaño antes de añadir al carrito.");
+      Swal.fire({
+        icon: "warning",
+        title: "Por favor, selecciona una talla antes de agregar al carrito.",
+        confirmButtonColor: "#9333ea",
+        timer: 2000,
+      });
       return;
     }
     if (!selectedSmallPrint || !selectedLargePrint) {
-      alert("Por favor, selecciona un estampado pequeño y uno grande.");
+      Swal.fire({
+        icon: "warning",
+        title: "Por favor, selecciona un diseño antes de agregar al carrito.",
+        confirmButtonColor: "#9333ea",
+        timer: 2000,
+      });
       return;
     }
     if (quantity > remainingStock) {
-      alert(
-        `No puedes agregar más de ${remainingStock} unidades de este producto.`
-      );
+      Swal.fire({
+        icon: "warning",
+        title: "Por favor, selecciona una cantidad válida.",
+        confirmButtonColor: "#9333ea",
+        timer: 2000,
+      });
+      return;
+    }
+    if (selectedColor === "") {
+      Swal.fire({
+        icon: "warning",
+        title: "Por favor, selecciona un color antes de agregar al carrito.",
+        confirmButtonColor: "#1d4ed8",
+        timer: 3000,
+      });
       return;
     }
 
@@ -118,9 +150,14 @@ const ProductDetail: React.FC = () => {
     setRemainingStock((prev) => prev - quantity);
 
     console.log("Producto agregado al carrito:", personalizedProduct);
+    Swal.fire({
+      icon: "success",
+      title: "Producto agregado al carrito",
+      confirmButtonColor: "#1d4ed8",
+      timer: 3000,
+    });
 
     router.push("/Cart");
-    alert("Producto añadido al carrito.");
   };
 
   const handleNextPhoto = () => {
@@ -151,7 +188,7 @@ const ProductDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-purple-100">
         <p className="text-gray-500 text-xl">Cargando...</p>
       </div>
     );
@@ -159,7 +196,7 @@ const ProductDetail: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-purple-100">
         <p className="text-red-500 text-xl">{error}</p>
       </div>
     );
@@ -167,7 +204,7 @@ const ProductDetail: React.FC = () => {
 
   if (!product) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-purple-100">
         <p className="text-gray-500 text-xl">Producto no encontrado.</p>
       </div>
     );
@@ -175,78 +212,75 @@ const ProductDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-purple-100 flex flex-col items-center py-8 px-4">
-      <div className="p-4 rounded-lg shadow-md flex flex-col items-center w-full max-w-3xl bg-white mb-8">
-        <div className="relative w-full">
+      <div className="p-4 rounded-lg shadow-lg flex flex-col items-center w-full max-w-4xl  mb-8">
+        <div className="relative w-full ">
           <button
             onClick={handlePreviousPhoto}
-            className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-200 p-2 rounded-full hover:bg-gray-300"
+            className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-purple-300 text-purple-900 p-2 rounded-full hover:bg-purple-400"
           >
             ◀
           </button>
           <img
             src={mainImage || undefined}
             alt={product.name}
-            className="w-full h-64 object-cover rounded-xl shadow-md !important"
+            className="w-[600px] aspect-square mx-auto rounded-xl shadow-md object-cover"
           />
           <button
             onClick={handleNextPhoto}
-            className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-200 p-2 rounded-full hover:bg-gray-300"
+            className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-purple-300 text-purple-900 p-2 rounded-full hover:bg-purple-400"
           >
             ▶
           </button>
         </div>
-        <h1 className="mb-4 text-2xl font-bold">{product.name}</h1>
-        <p className="font-bold mb-4">
+        <h1 className="mt-4 text-3xl font-bold text-gray-800 text-center">
+          {product.name}
+        </h1>
+        <p className="text-lg text-gray-600 text-center mt-2">
+          {product.description}
+        </p>
+        <p className="text-xl font-bold text-gray-800 mt-4">
           Precio: $
           {Array.isArray(product.prices) && product.prices.length > 0
-            ? product.prices[0]
+            ? getMaxPrice(product.prices)
             : "N/A"}
         </p>
-        <p className="mb-4 text-gray-700">{product.description}</p>
       </div>
 
-      <div className="w-full max-w-3xl p-4 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">
-          Personaliza tu {product.category}
+      <div className="w-full max-w-4xl p-6  rounded-lg shadow-lg">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+          Personaliza a medida
         </h2>
-
-        <div className="mb-4">
-          <label className="text-gray-800">Color:</label>
-          <div className="flex flex-wrap gap-2">
+        {/* Sección de Colores */}
+        <div className="mb-6">
+          <label className="text-gray-800 font-semibold">Color:</label>
+          <div className="flex flex-wrap gap-4 mt-2">
             {(product.color || []).map((color) => (
               <button
                 key={color}
                 className={`w-10 h-10 rounded-full border ${
-                  selectedColor === color ? "ring-2 ring-purple-500" : ""
+                  selectedColor === color
+                    ? "ring-2 ring-purple-500"
+                    : "border-gray-300"
                 }`}
                 style={{ backgroundColor: color }}
-                onClick={() => {
-                  setSelectedColor(color);
-                  console.log(`Color seleccionado: ${color}`);
-                }}
-                title={color}
+                onClick={() => setSelectedColor(color)}
               ></button>
             ))}
           </div>
         </div>
 
-        <div className="mb-4">
-          <label className="text-gray-800 flex items-center gap-2">
+        <div className="mb-6">
+          <label className="text-gray-800 font-semibold relative group cursor-pointer">
             Estampado pequeño:
-            <div className="relative">
-              <span className="text-xs font-bold bg-gray-200 rounded-full px-2 py-1 cursor-pointer">
-                I
-              </span>
-              <div className="absolute left-0 top-full mt-1 w-64 bg-black text-white text-xs p-2 rounded opacity-0 hover:opacity-100 transition">
-                Cada prenda incluye un estampado grande y uno pequeño.
-              </div>
-            </div>
+            <span className="absolute left-0 top-full mt-1 hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg w-64">
+              Incluye una estampa grande y una pequeña
+            </span>
           </label>
           <div className="flex flex-wrap gap-4 mt-2">
             {(product.smallPrint || []).map((smallPrint, index) => (
               <button
                 key={`small-${index}`}
-                className={`p-2 border rounded ${
+                className={`p-2 border rounded-lg ${
                   selectedSmallPrint === smallPrint
                     ? "ring-2 ring-purple-500"
                     : "border-gray-300"
@@ -256,30 +290,25 @@ const ProductDetail: React.FC = () => {
                 <img
                   src={smallPrint}
                   alt={`Estampa pequeña ${index}`}
-                  className="w-20 h-20 object-cover rounded"
+                  className="w-20 h-20 object-cover rounded-md"
                 />
               </button>
             ))}
           </div>
         </div>
 
-        <div className="mb-4">
-          <label className="text-gray-800 flex items-center gap-2">
+        <div className="mb-6">
+          <label className="text-gray-800 font-semibold relative group cursor-pointer">
             Estampado grande:
-            <div className="relative">
-              <span className="text-xs font-bold bg-gray-200 rounded-full px-2 py-1 cursor-pointer">
-                I
-              </span>
-              <div className="absolute left-0 top-full mt-1 w-64 bg-black text-white text-xs p-2 rounded opacity-0 hover:opacity-100 transition">
-                Cada prenda incluye un estampado grande y uno pequeño.
-              </div>
-            </div>
+            <span className="absolute left-0 top-full mt-1 hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg w-64">
+              El precio incluye una estampa grande y una pequeña
+            </span>
           </label>
           <div className="flex flex-wrap gap-4 mt-2">
             {(product.largePrint || []).map((largePrint, index) => (
               <button
                 key={`large-${index}`}
-                className={`p-2 border rounded ${
+                className={`p-2 border rounded-lg ${
                   selectedLargePrint === largePrint
                     ? "ring-2 ring-purple-500"
                     : "border-gray-300"
@@ -289,34 +318,34 @@ const ProductDetail: React.FC = () => {
                 <img
                   src={largePrint}
                   alt={`Estampa grande ${index}`}
-                  className="w-20 h-20 object-cover rounded"
+                  className="w-20 h-20 object-cover rounded-md"
                 />
               </button>
             ))}
           </div>
         </div>
 
-        <div className="mb-4">
-          <label className="text-gray-800">Tamaño:</label>
+        <div className="mb-6">
+          <label className="text-gray-800 font-semibold">Tamaño:</label>
           <select
-            className="text-gray-800 text-sm p-2 rounded w-full mt-2"
+            className="w-full p-3 border rounded-lg mt-2 text-gray-800"
             value={selectedSize}
             onChange={(e) => setSelectedSize(e.target.value)}
           >
             <option value="">Selecciona un tamaño</option>
-            {(product.sizes || []).map((sizes) => (
-              <option key={sizes} value={sizes}>
-                {sizes}
+            {(product.size || []).map((size) => (
+              <option key={size} value={size}>
+                {size}
               </option>
             ))}
           </select>
         </div>
 
-        <div className="mb-4">
-          <label className="text-gray-800">Cantidad:</label>
-          <div className="flex items-center gap-2">
+        <div className="mb-6">
+          <label className="text-gray-800 font-semibold">Cantidad:</label>
+          <div className="flex items-center gap-4 mt-2">
             <button
-              className="px-2 py-1 bg-gray-200 text-gray-800 rounded"
+              className="px-4 py-2 bg-purple-300 text-purple-900 rounded-lg hover:bg-purple-400"
               onClick={() => handleQuantityChange(quantity - 1)}
               disabled={quantity === 1}
             >
@@ -325,14 +354,14 @@ const ProductDetail: React.FC = () => {
             <input
               type="number"
               min="1"
-              className="w-12 text-center border rounded"
+              className="w-16 text-center border rounded-lg text-gray-800"
               value={quantity}
               onChange={(e) =>
                 handleQuantityChange(Math.max(1, parseInt(e.target.value) || 1))
               }
             />
             <button
-              className="px-2 py-1 bg-gray-200 text-gray-800 rounded"
+              className="px-4 py-2 bg-purple-300 text-purple-900 rounded-lg hover:bg-purple-400"
               onClick={() => handleQuantityChange(quantity + 1)}
               disabled={quantity >= remainingStock}
             >
@@ -344,14 +373,12 @@ const ProductDetail: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex justify-between items-center mt-4">
-          <div>
-            <p className="text-gray-800 font-bold">
-              Precio Total: ${totalPrice.toFixed(2)}
-            </p>
-          </div>
+        <div className="flex justify-between items-center mt-6">
+          <p className="text-2xl font-bold text-gray-800">
+            Precio Total: ${totalPrice.toFixed(2)}
+          </p>
           <button
-            className="bg-purple-600 text-white font-medium py-3 px-6 rounded hover:bg-purple-700 transition"
+            className="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700"
             onClick={handleAddToCart}
           >
             Añadir al carrito

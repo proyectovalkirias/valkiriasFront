@@ -78,7 +78,7 @@ const Products: React.FC = () => {
         const uniqueSizes = Array.from(
           new Set(
             allProducts
-              .flatMap((p) => p.sizes || [])
+              .flatMap((p) => p.size || [])
               .filter(Boolean)
               .map((size) => size.replace(/"|\[|\]/g, ""))
           )
@@ -118,7 +118,7 @@ const Products: React.FC = () => {
       );
     const matchesSize =
       !selectedSize ||
-      product.sizes?.some(
+      product.size?.some(
         (s) =>
           s.replace(/"|\[|\]/g, "").toLowerCase() === selectedSize.toLowerCase()
       );
@@ -138,6 +138,9 @@ const Products: React.FC = () => {
     },
     {}
   );
+  const getMaxPrice = (prices: number[]): number => {
+    return Math.max(...prices.map(Number));
+  };
 
   return (
     <div className="bg-[#7b548b] min-h-screen p-8">
@@ -149,7 +152,7 @@ const Products: React.FC = () => {
         <div className="flex flex-wrap gap-4 justify-center">
           {/* Filtro por Categoría */}
           <select
-            className="p-2 border rounded"
+            className="p-2 border rounded text-gray-600"
             value={selectedCategory || ""}
             onChange={(e) => setSelectedCategory(e.target.value || null)}
           >
@@ -163,7 +166,7 @@ const Products: React.FC = () => {
 
           {/* Filtro por Color */}
           <select
-            className="p-2 border rounded"
+            className="p-2 border rounded text-gray-600"
             value={selectedColor || ""}
             onChange={(e) => setSelectedColor(e.target.value || null)}
           >
@@ -177,7 +180,7 @@ const Products: React.FC = () => {
 
           {/* Filtro por Talle */}
           <select
-            className="p-2 border rounded"
+            className="p-2 border rounded text-gray-600"
             value={selectedSize || ""}
             onChange={(e) => setSelectedSize(e.target.value || null)}
           >
@@ -222,7 +225,7 @@ const Products: React.FC = () => {
                         <span className="text-gray-600 font-bold">
                           ${" "}
                           {Array.isArray(product.prices) && product.prices[0]
-                            ? product.prices[0]
+                            ? getMaxPrice(product.prices)
                             : "N/A"}
                           .00
                         </span>
