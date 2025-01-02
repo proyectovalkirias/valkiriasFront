@@ -42,7 +42,7 @@ const AboutPage: React.FC = () => {
         {/* Description */}
         <div className="p-6 md:w-3/4 overflow-auto flex items-center justify-center bg-pink h-full max-w-full">
           <p className="text-black text-xs md:text-sm lg:text-base xl:text-lg text-center break-words max-h-full">
-            Desde 2019, Valkirias ha estado ayudando a las personas, jóvenes y adultos,
+            Desde 2022, Valkirias ha estado ayudando a las personas, jóvenes y adultos,
             a expresar su estilo único con prendas personalizadas. Ofrecemos una amplia
             variedad de remeras, buzos y accesorios que podés personalizar con estampados,
             colores y diseños exclusivos. 
