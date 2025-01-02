@@ -43,8 +43,13 @@ const ProductDetail: React.FC = () => {
           ...fetchedProduct,
         });
 
-        setMainImage(fetchedProduct.photos?.[0] || "");
-        setRemainingStock(fetchedProduct.stock);
+        setMainImage(
+          Array.isArray(fetchedProduct.photos) &&
+            fetchedProduct.photos.length > 0
+            ? fetchedProduct.photos[0]
+            : "/placeholder.png"
+        );
+        setRemainingStock(fetchedProduct.stock || 0);
       } catch (err) {
         setError("No se pudo cargar el producto. Intenta nuevamente.");
         console.error(err);
@@ -119,7 +124,7 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleNextPhoto = () => {
-    if (product?.photos) {
+    if (Array.isArray(product?.photos) && product.photos.length > 0) {
       setCurrentPhotoIndex(
         (prevIndex) => (prevIndex + 1) % product.photos.length
       );
@@ -130,7 +135,7 @@ const ProductDetail: React.FC = () => {
   };
 
   const handlePreviousPhoto = () => {
-    if (product?.photos) {
+    if (Array.isArray(product?.photos) && product.photos.length > 0) {
       setCurrentPhotoIndex(
         (prevIndex) =>
           (prevIndex - 1 + product.photos.length) % product.photos.length
@@ -191,7 +196,12 @@ const ProductDetail: React.FC = () => {
           </button>
         </div>
         <h1 className="mb-4 text-2xl font-bold">{product.name}</h1>
-        <p className="font-bold mb-4">Precio: ${product.prices[0]}</p>
+        <p className="font-bold mb-4">
+          Precio: $
+          {Array.isArray(product.prices) && product.prices.length > 0
+            ? product.prices[0]
+            : "N/A"}
+        </p>
         <p className="mb-4 text-gray-700">{product.description}</p>
       </div>
 

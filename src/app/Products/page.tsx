@@ -142,10 +142,7 @@ const Products: React.FC = () => {
     <div className="bg-[#7b548b] min-h-screen p-8">
       {/* Formulario de Filtros */}
       <div className="mb-8  p-4 rounded-lg">
-        <h2
-          className="text-lg font-bold mb-4 text-center 
-        "
-        >
+        <h2 className="text-lg font-bold mb-4 text-center">
           Explora nuestra colección y encuentra el producto perfecto para ti.
         </h2>
         <div className="flex flex-wrap gap-4 justify-center">
@@ -201,13 +198,17 @@ const Products: React.FC = () => {
               <h2 className="text-2xl font-bold mb-4 text-center text-white">
                 {category}
               </h2>
-              <div className="flex flex-wrap gap-4 justify-center items-center  ">
+              <div className="flex flex-wrap gap-4 justify-center items-center">
                 {groupedProducts[category].map((product) => (
                   <Link key={product.id} href={`/Products/${product.id}`}>
-                    <div className="w-64 h-96  rounded overflow-hidden p-4 bg-white hover:scale-105 ease-in-out shadow-lg">
+                    <div className="w-64 h-96 rounded overflow-hidden p-4 bg-white hover:scale-105 ease-in-out shadow-lg">
                       <img
-                        className=" rounded-lg object-cover w-48 h-48 48mb-4 mx-auto"
-                        src={product.photos?.[0] || "/placeholder.png"}
+                        className="rounded-lg object-cover w-48 h-48 mb-4 mx-auto"
+                        src={
+                          Array.isArray(product.photos) && product.photos[0]
+                            ? product.photos[0]
+                            : "/placeholder.png"
+                        }
                         alt={product.name}
                       />
                       <h2 className="text-lg font-bold mb-2 text-center text-gray-800">
@@ -218,7 +219,11 @@ const Products: React.FC = () => {
                       </p>
                       <div className="flex justify-between items-center mt-4">
                         <span className="text-gray-600 font-bold">
-                          $ {product.prices[0]}.00
+                          ${" "}
+                          {Array.isArray(product.prices) && product.prices[0]
+                            ? product.prices[0]
+                            : "N/A"}
+                          .00
                         </span>
                         <p className="text-gray-600">Stock: {product.stock}</p>
                       </div>
