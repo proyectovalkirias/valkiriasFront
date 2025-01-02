@@ -56,15 +56,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-[#66397c] p-6">
-      {/* Logo de la marca */}
-      <div className="mb-8">
-        <img
-          src="/images/valkiriaslogo.jpg"
-          alt="Logo de Valkirias"
-          className="h-20 w-auto object-contain"
-        />
-      </div>
-
       <h1 className="text-3xl sm:text-4xl text-[#e5ded3] mb-6 text-center font-bold">
         Mi perfil
       </h1>

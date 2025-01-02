@@ -3,81 +3,77 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-// FUNCIÓN PARA OBTENER LOS DATOS DEL USUARIO 
-const getUserData = async () => {
+// FUNCIÓN PARA OBTENER LOS DATOS DEL USUARIO DESDE EL BACKEND
+const fetchUserDataFromBackend = async (userId: string) => {
   try {
-    const storedUser = localStorage.getItem("user");
-    const storedGoogleUser = localStorage.getItem("user_info");
-
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      return {
-        id: parsedUser.user.id || "",
-        firstname: parsedUser.user.firstname || "",
-        lastname: parsedUser.user.lastname || "",
-        email: parsedUser.user.email || "",
-        DNI: parsedUser.user.DNI || "",
-        phone: parsedUser.user.phone || "",
-      };
-    } else if (storedGoogleUser) {
-      const googleUser = JSON.parse(storedGoogleUser);
-      return {
-        id: googleUser.id || "",
-        firstname: googleUser.given_name || "",
-        lastname: googleUser.family_name || "",
-        email: googleUser.email || "",
-        DNI: "",
-        phone: "",
-      };
-    }
-    return null;
+    const response = await axios.get(`http://localhost:3000/users/${userId}`);
+    console.log("Fetched user data from backend:", response.data);
+    return response.data;
   } catch (error) {
-    console.error("Error al obtener los datos del usuario:", error);
+    console.error("Error fetching user data from backend:", error);
     return null;
   }
 };
 
 const AccountForm: React.FC = () => {
   const [formData, setFormData] = useState({
-    id: "",
     email: "",
     firstname: "",
     lastname: "",
-    DNI: "",
+    dni: "",
     phone: "",
   });
 
   const [errors, setErrors] = useState({
-    DNI: "",
+    dni: "",
     phone: "",
   });
 
-  const [isDniPhoneMissing, setIsDniPhoneMissing] = useState(false); // Para manejar la visualización del formulario
+  const [isDniPhoneMissing, setIsDniPhoneMissing] = useState(false);
 
-  // 🔥 OBTIENE LOS DATOS DEL USUARIO AL MONTAR EL COMPONENTE 🔥
+  // OBTIENE LOS DATOS DEL USUARIO AL MONTAR EL COMPONENTE
   useEffect(() => {
     const fetchData = async () => {
-      const userData = await getUserData();
-      if (userData) {
-        setFormData({
-          id: userData.id || "",
-          email: userData.email || "",
-          firstname: userData.firstname || "",
-          lastname: userData.lastname || "",
-          DNI: userData.DNI || "",
-          phone: userData.phone || "",
-        });
+      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-        // Verificamos si los campos DNI y teléfono están vacíos
-        if (!userData.DNI || !userData.phone) {
-          setIsDniPhoneMissing(true); // Si falta alguno, mostramos el formulario para ingresarlos
+      // Verifica si el usuario ha iniciado sesión con Google
+      if (storedUser?.user?.google) {
+        // Datos del usuario de Google
+        setFormData({
+          email: storedUser.user.email || "",
+          firstname: storedUser.user.firstName || "",
+          lastname: storedUser.user.lastName || "",
+          dni: "",  // No aplicable para usuarios de Google
+          phone: "", // No aplicable para usuarios de Google
+        });
+        setIsDniPhoneMissing(false);  // No es necesario que falten estos datos
+      } else {
+        const userId = storedUser?.user?.id;
+
+        if (userId) {
+          const userData = await fetchUserDataFromBackend(userId);
+          if (userData) {
+            setFormData({
+              email: userData.email || "",
+              firstname: userData.firstname || "",
+              lastname: userData.lastname || "",
+              dni: userData.dni || "",
+              phone: userData.phone || "",
+            });
+
+            if (!userData.dni || !userData.phone) {
+              setIsDniPhoneMissing(true);
+            }
+          }
+        } else {
+          console.warn("No user ID found in localStorage.");
         }
       }
     };
     fetchData();
   }, []);
 
-  // 🔥 ACTUALIZA LOS VALORES DEL FORMULARIO 🔥
+  // ACTUALIZA LOS VALORES DEL FORMULARIO
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -85,67 +81,54 @@ const AccountForm: React.FC = () => {
       [name]: value,
     }));
 
-    // Limpia el mensaje de error al escribir
     setErrors((prevErrors) => ({
       ...prevErrors,
-      [name]: "",
+      [name]: "", // Limpiamos cualquier error anterior para ese campo
     }));
   };
 
-  // 🔥 ENVÍA LOS DATOS AL BACK-END Y ACTUALIZA LOCALSTORAGE 🔥
+  // VALIDA Y ENVÍA LOS DATOS AL BACKEND
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validaciones
     const newErrors = {
-      DNI: formData.DNI.trim() === "" ? "El campo N° de DNI es obligatorio" : "",
+      dni: formData.dni.trim() === "" ? "El campo N° de DNI es obligatorio" : "",
       phone: formData.phone.trim() === "" ? "El campo N° de Teléfono es obligatorio" : "",
     };
 
     setErrors(newErrors);
 
-    // Si hay errores, no envía el formulario
     if (Object.values(newErrors).some((error) => error !== "")) {
-      return;
+      return; // No enviamos los datos si hay errores
     }
 
     try {
       const updatedUserData = {
-        id: formData.id,
         firstname: formData.firstname,
         lastname: formData.lastname,
         email: formData.email,
-        DNI: formData.DNI,
-        phone: formData.phone,
+        dni: formData.dni ? Number(formData.dni) : null,
+        phone: formData.phone ? Number(formData.phone) : null,
       };
 
-      if (isDniPhoneMissing) {
-        // Si faltan DNI y teléfono, se hace un POST para registrarlos por primera vez
-        const response = await axios.post(
-          `http://localhost:3000/users/${formData.id}/register-phone-dni`, // Suponiendo que este endpoint es para registrar los datos por primera vez
-          updatedUserData
-        );
-        if (response.status === 200) {
-          alert("¡Datos registrados correctamente!");
-          setIsDniPhoneMissing(false); // Ya no es necesario registrar esos datos
-        }
-      } else {
-        // Si ya existen, actualizamos con PUT
-        const response = await axios.put(
-          `http://localhost:3000/users/${formData.id}`,
-          updatedUserData
-        );
-        if (response.status === 200) {
-          console.log("Información actualizada correctamente en la base de datos:", response.data);
-          alert("¡Datos actualizados correctamente!");
-        }
+      // Verifica si es un usuario local o de Google
+      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const userId = storedUser?.user?.id;
+
+      if (!userId) {
+        throw new Error("User ID not found.");
       }
 
-      // ACTUALIZA EL LOCALSTORAGE CON LA NUEVA INFORMACIÓN
-      const userLocalData = {
-        user: updatedUserData,
-      };
-      localStorage.setItem("user", JSON.stringify(userLocalData));
+      const response = await axios.put(
+        `http://localhost:3000/users/${userId}`,
+        updatedUserData
+      );
+      console.log("PUT response:", response);
+
+      if (response.status === 200) {
+        alert("¡Datos actualizados correctamente!");
+        setIsDniPhoneMissing(false);
+      }
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
       alert("Hubo un problema, intente nuevamente.");
@@ -154,7 +137,6 @@ const AccountForm: React.FC = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-screen items-center justify-center bg-[#7b548b] p-6">
-      {/* Contenedor de la imagen (modificada a Gear1.png) */}
       <div className="w-full md:w-1/3 flex justify-center mb-8 md:mb-0">
         <img
           src="/images/Gear1.png"
@@ -162,26 +144,23 @@ const AccountForm: React.FC = () => {
           className="w-full h-auto max-w-[200px] sm:max-w-[250px] md:max-w-[300px]"
         />
       </div>
-
-      {/* Contenedor del formulario */}
       <div className="w-full max-w-lg rounded-lg bg-[#7b548b] p-6 sm:p-8 md:p-10">
         <div className="w-full flex flex-col justify-center text-center text-white">
           <h2 className="text-2xl sm:text-3xl font-bold flex items-center justify-center mb-6">
             Datos de la Cuenta
           </h2>
-
-          {/* Mostrar formulario solo si faltan DNI y teléfono */}
           {isDniPhoneMissing ? (
+            // Si faltan los datos de DNI o Teléfono, muestra el formulario para ingresarlos
             <form className="flex flex-col" onSubmit={handleSubmit}>
               <input
                 type="text"
-                name="DNI"
+                name="dni"
                 placeholder="N° de DNI"
-                value={formData.DNI}
+                value={formData.dni}
                 onChange={handleChange}
                 className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
               />
-              {errors.DNI && <p className="text-red-500 text-sm">{errors.DNI}</p>}
+              {errors.dni && <p className="text-red-500 text-sm">{errors.dni}</p>}
               <input
                 type="text"
                 name="phone"
@@ -199,6 +178,7 @@ const AccountForm: React.FC = () => {
               </button>
             </form>
           ) : (
+            // Si no faltan datos, muestra el formulario de edición de datos generales
             <form className="flex flex-col" onSubmit={handleSubmit}>
               <input
                 type="email"
