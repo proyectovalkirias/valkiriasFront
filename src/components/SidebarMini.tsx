@@ -136,13 +136,16 @@ const SidebarMini: React.FC = () => {
             <span className="text-xs">Productos</span>
           </button>
 
-          <button
-            className="flex flex-col items-center text-gray-300 hover:text-white"
-            onClick={() => toggleMenu("profile")}
-          >
-            <FiUser size={24} />
-            <span className="text-xs">Perfil</span>
-          </button>
+          {/* Mostrar el botón de perfil solo si el usuario está logueado */}
+          {isLoggedIn && (
+            <button
+              className="flex flex-col items-center text-gray-300 hover:text-white"
+              onClick={() => toggleMenu("profile")}
+            >
+              <FiUser size={24} />
+              <span className="text-xs">Perfil</span>
+            </button>
+          )}
 
           <button
             className="flex flex-col items-center text-gray-300 hover:text-white"

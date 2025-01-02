@@ -6,6 +6,7 @@ import { IoShirtOutline } from "react-icons/io5";
 import { CiLogin } from "react-icons/ci";
 import { useRouter } from "next/navigation";
 import { FiUser, FiUsers } from "react-icons/fi";
+import { HiChevronDown } from "react-icons/hi"; // Importamos el ícono de la flecha
 
 const getUserData = () => {
   try {
@@ -86,6 +87,11 @@ const Sidebar: React.FC = () => {
     };
   }, []);
 
+  // Función para alternar el estado de la visibilidad del perfil
+  const toggleProfileAccordion = () => {
+    setIsProfileAccordionOpen(!isProfileAccordionOpen);
+  };
+
   return (
     <div
       ref={sidebarRef}
@@ -133,43 +139,58 @@ const Sidebar: React.FC = () => {
             {isOpen && <span>Productos</span>}
           </li>
 
-          <li>
-            <div
-              className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-              onClick={() => handleNavigation("/Dashboard")}
-            >
-              <FiUser size={24} />
-              {isOpen && <span>Mi Perfil</span>}
-            </div>
-            {isProfileAccordionOpen && (
-              <ul className="ml-8">
-                <li
-                  className="py-1 hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleNavigation("/ProfileConfiguration")}
-                >
-                  Configuración
-                </li>
-                <li
-                  className="py-1 hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleNavigation("/Addresses")}
-                >
-                  Direcciones
-                </li>
-                <li
-                  className="py-1 hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleNavigation("/Orders")}
-                >
-                  Mis Compras
-                </li>
-                <li
-                  className="py-1 hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleNavigation("/ChangePassword")}
-                >
-                  Cambiar Contraseña
-                </li>
-              </ul>
-            )}
-          </li>
+          {/* Solo muestra "Mi Perfil" si el usuario está logueado */}
+          {user && (
+            <li>
+              <div
+                className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
+                onClick={() => handleNavigation("/Dashboard")}
+              >
+                <FiUser size={24} />
+                {isOpen && <span>Mi Perfil</span>}
+                {/* Botón de flecha */}
+                <HiChevronDown
+                  size={20}
+                  className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Evita que el clic en la flecha cierre el sidebar
+                    toggleProfileAccordion();
+                  }}
+                  style={{
+                    marginLeft: "auto",
+                  }}
+                />
+              </div>
+              {isProfileAccordionOpen && (
+                <ul className="ml-8">
+                  <li
+                    className="py-1 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => handleNavigation("/ProfileConfiguration")}
+                  >
+                    Configuración
+                  </li>
+                  <li
+                    className="py-1 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => handleNavigation("/Addresses")}
+                  >
+                    Direcciones
+                  </li>
+                  <li
+                    className="py-1 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => handleNavigation("/Orders")}
+                  >
+                    Mis Compras
+                  </li>
+                  <li
+                    className="py-1 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => handleNavigation("/ChangePassword")}
+                  >
+                    Cambiar Contraseña
+                  </li>
+                </ul>
+              )}
+            </li>
+          )}
 
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
@@ -179,6 +200,7 @@ const Sidebar: React.FC = () => {
             {isOpen && <span>Sobre Nosotros</span>}
           </li>
 
+          {/* Mostrar "Iniciar Sesión" o "Cerrar Sesión" dependiendo del estado de usuario */}
           {!user ? (
             <li
               className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
