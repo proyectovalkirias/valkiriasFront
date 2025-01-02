@@ -27,7 +27,10 @@ const HomeSection3 = () => {
         </p>
         <div className="sm:mb-16">
           <Link
-            href={"/CreateRemera"}
+            href={{
+              pathname: "/Products",
+              query: { category: "remeras" },
+            }}
             className="bg-creativity-purple text-black font-medium py-3 px-6 hover:bg-custom-purple transition"
           >
             COMPRA AHORA

@@ -25,6 +25,7 @@ const ProductDetail: React.FC = () => {
   const [selectedSmallPrint, setSelectedSmallPrint] = useState<string>("");
   const [selectedLargePrint, setSelectedLargePrint] = useState<string>("");
   const [remainingStock, setRemainingStock] = useState<number>(0);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
 
   useEffect(() => {
     if (!productId) {
@@ -37,23 +38,16 @@ const ProductDetail: React.FC = () => {
       try {
         setLoading(true);
         const fetchedProduct = await getProductById(productId);
-        const cleanedSizes = fetchedProduct.sizes.map((size: string) =>
-          size.replace(/["\[\]]/g, "")
-        );
-        const cleanedColors = fetchedProduct.color.map((color: string) =>
-          color.replace(/["\[\]]/g, "")
-        );
 
         setProduct({
           ...fetchedProduct,
-          sizes: cleanedSizes,
-          color: cleanedColors,
         });
-        setSelectedColor(cleanedColors[0] || "");
+
         setMainImage(fetchedProduct.photos?.[0] || "");
         setRemainingStock(fetchedProduct.stock);
       } catch (err) {
         setError("No se pudo cargar el producto. Intenta nuevamente.");
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -63,29 +57,18 @@ const ProductDetail: React.FC = () => {
   }, [productId]);
 
   useEffect(() => {
-    const syncStockWithCart = async () => {
-      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      const currentProductInCart = cart.filter(
-        (item: any) => item.product.id === product?.id
-      );
-      const usedStock = currentProductInCart.reduce(
-        (acc: number, item: any) => acc + item.quantity,
-        0
-      );
+    if (selectedSize && product) {
+      const childSizes = ["2", "4", "6", "8", "10", "12", "14", "16"];
+      const adultSizes = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+      const [childPrice, adultPrice] = product.prices.map(Number);
 
-      if (product) {
-        setRemainingStock(product.stock - usedStock);
+      if (childSizes.includes(selectedSize)) {
+        setTotalPrice(childPrice * quantity);
+      } else if (adultSizes.includes(selectedSize)) {
+        setTotalPrice(adultPrice * quantity);
       }
-    };
-
-    syncStockWithCart();
-  }, [product]);
-
-  useEffect(() => {
-    if (product) {
-      setTotalPrice(quantity * product.price);
     }
-  }, [quantity, product]);
+  }, [selectedSize, quantity, product]);
 
   const handleQuantityChange = (value: number) => {
     if (value > remainingStock) {
@@ -135,6 +118,32 @@ const ProductDetail: React.FC = () => {
     alert("Producto añadido al carrito.");
   };
 
+  const handleNextPhoto = () => {
+    if (product?.photos) {
+      setCurrentPhotoIndex(
+        (prevIndex) => (prevIndex + 1) % product.photos.length
+      );
+      setMainImage(
+        product.photos[(currentPhotoIndex + 1) % product.photos.length]
+      );
+    }
+  };
+
+  const handlePreviousPhoto = () => {
+    if (product?.photos) {
+      setCurrentPhotoIndex(
+        (prevIndex) =>
+          (prevIndex - 1 + product.photos.length) % product.photos.length
+      );
+      setMainImage(
+        product.photos[
+          (currentPhotoIndex - 1 + product.photos.length) %
+            product.photos.length
+        ]
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -162,13 +171,27 @@ const ProductDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-purple-100 flex flex-col items-center py-8 px-4">
       <div className="p-4 rounded-lg shadow-md flex flex-col items-center w-full max-w-3xl bg-white mb-8">
-        <img
-          src={mainImage || undefined}
-          alt={product.name}
-          className="mb-4 rounded-xl shadow-md hover:scale-105 ease-in-out duration-300"
-        />
+        <div className="relative w-full">
+          <button
+            onClick={handlePreviousPhoto}
+            className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-200 p-2 rounded-full hover:bg-gray-300"
+          >
+            ◀
+          </button>
+          <img
+            src={mainImage || undefined}
+            alt={product.name}
+            className="w-full h-64 object-cover rounded-xl shadow-md !important"
+          />
+          <button
+            onClick={handleNextPhoto}
+            className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-200 p-2 rounded-full hover:bg-gray-300"
+          >
+            ▶
+          </button>
+        </div>
         <h1 className="mb-4 text-2xl font-bold">{product.name}</h1>
-        <p className="font-bold mb-4">Precio: ${product.price}</p>
+        <p className="font-bold mb-4">Precio: ${product.prices[0]}</p>
         <p className="mb-4 text-gray-700">{product.description}</p>
       </div>
 
@@ -198,7 +221,17 @@ const ProductDetail: React.FC = () => {
         </div>
 
         <div className="mb-4">
-          <label className="text-gray-800">Estampado pequeño:</label>
+          <label className="text-gray-800 flex items-center gap-2">
+            Estampado pequeño:
+            <div className="relative">
+              <span className="text-xs font-bold bg-gray-200 rounded-full px-2 py-1 cursor-pointer">
+                I
+              </span>
+              <div className="absolute left-0 top-full mt-1 w-64 bg-black text-white text-xs p-2 rounded opacity-0 hover:opacity-100 transition">
+                Cada prenda incluye un estampado grande y uno pequeño.
+              </div>
+            </div>
+          </label>
           <div className="flex flex-wrap gap-4 mt-2">
             {(product.smallPrint || []).map((smallPrint, index) => (
               <button
@@ -221,7 +254,17 @@ const ProductDetail: React.FC = () => {
         </div>
 
         <div className="mb-4">
-          <label className="text-gray-800">Estampado grande:</label>
+          <label className="text-gray-800 flex items-center gap-2">
+            Estampado grande:
+            <div className="relative">
+              <span className="text-xs font-bold bg-gray-200 rounded-full px-2 py-1 cursor-pointer">
+                I
+              </span>
+              <div className="absolute left-0 top-full mt-1 w-64 bg-black text-white text-xs p-2 rounded opacity-0 hover:opacity-100 transition">
+                Cada prenda incluye un estampado grande y uno pequeño.
+              </div>
+            </div>
+          </label>
           <div className="flex flex-wrap gap-4 mt-2">
             {(product.largePrint || []).map((largePrint, index) => (
               <button
@@ -251,9 +294,9 @@ const ProductDetail: React.FC = () => {
             onChange={(e) => setSelectedSize(e.target.value)}
           >
             <option value="">Selecciona un tamaño</option>
-            {(product.sizes || []).map((size) => (
-              <option key={size} value={size}>
-                {size}
+            {(product.sizes || []).map((sizes) => (
+              <option key={sizes} value={sizes}>
+                {sizes}
               </option>
             ))}
           </select>

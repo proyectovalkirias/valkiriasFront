@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
-import { FaRegUser } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
+import { fetchCategories } from "@/api/productAPI";
 import { useRouter } from "next/navigation";
+import { FiUser, FiUsers } from "react-icons/fi";
 
 const getUserData = () => {
   try {
@@ -38,15 +39,18 @@ const getUserData = () => {
 };
 
 const Sidebar: React.FC = () => {
-  const router = useRouter(); // Usar useRouter para navegación en Next.js
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
+
   const [isProfileAccordionOpen, setIsProfileAccordionOpen] = useState(false);
+
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
     email: string;
     photoUrl: string;
   } | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null); // Referencia para la Sidebar
 
   useEffect(() => {
     const userData = getUserData();
@@ -55,45 +59,55 @@ const Sidebar: React.FC = () => {
 
   const handleNavigation = (path: string) => router.push(path);
 
-  const toggleProfileAccordion = () =>
-    setIsProfileAccordionOpen(!isProfileAccordionOpen);
-
-  const handleLogout = async () => {
-    try {
-      const accessToken = localStorage.getItem("access_token");
-  
-      // Si el usuario está logueado con Google, revocar el token
-      if (accessToken) {
-        await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        });
-      }
-  
-      // Eliminar datos de usuario del almacenamiento local
-      localStorage.removeItem("user");
-      localStorage.removeItem("user_info");
-      localStorage.removeItem("access_token");
-      setUser(null);
-  
-      // Redirigir al usuario a la página de inicio de sesión
-      handleNavigation("/Login");
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+  const toggleProfileAccordion = () => {
+    if (isOpen) {
+      setIsProfileAccordionOpen(!isProfileAccordionOpen);
     }
   };
-  
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+    setIsProfileAccordionOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_info");
+    setUser(null);
+    handleNavigation("/Login");
+  };
+
+  // Detectar clics fuera de la Sidebar para cerrarla
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false); // Cerrar Sidebar si el clic es fuera de ella
+        // Cerrar los acordeones cuando se cierre la sidebar
+
+        setIsProfileAccordionOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div
-      className={`${isOpen ? "w-64" : "w-16 closed"} h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300}`}
+      ref={sidebarRef} // Asignamos la referencia a la Sidebar
+      className={`${
+        isOpen ? "w-64" : "w-16 closed"
+      } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300`}
     >
       {/* LOGO */}
       <div
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleSidebar}
       >
         {isOpen ? (
           <img
@@ -133,24 +147,14 @@ const Sidebar: React.FC = () => {
           </li>
 
           {/* BOTÓN MI PERFIL */}
-          {user && (
-            <li>
-              <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
-                <div
-                  className="flex items-center gap-4"
-                  onClick={() => handleNavigation("/Dashboard")}
-                >
-                  <FaRegUser size={24} />
-                  {isOpen && <span>Mi Perfil</span>}
-                </div>
-                {isOpen && (
-                  <span
-                    onClick={toggleProfileAccordion}
-                    className="cursor-pointer"
-                  >
-                    {isProfileAccordionOpen ? "▼" : "▶"}
-                  </span>
-                )}
+          <li>
+            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
+              <div
+                className="flex items-center gap-4"
+                onClick={() => handleNavigation("/Dashboard")}
+              >
+                <FiUser size={24} />
+                {isOpen && <span>Mi Perfil</span>}
               </div>
 
               {isProfileAccordionOpen && (
@@ -188,7 +192,7 @@ const Sidebar: React.FC = () => {
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/About")}
           >
-            <FaRegUser size={24} />
+            <FiUsers size={24} />
             {isOpen && <span>Sobre Nosotros</span>}
           </li>
 
