@@ -12,24 +12,22 @@ const getUserData = async () => {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
-        id: parsedUser.user.id || "", // Identificador para la base de datos
+        id: parsedUser.user.id || "",
         firstname: parsedUser.user.firstname || "",
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
-        photoUrl: parsedUser.user.photo || "/images/Avatar.png",
-        documento: parsedUser.user.documento || "",
-        telefonoNumero: parsedUser.user.telefonoNumero || "",
+        DNI: parsedUser.user.DNI || "",
+        phone: parsedUser.user.phone || "",
       };
     } else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
       return {
-        id: googleUser.id || "", // Identificador para la base de datos
+        id: googleUser.id || "",
         firstname: googleUser.given_name || "",
         lastname: googleUser.family_name || "",
         email: googleUser.email || "",
-        photoUrl: googleUser.picture || "/images/Avatar.png",
-        documento: "",
-        telefonoNumero: "",
+        DNI: "",
+        phone: "",
       };
     }
     return null;
@@ -43,11 +41,18 @@ const AccountForm: React.FC = () => {
   const [formData, setFormData] = useState({
     id: "",
     email: "",
-    nombre: "",
-    apellido: "",
-    documento: "",
-    telefonoNumero: "",
+    firstname: "",
+    lastname: "",
+    DNI: "",
+    phone: "",
   });
+
+  const [errors, setErrors] = useState({
+    DNI: "",
+    phone: "",
+  });
+
+  const [isDniPhoneMissing, setIsDniPhoneMissing] = useState(false); // Para manejar la visualización del formulario
 
   // 🔥 OBTIENE LOS DATOS DEL USUARIO AL MONTAR EL COMPONENTE 🔥
   useEffect(() => {
@@ -57,11 +62,16 @@ const AccountForm: React.FC = () => {
         setFormData({
           id: userData.id || "",
           email: userData.email || "",
-          nombre: userData.firstname || "",
-          apellido: userData.lastname || "",
-          documento: userData.documento || "",
-          telefonoNumero: userData.telefonoNumero || "",
+          firstname: userData.firstname || "",
+          lastname: userData.lastname || "",
+          DNI: userData.DNI || "",
+          phone: userData.phone || "",
         });
+
+        // Verificamos si los campos DNI y teléfono están vacíos
+        if (!userData.DNI || !userData.phone) {
+          setIsDniPhoneMissing(true); // Si falta alguno, mostramos el formulario para ingresarlos
+        }
       }
     };
     fetchData();
@@ -74,52 +84,77 @@ const AccountForm: React.FC = () => {
       ...prevData,
       [name]: value,
     }));
+
+    // Limpia el mensaje de error al escribir
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
+    }));
   };
 
   // 🔥 ENVÍA LOS DATOS AL BACK-END Y ACTUALIZA LOCALSTORAGE 🔥
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validaciones
+    const newErrors = {
+      DNI: formData.DNI.trim() === "" ? "El campo N° de DNI es obligatorio" : "",
+      phone: formData.phone.trim() === "" ? "El campo N° de Teléfono es obligatorio" : "",
+    };
+
+    setErrors(newErrors);
+
+    // Si hay errores, no envía el formulario
+    if (Object.values(newErrors).some((error) => error !== "")) {
+      return;
+    }
+
     try {
       const updatedUserData = {
-        id: formData.id, // Necesario para identificar al usuario en la base de datos
-        firstname: formData.nombre,
-        lastname: formData.apellido,
+        id: formData.id,
+        firstname: formData.firstname,
+        lastname: formData.lastname,
         email: formData.email,
-        documento: formData.documento,
-        telefonoNumero: formData.telefonoNumero,
-        photo: "/images/Avatar.png", // Imagen predeterminada
+        DNI: formData.DNI,
+        phone: formData.phone,
       };
 
- 
-      const response = await axios.put(
-        `http://localhost:3000/users/${formData.id}`, 
-        updatedUserData
-      );
-
-      if (response.status === 200) {
-        console.log("Información actualizada correctamente en la base de datos:", response.data);
-
-        const userLocalData = {
-          user: updatedUserData,
-        };
-
-        localStorage.setItem("user", JSON.stringify(userLocalData));
-
-        alert("¡Datos guardados correctamente!");
+      if (isDniPhoneMissing) {
+        // Si faltan DNI y teléfono, se hace un POST para registrarlos por primera vez
+        const response = await axios.post(
+          `http://localhost:3000/users/${formData.id}/register-phone-dni`, // Suponiendo que este endpoint es para registrar los datos por primera vez
+          updatedUserData
+        );
+        if (response.status === 200) {
+          alert("¡Datos registrados correctamente!");
+          setIsDniPhoneMissing(false); // Ya no es necesario registrar esos datos
+        }
       } else {
-        console.error("Error al actualizar los datos:", response);
-        alert("Hubo un problema al actualizar los datos.");
+        // Si ya existen, actualizamos con PUT
+        const response = await axios.put(
+          `http://localhost:3000/users/${formData.id}`,
+          updatedUserData
+        );
+        if (response.status === 200) {
+          console.log("Información actualizada correctamente en la base de datos:", response.data);
+          alert("¡Datos actualizados correctamente!");
+        }
       }
+
+      // ACTUALIZA EL LOCALSTORAGE CON LA NUEVA INFORMACIÓN
+      const userLocalData = {
+        user: updatedUserData,
+      };
+      localStorage.setItem("user", JSON.stringify(userLocalData));
     } catch (error) {
-      console.error("Error en la solicitud de actualización:", error);
-      alert("Error al actualizar la información. Inténtalo nuevamente.");
+      console.error("Error al procesar la solicitud:", error);
+      alert("Hubo un problema, intente nuevamente.");
     }
   };
 
   return (
     <div className="flex flex-col md:flex-row h-screen items-center justify-center bg-[#7b548b] p-6">
-      {/* Contenedor de la imagen */}
+      {/* Contenedor de la imagen (modificada a Gear1.png) */}
       <div className="w-full md:w-1/3 flex justify-center mb-8 md:mb-0">
         <img
           src="/images/Gear1.png"
@@ -135,54 +170,68 @@ const AccountForm: React.FC = () => {
             Datos de la Cuenta
           </h2>
 
-          <form className="flex flex-col" onSubmit={handleSubmit}>
-            <input
-              type="email"
-              name="email"
-              placeholder="Correo Electrónico"
-              value={formData.email}
-              onChange={handleChange}
-              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            />
-            <input
-              type="text"
-              name="nombre"
-              placeholder="Nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            />
-            <input
-              type="text"
-              name="apellido"
-              placeholder="Apellido"
-              value={formData.apellido}
-              onChange={handleChange}
-              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            />
-            <input
-              type="text"
-              name="documento"
-              placeholder="N° de DNI"
-              value={formData.documento}
-              onChange={handleChange}
-              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            />
-            <input
-              type="text"
-              name="telefonoNumero"
-              placeholder="N° de Teléfono"
-              value={formData.telefonoNumero}
-              onChange={handleChange}
-              className="mb-6 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            />
-            <button
-              type="submit"
-              className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
-            >
-              Guardar
-            </button>
-          </form>
+          {/* Mostrar formulario solo si faltan DNI y teléfono */}
+          {isDniPhoneMissing ? (
+            <form className="flex flex-col" onSubmit={handleSubmit}>
+              <input
+                type="text"
+                name="DNI"
+                placeholder="N° de DNI"
+                value={formData.DNI}
+                onChange={handleChange}
+                className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+              />
+              {errors.DNI && <p className="text-red-500 text-sm">{errors.DNI}</p>}
+              <input
+                type="text"
+                name="phone"
+                placeholder="N° de Teléfono"
+                value={formData.phone}
+                onChange={handleChange}
+                className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+              />
+              {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
+              <button
+                type="submit"
+                className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
+              >
+                Registrar
+              </button>
+            </form>
+          ) : (
+            <form className="flex flex-col" onSubmit={handleSubmit}>
+              <input
+                type="email"
+                name="email"
+                placeholder="Correo Electrónico"
+                value={formData.email}
+                onChange={handleChange}
+                className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+              />
+              <input
+                type="text"
+                name="firstname"
+                placeholder="Nombre"
+                value={formData.firstname}
+                onChange={handleChange}
+                className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+              />
+              <input
+                type="text"
+                name="lastname"
+                placeholder="Apellido"
+                value={formData.lastname}
+                onChange={handleChange}
+                className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+              />
+              <button
+                type="submit"
+                className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
+              >
+                Guardar
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>

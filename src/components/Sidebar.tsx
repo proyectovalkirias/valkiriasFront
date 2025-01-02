@@ -41,7 +41,6 @@ const getUserData = () => {
 const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
-
   const [isProfileAccordionOpen, setIsProfileAccordionOpen] = useState(false);
 
   const [user, setUser] = useState<{
@@ -50,7 +49,7 @@ const Sidebar: React.FC = () => {
     email: string;
     photoUrl: string;
   } | null>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null); // Referencia para la Sidebar
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const userData = getUserData();
@@ -77,16 +76,13 @@ const Sidebar: React.FC = () => {
     handleNavigation("/Login");
   };
 
-  // Detectar clics fuera de la Sidebar para cerrarla
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         sidebarRef.current &&
         !sidebarRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false); // Cerrar Sidebar si el clic es fuera de ella
-        // Cerrar los acordeones cuando se cierre la sidebar
-
+        setIsOpen(false);
         setIsProfileAccordionOpen(false);
       }
     };
@@ -99,10 +95,10 @@ const Sidebar: React.FC = () => {
 
   return (
     <div
-      ref={sidebarRef} // Asignamos la referencia a la Sidebar
+      ref={sidebarRef}
       className={`${
         isOpen ? "w-64" : "w-16 closed"
-      } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300`}
+      } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300 overflow-hidden`}
     >
       {/* LOGO */}
       <div
@@ -126,7 +122,7 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* NAVEGACIÓN */}
-      <nav className="mt-4 flex-grow">
+      <nav className="mt-4 flex-grow overflow-y-auto max-h-screen">
         <ul>
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"

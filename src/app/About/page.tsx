@@ -2,12 +2,12 @@ import React from "react";
 
 const AboutPage: React.FC = () => {
   return (
-    <div className="bg-white h-screen md:h-screen overflow-auto">
+    <div className="bg-white h-screen overflow-auto">
       {/* Hero Section */}
       <div className="flex flex-col md:flex-row h-auto md:h-1/3">
         {/* Left Section */}
-        <div className="flex-1 bg-pink-300 p-4 flex flex-col justify-center items-center">
-          <p className="text-white text-center text-sm md:text-lg lg:text-xl">
+        <div className="flex-1 bg-pink-300 p-6 flex flex-col justify-center items-center overflow-hidden">
+          <p className="text-white text-sm md:text-base lg:text-md xl:text-lg text-center max-w-screen-lg overflow-y-auto">
             Bienvenido a VALKIRIAS,
             <br />
             ¡donde la moda se encuentra con la personalización!
@@ -34,15 +34,15 @@ const AboutPage: React.FC = () => {
       <div className="flex flex-col md:flex-row h-auto md:h-2/5">
         {/* Rotated Text */}
         <div className="bg-pink-200 p-4 flex items-center justify-center md:w-1/4">
-          <p className="text-black text-xl md:text-3xl lg:text-5xl font-bold tracking-wider transform md:-rotate-90 text-center">
+          <p className="text-black text-xl md:text-3xl lg:text-3xl font-bold tracking-wider transform md:-rotate-90 text-center">
             SOBRE NOSOTROS
           </p>
         </div>
 
         {/* Description */}
-        <div className="p-4 md:w-3/4 overflow-auto flex items-center justify-center bg-pink">
-          <p className="text-black text-xs md:text-sm lg:text-base text-center">
-            Desde 2011, Valkirias ha estado ayudando a las personas, jóvenes y adultos,
+        <div className="p-6 md:w-3/4 overflow-auto flex items-center justify-center bg-pink h-full max-w-full">
+          <p className="text-black text-xs md:text-sm lg:text-base xl:text-lg text-center break-words max-h-full">
+            Desde 2022, Valkirias ha estado ayudando a las personas, jóvenes y adultos,
             a expresar su estilo único con prendas personalizadas. Ofrecemos una amplia
             variedad de remeras, buzos y accesorios que podés personalizar con estampados,
             colores y diseños exclusivos. 
@@ -76,8 +76,8 @@ const AboutPage: React.FC = () => {
         </div>
 
         {/* Goal Text */}
-        <div className="flex-1 bg-purple-300 p-4 flex items-center justify-center">
-          <p className="text-white text-xs md:text-sm lg:text-base text-center">
+        <div className="flex-1 bg-purple-400 p-6 flex items-center justify-center overflow-y-auto h-full max-w-full">
+          <p className="text-white text-xs md:text-sm lg:text-base xl:text-lg text-center break-words max-h-full">
             Nuestro objetivo es permitirte personalizar tus compras y crear piezas únicas
             que te representen. Con Valkirias, podés transformar tus prendas en algo
             verdaderamente especial, con estampados personalizados y diseños únicos.
