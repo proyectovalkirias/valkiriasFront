@@ -6,6 +6,7 @@ import { Product } from "@/interfaces/Product";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
+
 const colorNameMap: Record<string, string> = {
   "#ff0000": "Rojo",
   "#00ff00": "Verde",

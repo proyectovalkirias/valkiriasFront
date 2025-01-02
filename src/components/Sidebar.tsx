@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
 import { CiLogin } from "react-icons/ci";
-import { fetchCategories } from "@/api/productAPI";
 import { useRouter } from "next/navigation";
 import { FiUser, FiUsers } from "react-icons/fi";
 
@@ -57,12 +56,6 @@ const Sidebar: React.FC = () => {
   }, []);
 
   const handleNavigation = (path: string) => router.push(path);
-
-  const toggleProfileAccordion = () => {
-    if (isOpen) {
-      setIsProfileAccordionOpen(!isProfileAccordionOpen);
-    }
-  };
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -132,36 +125,22 @@ const Sidebar: React.FC = () => {
             {isOpen && <span>Inicio</span>}
           </li>
 
-          {/* BOTÓN PRODUCTOS */}
-          <li onClick={() => handleNavigation("/Products")}>
-            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
-              <div className="flex items-center gap-4">
-                <IoShirtOutline size={24} />
-                {isOpen && <span>Productos</span>}
-              </div>
-            </div>
+          <li
+            className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
+            onClick={() => handleNavigation("/Products")}
+          >
+            <IoShirtOutline size={24} />
+            {isOpen && <span>Productos</span>}
           </li>
 
-          {/* BOTÓN MI PERFIL */}
           <li>
-            <div className="flex items-center justify-between py-2 px-4 hover:bg-gray-700 cursor-pointer">
-              <div
-                className="flex items-center gap-4"
-                onClick={() => handleNavigation("/Dashboard")}
-              >
-                <FiUser size={24} />
-                {isOpen && <span>Mi Perfil</span>}
-              </div>
-              {isOpen && (
-                <span
-                  onClick={toggleProfileAccordion}
-                  className="cursor-pointer"
-                >
-                  {isProfileAccordionOpen ? "▼" : "▶"}
-                </span>
-              )}
+            <div
+              className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
+              onClick={() => handleNavigation("/Dashboard")}
+            >
+              <FiUser size={24} />
+              {isOpen && <span>Mi Perfil</span>}
             </div>
-
             {isProfileAccordionOpen && (
               <ul className="ml-8">
                 <li
@@ -227,7 +206,11 @@ const Sidebar: React.FC = () => {
             src={user.photoUrl}
             alt="Foto de perfil"
             className="rounded-full border-2 border-gray-500"
-            style={{ width: isOpen ? "48px" : "32px" }}
+            style={{
+              width: isOpen ? "48px" : "32px",
+              height: isOpen ? "48px" : "32px",
+              objectFit: "cover",
+            }}
           />
           {isOpen && (
             <div className="text-sm">
