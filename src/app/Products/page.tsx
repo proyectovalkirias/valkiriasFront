@@ -6,7 +6,6 @@ import { Product } from "@/interfaces/Product";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-
 const colorNameMap: Record<string, string> = {
   "#ff0000": "Rojo",
   "#00ff00": "Verde",
@@ -205,7 +204,7 @@ const Products: React.FC = () => {
               <div className="flex flex-wrap gap-4 justify-center items-center">
                 {groupedProducts[category].map((product) => (
                   <Link key={product.id} href={`/Products/${product.id}`}>
-                    <div className="w-64 h-96 rounded overflow-hidden p-4 bg-white hover:scale-105 ease-in-out shadow-lg">
+                    <div className="w-64 h-96 rounded   overflow-hidden p-4 bg-white hover:scale-105 ease-in-out shadow-lg">
                       <img
                         className="rounded-lg object-cover w-48 h-48 mb-4 mx-auto"
                         src={
@@ -215,10 +214,10 @@ const Products: React.FC = () => {
                         }
                         alt={product.name}
                       />
-                      <h2 className="text-lg font-bold mb-2 text-center text-gray-800">
+                      <h2 className="text-lg font-bold mb-2 text-center text-gray-800 ">
                         {product.name}
                       </h2>
-                      <p className="text-gray-600 text-center">
+                      <p className="text-gray-600 text-center line-clamp-2 ">
                         {product.description}
                       </p>
                       <div className="flex justify-between items-center mt-4">
@@ -229,7 +228,7 @@ const Products: React.FC = () => {
                             : "N/A"}
                           .00
                         </span>
-                        <p className="text-gray-600">Stock: {product.stock}</p>
+                        <p className="text-gray-600 ">Stock: {product.stock}</p>
                       </div>
                     </div>
                   </Link>
@@ -238,9 +237,9 @@ const Products: React.FC = () => {
             </div>
           ))
         ) : (
-          <p className="text-gray-500 text-xl text-center">
-            No se encontraron productos.
-          </p>
+          <div className="flex justify-center items-center min-h-screen">
+            <div className="w-16 h-16 border-4 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+          </div>
         )}
       </div>
     </div>

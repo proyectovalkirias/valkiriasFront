@@ -7,6 +7,8 @@ import { CiLogin } from "react-icons/ci";
 import { useRouter } from "next/navigation";
 import { FiUser, FiUsers } from "react-icons/fi";
 import { HiChevronDown } from "react-icons/hi"; // Importamos el ícono de la flecha
+import { FaShoppingCart } from "react-icons/fa";
+import Link from "next/link";
 
 const getUserData = () => {
   try {
@@ -37,6 +39,7 @@ const getUserData = () => {
     return null;
   }
 };
+const cartItems = JSON.parse(localStorage.getItem("cart") || "[]");
 
 const Sidebar: React.FC = () => {
   const router = useRouter();
@@ -153,22 +156,27 @@ const Sidebar: React.FC = () => {
                 onClick={() => handleNavigation("/Dashboard")}
               >
                 <FiUser size={24} />
-                {isOpen && <span>Mi Perfil</span>}
-                {/* Botón de flecha */}
-                {showChevron && (
-                  <HiChevronDown
-                    size={20}
-                    className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
-                    onClick={(e) => {
-                      e.stopPropagation(); // Evita que el clic en la flecha cierre el sidebar
-                      toggleProfileAccordion();
-                    }}
-                    style={{
-                      marginLeft: "auto",
-                    }}
-                  />
+
+                {isOpen && (
+                  <>
+                    <span>Mi Perfil</span>
+                    <HiChevronDown
+                      size={20}
+                      className={`transition-transform duration-300 ${
+                        isProfileAccordionOpen ? "transform rotate-180" : ""
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Evita que el clic en la flecha cierre el sidebar
+                        toggleProfileAccordion();
+                      }}
+                      style={{
+                        marginLeft: "auto",
+                      }}
+                    />
+
                 )}
               </div>
+
               {isProfileAccordionOpen && (
                 <ul className="ml-8">
                   <li
@@ -228,6 +236,19 @@ const Sidebar: React.FC = () => {
           )}
         </ul>
       </nav>
+      {/* CARRITO */}
+
+      <Link href="/Cart">
+        <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
+          <FaShoppingCart size={24} />
+
+          {isOpen && (
+            <>
+              <span>Mi carrito</span>
+            </>
+          )}
+        </div>
+      </Link>
 
       {/* PERFIL DEL USUARIO */}
       {user && (
