@@ -217,34 +217,35 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      <Link href="/Cart">
-        <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
-          <FaShoppingCart size={24} />
-          {isOpen && <span>Mi carrito</span>}
-        </div>
-      </Link>
-
       {user && (
-        <div className="p-4 flex items-center gap-4">
-          <img
-            src={user.photoUrl}
-            alt="Foto de perfil"
-            className="rounded-full border-2 border-gray-500"
-            style={{
-              width: isOpen ? "48px" : "32px",
-              height: isOpen ? "48px" : "32px",
-              objectFit: "cover",
-            }}
-          />
-          {isOpen && (
-            <div className="text-sm">
-              <p className="font-semibold">
-                {user.firstname} {user.lastname}
-              </p>
-              <p className="text-gray-300 text-xs">{user.email}</p>
+        <>
+          <Link href="/Cart">
+            <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
+              <FaShoppingCart size={24} />
+              {isOpen && <span>Mi carrito</span>}
             </div>
-          )}
-        </div>
+          </Link>
+          <div className="p-4 flex items-center gap-4">
+            <img
+              src={user.photoUrl}
+              alt="Foto de perfil"
+              className="rounded-full border-2 border-gray-500"
+              style={{
+                width: isOpen ? "48px" : "32px",
+                height: isOpen ? "48px" : "32px",
+                objectFit: "cover",
+              }}
+            />
+            {isOpen && (
+              <div className="text-sm">
+                <p className="font-semibold">
+                  {user.firstname} {user.lastname}
+                </p>
+                <p className="text-gray-300 text-xs">{user.email}</p>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

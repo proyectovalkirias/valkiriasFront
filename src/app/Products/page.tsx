@@ -137,7 +137,7 @@ const Products: React.FC = () => {
     },
     {}
   );
-  const getMaxPrice = (prices: number[]): number => {
+  const getMaxPrice = (prices: string[]): number => {
     return Math.max(...prices.map(Number));
   };
 
