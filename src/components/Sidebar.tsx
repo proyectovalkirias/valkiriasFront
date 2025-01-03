@@ -42,6 +42,7 @@ const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
   const [isProfileAccordionOpen, setIsProfileAccordionOpen] = useState(false);
+  const [showChevron, setShowChevron] = useState(true); // Estado para controlar la visibilidad de la flecha
 
   const [user, setUser] = useState<{
     firstname: string;
@@ -91,6 +92,11 @@ const Sidebar: React.FC = () => {
   const toggleProfileAccordion = () => {
     setIsProfileAccordionOpen(!isProfileAccordionOpen);
   };
+
+  // Monitorear el tamaño de la sidebar
+  useEffect(() => {
+    setShowChevron(isOpen); // Solo mostrar la flecha si la sidebar está abierta
+  }, [isOpen]);
 
   return (
     <div
@@ -149,17 +155,19 @@ const Sidebar: React.FC = () => {
                 <FiUser size={24} />
                 {isOpen && <span>Mi Perfil</span>}
                 {/* Botón de flecha */}
-                <HiChevronDown
-                  size={20}
-                  className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
-                  onClick={(e) => {
-                    e.stopPropagation(); // Evita que el clic en la flecha cierre el sidebar
-                    toggleProfileAccordion();
-                  }}
-                  style={{
-                    marginLeft: "auto",
-                  }}
-                />
+                {showChevron && (
+                  <HiChevronDown
+                    size={20}
+                    className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Evita que el clic en la flecha cierre el sidebar
+                      toggleProfileAccordion();
+                    }}
+                    style={{
+                      marginLeft: "auto",
+                    }}
+                  />
+                )}
               </div>
               {isProfileAccordionOpen && (
                 <ul className="ml-8">
