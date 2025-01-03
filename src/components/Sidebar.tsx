@@ -39,7 +39,6 @@ const getUserData = () => {
     return null;
   }
 };
-const cartItems = JSON.parse(localStorage.getItem("cart") || "[]");
 
 const Sidebar: React.FC = () => {
   const router = useRouter();
