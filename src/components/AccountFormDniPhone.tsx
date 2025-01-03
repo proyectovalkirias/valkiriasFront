@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation"; // Importar useRouter
+import { useRouter } from "next/navigation";
 
 interface AccountFormDniPhoneProps {
   userId: string;
@@ -20,7 +20,21 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
     phone: "",
   });
 
-  const router = useRouter(); // Inicializar useRouter
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [googleUserData, setGoogleUserData] = useState<any>(null);
+
+  const router = useRouter();
+
+  // Verificar si el usuario está registrado con Google
+  useEffect(() => {
+    const storedGoogleUser = localStorage.getItem("user_info");
+    if (storedGoogleUser) {
+      setGoogleUserData(JSON.parse(storedGoogleUser));
+      setIsGoogleUser(true);
+    } else {
+      fetchUserData();
+    }
+  }, [userId]);
 
   const fetchUserData = async () => {
     try {
@@ -35,10 +49,6 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
       console.error("Error al obtener los datos del usuario:", error);
     }
   };
-
-  useEffect(() => {
-    fetchUserData();
-  }, [userId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -109,24 +119,40 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
 
   return (
     <form className="flex flex-col" onSubmit={handleSubmit}>
-      <input
-        type="text"
-        name="dni"
-        placeholder="N° de DNI"
-        value={formData.dni}
-        onChange={handleChange}
-        className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-      />
-      {errors.dni && <p className="text-red-500 text-sm">{errors.dni}</p>}
-      <input
-        type="text"
-        name="phone"
-        placeholder="N° de Teléfono"
-        value={formData.phone}
-        onChange={handleChange}
-        className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-      />
+      {!isGoogleUser && (
+        <>
+          <input
+            type="text"
+            name="dni"
+            placeholder="N° de DNI"
+            value={formData.dni}
+            onChange={handleChange}
+            className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+          />
+          {errors.dni && <p className="text-red-500 text-sm">{errors.dni}</p>}
+        </>
+      )}
+
+      {!isGoogleUser && (
+        <input
+          type="text"
+          name="phone"
+          placeholder="N° de Teléfono"
+          value={formData.phone}
+          onChange={handleChange}
+          className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+        />
+      )}
       {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
+
+      {isGoogleUser && googleUserData && (
+        <div className="mb-4">
+          <img src={googleUserData.picture} alt={googleUserData.name} className="w-16 h-16 rounded-full" />
+          <p className="text-white">{googleUserData.name}</p>
+          <p className="text-white">{googleUserData.email}</p>
+        </div>
+      )}
+
       <button
         type="submit"
         className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
