@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation"; // Importar useRouter
 
 interface AccountFormDniPhoneProps {
   userId: string;
-  onSuccess: () => void; // Callback para notificar al componente principal que los datos se guardaron correctamente
+  onSuccess: () => void;
 }
 
 const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuccess }) => {
@@ -19,16 +20,44 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
     phone: "",
   });
 
+  const router = useRouter(); // Inicializar useRouter
+
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/users/${userId}`);
+      if (response.status === 200) {
+        setFormData({
+          dni: response.data.dni?.toString() || "",
+          phone: response.data.phone || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error al obtener los datos del usuario:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, [userId]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    if (name === "dni" && !/^\d*$/.test(value)) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        dni: "El DNI debe contener solo números.",
+      }));
+      return;
+    }
+
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
-
     setErrors((prevErrors) => ({
       ...prevErrors,
-      [name]: "", // Limpiar errores del campo
+      [name]: "",
     }));
   };
 
@@ -43,28 +72,38 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
     setErrors(newErrors);
 
     if (Object.values(newErrors).some((error) => error !== "")) {
-      return; // No enviamos los datos si hay errores
+      return;
     }
 
     try {
       const updatedData = {
-        dni: formData.dni, // Mantener como string (no convertir a número)
-        phone: formData.phone, // Mantener como string
+        dni: parseInt(formData.dni, 10),
+        phone: formData.phone,
       };
 
-      const response = await axios.put(
-        `http://localhost:3000/users/${userId}`,
-        updatedData
-      );
+      console.log("Datos enviados al backend:", updatedData);
+      const response = await axios.put(`http://localhost:3000/users/${userId}`, updatedData);
 
       if (response.status === 200) {
-        console.log("Datos actualizados en el backend:", response.data); // Mostrar datos en consola
         alert("¡DNI y Teléfono registrados correctamente!");
-        onSuccess(); // Notificar éxito al componente principal
+        onSuccess();
+        router.push("/"); // Redirigir a la página de inicio después de guardar
       }
     } catch (error) {
-      console.error("Error al actualizar DNI y Teléfono:", error);
-      alert("Hubo un problema, intente nuevamente.");
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 400) {
+          const serverErrors = error.response.data.errors || {};
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            ...serverErrors,
+          }));
+          alert("Por favor, corrige los errores indicados.");
+        } else {
+          console.error("Error al actualizar DNI y Teléfono:", error.response?.data || error.message);
+        }
+      } else {
+        console.error("Error inesperado:", error);
+      }
     }
   };
 
@@ -92,7 +131,7 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
         type="submit"
         className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
       >
-        Registrar
+        Guardar
       </button>
     </form>
   );

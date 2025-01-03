@@ -20,28 +20,38 @@ const AccountForm: React.FC = () => {
     email: "",
     firstname: "",
     lastname: "",
+    phone: "",
+    dni: "",
   });
 
   const [isDniPhoneMissing, setIsDniPhoneMissing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+
+  const [isEditable, setIsEditable] = useState({
+    firstname: false,
+    lastname: false,
+    phone: false,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
       const storedUserInfo = JSON.parse(localStorage.getItem("user_info") || "{}");
 
-      // Si los datos de Google están disponibles
       if (storedUserInfo?.email) {
         setFormData({
           email: storedUserInfo.email || "",
           firstname: storedUserInfo.given_name || "",
           lastname: storedUserInfo.family_name || "",
+          phone: storedUserInfo.phone || "",
+          dni: storedUserInfo.dni || "",
         });
 
-        // Verificar si el usuario de Google necesita ingresar el DNI o teléfono
-        setIsDniPhoneMissing(true); // Si el usuario es de Google, se asume que faltan estos datos
+        const googleUserData = await fetchUserDataFromBackend(storedUserInfo.email);
+        if (!googleUserData?.dni || !googleUserData?.phone) {
+          setIsDniPhoneMissing(true);
+        }
       } else if (storedUser?.user) {
-        // Si el usuario está registrado localmente
         const userId = storedUser.user.id;
         setUserId(userId);
 
@@ -51,9 +61,9 @@ const AccountForm: React.FC = () => {
             email: userData.email || "",
             firstname: userData.firstname || "",
             lastname: userData.lastname || "",
+            phone: userData.phone || "",
+            dni: userData.dni || "",
           });
-
-          // Verificar si faltan DNI o teléfono para el usuario local
           setIsDniPhoneMissing(!userData.dni || !userData.phone);
         }
       } else {
@@ -84,6 +94,8 @@ const AccountForm: React.FC = () => {
         firstname: formData.firstname,
         lastname: formData.lastname,
         email: formData.email,
+        phone: formData.phone,
+        dni: formData.dni,
       };
 
       const response = await axios.put(
@@ -98,6 +110,19 @@ const AccountForm: React.FC = () => {
       console.error("Error al procesar la solicitud:", error);
       alert("Hubo un problema, intente nuevamente.");
     }
+  };
+
+  const handleEdit = (field: string) => {
+    setIsEditable((prevState) => ({
+      ...prevState,
+      [field]: true,
+    }));
+
+    // Borra el texto cuando se edita
+    setFormData((prevData) => ({
+      ...prevData,
+      [field]: "",
+    }));
   };
 
   return (
@@ -127,24 +152,74 @@ const AccountForm: React.FC = () => {
                 placeholder="Correo Electrónico"
                 value={formData.email}
                 onChange={handleChange}
+                readOnly
                 className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
               />
-              <input
-                type="text"
-                name="firstname"
-                placeholder="Nombre"
-                value={formData.firstname}
-                onChange={handleChange}
-                className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-              />
-              <input
-                type="text"
-                name="lastname"
-                placeholder="Apellido"
-                value={formData.lastname}
-                onChange={handleChange}
-                className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-              />
+              <div className="flex justify-between items-center mb-4">
+                <input
+                  type="text"
+                  name="firstname"
+                  placeholder="Nombre"
+                  value={formData.firstname}
+                  onChange={handleChange}
+                  readOnly={!isEditable.firstname}
+                  className="border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+                />
+                <button
+                  type="button"
+                  className="ml-2 text-purple-300 hover:text-purple-400"
+                  onClick={() => handleEdit("firstname")}
+                >
+                  Editar
+                </button>
+              </div>
+              <div className="flex justify-between items-center mb-4">
+                <input
+                  type="text"
+                  name="lastname"
+                  placeholder="Apellido"
+                  value={formData.lastname}
+                  onChange={handleChange}
+                  readOnly={!isEditable.lastname}
+                  className="border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+                />
+                <button
+                  type="button"
+                  className="ml-2 text-purple-300 hover:text-purple-400"
+                  onClick={() => handleEdit("lastname")}
+                >
+                  Editar
+                </button>
+              </div>
+              <div className="flex justify-between items-center mb-4">
+                <input
+                  type="text"
+                  name="phone"
+                  placeholder="Teléfono"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  readOnly={!isEditable.phone}
+                  className="border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+                />
+                <button
+                  type="button"
+                  className="ml-2 text-purple-300 hover:text-purple-400"
+                  onClick={() => handleEdit("phone")}
+                >
+                  Editar
+                </button>
+              </div>
+              <div className="flex justify-between items-center mb-4">
+                <input
+                  type="text"
+                  name="dni"
+                  placeholder="DNI"
+                  value={formData.dni}
+                  onChange={handleChange}
+                  readOnly
+                  className="border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+                />
+              </div>
               <button
                 type="submit"
                 className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
