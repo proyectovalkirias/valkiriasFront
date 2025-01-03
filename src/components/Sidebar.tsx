@@ -30,6 +30,9 @@ const getUserData = () => {
         lastname: googleUser.family_name || "",
         email: googleUser.email || "",
         photoUrl: googleUser.picture || "/images/Avatar.png",
+        // Agregamos la comprobación de los datos de DNI y Phone
+        dni: googleUser.dni || null,
+        phone: googleUser.phone || null,
       };
     }
 
@@ -49,6 +52,8 @@ const Sidebar: React.FC = () => {
     lastname: string;
     email: string;
     photoUrl: string;
+    dni?: string | null;
+    phone?: string | null;
   } | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -145,9 +150,7 @@ const Sidebar: React.FC = () => {
                     <span>Mi Perfil</span>
                     <HiChevronDown
                       size={20}
-                      className={`transition-transform duration-300 ${
-                        isProfileAccordionOpen ? "transform rotate-180" : ""
-                      }`}
+                      className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleProfileAccordion();
@@ -160,12 +163,24 @@ const Sidebar: React.FC = () => {
 
               {isProfileAccordionOpen && (
                 <ul className="ml-8">
-                  <li
-                    className="py-1 hover:bg-gray-700 cursor-pointer"
-                    onClick={() => handleNavigation("/ProfileConfiguration")}
-                  >
-                    Configuración
-                  </li>
+                  {/* Oculta Configuración si el usuario se registró con Google */}
+                  {!localStorage.getItem("user_info") && (
+                    <li
+                      className="py-1 hover:bg-gray-700 cursor-pointer"
+                      onClick={() => handleNavigation("/ProfileConfiguration")}
+                    >
+                      Configuración
+                    </li>
+                  )}
+                  {/* Condicional para el botón "Agregar Información" */}
+                  {user.dni && user.phone ? null : (
+                    <li
+                      className="py-1 hover:bg-gray-700 cursor-pointer"
+                      onClick={() => handleNavigation("/GoogleDniPhone")}
+                    >
+                      Agregar información
+                    </li>
+                  )}
                   <li
                     className="py-1 hover:bg-gray-700 cursor-pointer"
                     onClick={() => handleNavigation("/Addresses")}
