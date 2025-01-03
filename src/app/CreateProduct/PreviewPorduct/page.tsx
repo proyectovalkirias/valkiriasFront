@@ -4,10 +4,11 @@ import React from "react";
 const ProductPreview: React.FC<{
   productName: string;
   productDescription: string;
-  price: number | null;
+  prices: string[];
   stock: number | null;
   category: string;
   color: string[];
+  isUniqueSize: boolean;
   kidsSizes: string[];
   adultSizes: string[];
   previewImages: string[];
@@ -19,10 +20,11 @@ const ProductPreview: React.FC<{
 }> = ({
   productName,
   productDescription,
-  price,
+  prices,
   stock,
   category,
   color,
+  isUniqueSize,
   kidsSizes,
   adultSizes,
   previewImages,
@@ -49,7 +51,7 @@ const ProductPreview: React.FC<{
 
         {/* Precio y Stock */}
         <div className="flex gap-4">
-          <p className="text-sm">Precio: ${price !== null ? price : "0.00"}</p>
+          <p className="text-sm">Precio: ${prices !== null ? prices : "0.00"}</p>
           <p className="text-sm">Stock: {stock !== null ? stock : "0"}</p>
         </div>
 
@@ -79,6 +81,9 @@ const ProductPreview: React.FC<{
             Tamaños seleccionados:
           </h4>
           <div className="flex gap-4">
+          <p className="text-sm">
+            Único: {isUniqueSize ? 'Talle único' : "Ninguno"}
+            </p>
             <p className="text-sm">
               Niños: {kidsSizes.length ? kidsSizes.join(", ") : "Ninguno"}
             </p>
