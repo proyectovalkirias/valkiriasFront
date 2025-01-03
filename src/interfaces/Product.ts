@@ -5,6 +5,7 @@ export interface Product {
   description: string;
   priceAdults: string[];
   priceKids:string[]
+  prices:string[]
   size: string[];
   category: string;
   photos: string[];

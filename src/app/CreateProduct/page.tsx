@@ -34,10 +34,16 @@ const CreateProduct: React.FC = () => {
   const onSubmit = (data: Product) => {
     setLoading(true);
 
+    if (!prices || prices.length < 2 || prices.some(price => !price)) {
+      console.error("Prices are invalid or incomplete.");
+      setLoading(false);
+      return;
+    }
+    
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
-    formData.append("prices", JSON.stringify(prices)); // Enviar como stringified array
+    formData.append("prices", JSON.stringify(prices.filter((price) => price !== null && price !== undefined)));
     console.log(prices)
     formData.append("stock", data.stock.toString());
     formData.append("color", JSON.stringify(data.color));
@@ -119,20 +125,20 @@ const CreateProduct: React.FC = () => {
       case "description":
         setProductDescription(value);
         break;
-      case "priceKids":
-        setPrices((prev) => {
-          const updatedPrices = [...prev];
-          updatedPrices[0] = value; // Índice 0 para precio niños
-          return updatedPrices;
-        });
-        break;
-      case "priceAdults":
-        setPrices((prev) => {
-          const updatedPrices = [...prev];
-          updatedPrices[1] = value; // Índice 1 para precio adultos
-          return updatedPrices;
-        });
-        break;
+        case "priceKids":
+          setPrices((prev) => {
+            const updatedPrices = prev.length > 0 ? [...prev] : ["", ""]; // Asegúrate de que existan índices
+            updatedPrices[0] = value;
+            return updatedPrices;
+          });
+          break;
+        case "priceAdults":
+          setPrices((prev) => {
+            const updatedPrices = prev.length > 0 ? [...prev] : ["", ""]; // Asegúrate de que existan índices
+            updatedPrices[1] = value;
+            return updatedPrices;
+          });
+          break;          
       case "stock":
         setStock(value ? parseInt(value) : null);
         break;
