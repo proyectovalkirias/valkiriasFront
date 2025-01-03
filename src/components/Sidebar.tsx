@@ -6,7 +6,9 @@ import { IoShirtOutline } from "react-icons/io5";
 import { CiLogin } from "react-icons/ci";
 import { useRouter } from "next/navigation";
 import { FiUser, FiUsers } from "react-icons/fi";
-import { HiChevronDown } from "react-icons/hi"; // Importamos el ícono de la flecha
+import { HiChevronDown } from "react-icons/hi";
+import { FaShoppingCart } from "react-icons/fa";
+import Link from "next/link";
 
 const getUserData = () => {
   try {
@@ -42,8 +44,6 @@ const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
   const [isProfileAccordionOpen, setIsProfileAccordionOpen] = useState(false);
-  const [showChevron, setShowChevron] = useState(true); // Estado para controlar la visibilidad de la flecha
-
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -57,7 +57,9 @@ const Sidebar: React.FC = () => {
     if (userData) setUser(userData);
   }, []);
 
-  const handleNavigation = (path: string) => router.push(path);
+  const handleNavigation = (path: string) => {
+    router.push(path);
+  };
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -88,21 +90,15 @@ const Sidebar: React.FC = () => {
     };
   }, []);
 
-  // Función para alternar el estado de la visibilidad del perfil
   const toggleProfileAccordion = () => {
     setIsProfileAccordionOpen(!isProfileAccordionOpen);
   };
-
-  // Monitorear el tamaño de la sidebar
-  useEffect(() => {
-    setShowChevron(isOpen); // Solo mostrar la flecha si la sidebar está abierta
-  }, [isOpen]);
 
   return (
     <div
       ref={sidebarRef}
       className={`${
-        isOpen ? "w-64" : "w-16 closed"
+        isOpen ? "w-64" : "w-16"
       } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300 overflow-hidden`}
     >
       {/* LOGO */}
@@ -110,20 +106,12 @@ const Sidebar: React.FC = () => {
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={toggleSidebar}
       >
-        {isOpen ? (
-          <img
-            src="/images/valkiriaslogo.jpg"
-            alt="Logo Valkirias"
-            style={{ width: isOpen ? "150px" : "40px", objectFit: "contain" }}
-          />
-        ) : (
-          <img
-            src="/images/LogCircular.jpg"
-            alt="Logo Circular"
-            className="rounded-full"
-            style={{ width: "40px", objectFit: "contain" }}
-          />
-        )}
+        <img
+          src={isOpen ? "/images/valkiriaslogo.jpg" : "/images/LogCircular.jpg"}
+          alt="Logo"
+          className={isOpen ? "" : "rounded-full"}
+          style={{ width: isOpen ? "150px" : "40px", objectFit: "contain" }}
+        />
       </div>
 
       {/* NAVEGACIÓN */}
@@ -145,7 +133,6 @@ const Sidebar: React.FC = () => {
             {isOpen && <span>Productos</span>}
           </li>
 
-          {/* Solo muestra "Mi Perfil" si el usuario está logueado */}
           {user && (
             <li>
               <div
@@ -153,22 +140,24 @@ const Sidebar: React.FC = () => {
                 onClick={() => handleNavigation("/Dashboard")}
               >
                 <FiUser size={24} />
-                {isOpen && <span>Mi Perfil</span>}
-                {/* Botón de flecha */}
-                {showChevron && (
-                  <HiChevronDown
-                    size={20}
-                    className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
-                    onClick={(e) => {
-                      e.stopPropagation(); // Evita que el clic en la flecha cierre el sidebar
-                      toggleProfileAccordion();
-                    }}
-                    style={{
-                      marginLeft: "auto",
-                    }}
-                  />
+                {isOpen && (
+                  <>
+                    <span>Mi Perfil</span>
+                    <HiChevronDown
+                      size={20}
+                      className={`transition-transform duration-300 ${
+                        isProfileAccordionOpen ? "transform rotate-180" : ""
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleProfileAccordion();
+                      }}
+                      style={{ marginLeft: "auto" }}
+                    />
+                  </>
                 )}
               </div>
+
               {isProfileAccordionOpen && (
                 <ul className="ml-8">
                   <li
@@ -208,7 +197,6 @@ const Sidebar: React.FC = () => {
             {isOpen && <span>Sobre Nosotros</span>}
           </li>
 
-          {/* Mostrar "Iniciar Sesión" o "Cerrar Sesión" dependiendo del estado de usuario */}
           {!user ? (
             <li
               className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
@@ -229,28 +217,35 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {/* PERFIL DEL USUARIO */}
       {user && (
-        <div className="p-4 flex items-center gap-4">
-          <img
-            src={user.photoUrl}
-            alt="Foto de perfil"
-            className="rounded-full border-2 border-gray-500"
-            style={{
-              width: isOpen ? "48px" : "32px",
-              height: isOpen ? "48px" : "32px",
-              objectFit: "cover",
-            }}
-          />
-          {isOpen && (
-            <div className="text-sm">
-              <p className="font-semibold">
-                {user.firstname} {user.lastname}
-              </p>
-              <p className="text-gray-300 text-xs">{user.email}</p>
+        <>
+          <Link href="/Cart">
+            <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
+              <FaShoppingCart size={24} />
+              {isOpen && <span>Mi carrito</span>}
             </div>
-          )}
-        </div>
+          </Link>
+          <div className="p-4 flex items-center gap-4">
+            <img
+              src={user.photoUrl}
+              alt="Foto de perfil"
+              className="rounded-full border-2 border-gray-500"
+              style={{
+                width: isOpen ? "48px" : "32px",
+                height: isOpen ? "48px" : "32px",
+                objectFit: "cover",
+              }}
+            />
+            {isOpen && (
+              <div className="text-sm">
+                <p className="font-semibold">
+                  {user.firstname} {user.lastname}
+                </p>
+                <p className="text-gray-300 text-xs">{user.email}</p>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

@@ -26,12 +26,31 @@ const ProductDetail: React.FC = () => {
   const [remainingStock, setRemainingStock] = useState<number>(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
 
+  const sizeOrder = [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "XXXL",
+    "4",
+    "6",
+    "8",
+    "10",
+    "12",
+    "14",
+    "16",
+  ];
+
   useEffect(() => {
     if (!productId) {
       setError("El ID del producto no es válido.");
       setLoading(false);
       return;
     }
+
+    const user = localStorage.getItem("user");
 
     const fetchProduct = async () => {
       try {
@@ -64,7 +83,7 @@ const ProductDetail: React.FC = () => {
 
     fetchProduct();
   }, [productId]);
-  const getMaxPrice = (prices: number[]): number => {
+  const getMaxPrice = (prices: string[]): number => {
     return Math.max(...prices.map(Number));
   };
 
@@ -188,8 +207,8 @@ const ProductDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-purple-100">
-        <p className="text-gray-500 text-xl">Cargando...</p>
+      <div className="flex justify-center bg-purple-100 items-center min-h-screen">
+        <div className="w-16 h-16 border-4 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -223,7 +242,7 @@ const ProductDetail: React.FC = () => {
           <img
             src={mainImage || undefined}
             alt={product.name}
-            className="w-[600px] aspect-square mx-auto rounded-xl shadow-md object-cover"
+            className="w-[500px] aspect-square mx-auto rounded-xl shadow-md "
           />
           <button
             onClick={handleNextPhoto}
@@ -301,7 +320,7 @@ const ProductDetail: React.FC = () => {
           <label className="text-gray-800 font-semibold relative group cursor-pointer">
             Estampado grande:
             <span className="absolute left-0 top-full mt-1 hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg w-64">
-              El precio incluye una estampa grande y una pequeña
+              Incluye una estampa grande y una pequeña
             </span>
           </label>
           <div className="flex flex-wrap gap-4 mt-2">
@@ -333,11 +352,13 @@ const ProductDetail: React.FC = () => {
             onChange={(e) => setSelectedSize(e.target.value)}
           >
             <option value="">Selecciona un tamaño</option>
-            {(product.size || []).map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
+            {sizeOrder
+              .filter((size) => product.size?.includes(size)) // Filtra solo los tamaños disponibles
+              .map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
           </select>
         </div>
 
@@ -377,8 +398,9 @@ const ProductDetail: React.FC = () => {
           <p className="text-2xl font-bold text-gray-800">
             Precio Total: ${totalPrice.toFixed(2)}
           </p>
+
           <button
-            className="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700"
+            className="px-6 py-3 bg-purple-400 text-white font-medium rounded-lg hover:bg-purple-500"
             onClick={handleAddToCart}
           >
             Añadir al carrito

@@ -3,7 +3,7 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  prices: number[];
+  prices: string[];
   size: string[];
   category: string;
   photos: string[];
@@ -12,4 +12,16 @@ export interface Product {
   smallPrint: string[];
   largePrint: string[];
   isAvailable?: boolean;
+}
+
+export interface CartItem {
+  product: Product;
+  id: string;
+  name: string;
+  quantity: number;
+  selectedColor: string;
+  selectedSize: string;
+  selectedLargePrint: string;
+  selectedSmallPrint: string;
+  totalPrice: number;
 }
