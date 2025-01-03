@@ -13,28 +13,39 @@ const getUserData = () => {
     const storedUser = localStorage.getItem("user");
     const storedGoogleUser = localStorage.getItem("user_info");
 
+
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
-        firstname: parsedUser.user.firstname || "",
-        lastname: parsedUser.user.lastname || "",
-        email: parsedUser.user.email || "",
-        photoUrl: parsedUser.user.photo || "/images/Avatar.png",
+        firstname: parsedUser.user?.firstname || "",
+        lastname: parsedUser.user?.lastname || "",
+        email: parsedUser.user?.email || "",
+        photoUrl: parsedUser.user?.photo || "/images/Avatar.png",
       };
     } else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
       return {
-        firstname: googleUser.given_name || "",
-        lastname: googleUser.family_name || "",
-        email: googleUser.email || "",
-        photoUrl: googleUser.picture || "/images/Avatar.png",
+        firstname: googleUser?.given_name || "",
+        lastname: googleUser?.family_name || "",
+        email: googleUser?.email || "",
+        photoUrl: googleUser?.picture || "/images/Avatar.png",
       };
     }
 
-    return null;
+    return {
+      firstname: "",
+      lastname: "",
+      email: "",
+      photoUrl: "/images/Avatar.png",
+    }; // Objeto por defecto
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
-    return null;
+    return {
+      firstname: "",
+      lastname: "",
+      email: "",
+      photoUrl: "/images/Avatar.png",
+    }; // Objeto por defecto
   }
 };
 
@@ -151,7 +162,9 @@ const Sidebar: React.FC = () => {
                 {/* Botón de flecha */}
                 <HiChevronDown
                   size={20}
-                  className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
+                  className={`transition-transform duration-300 ${
+                    isProfileAccordionOpen ? "transform rotate-180" : ""
+                  }`}
                   onClick={(e) => {
                     e.stopPropagation(); // Evita que el clic en la flecha cierre el sidebar
                     toggleProfileAccordion();

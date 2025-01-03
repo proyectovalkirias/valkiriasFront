@@ -18,11 +18,12 @@ const CreateProduct: React.FC = () => {
   const [smallPrints, setSmallPrints] = useState<File[]>([]);
   const [largePrints, setLargePrints] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isUniqueSize, setIsUniqueSize] = useState<boolean>(false);
   const [kidsSizes, setKidsSizes] = useState<string[]>([]);
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [price, setPrice] = useState<number | null>(null);
+  const [prices, setPrices] = useState<string[]>([]);
   const [stock, setStock] = useState<number | null>(null);
   const [color, setColor] = useState<string[]>([]);
   const [category, setCategory] = useState<string>("");
@@ -32,30 +33,39 @@ const CreateProduct: React.FC = () => {
 
   const onSubmit = (data: Product) => {
     setLoading(true);
-  
+
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
-    formData.append("price", data.price.toString());
+    formData.append("prices", JSON.stringify(prices)); // Enviar como stringified array
+    console.log(prices)
     formData.append("stock", data.stock.toString());
     formData.append("color", JSON.stringify(data.color));
     formData.append("category", category);
-  
+
     const allSizes = [...kidsSizes, ...adultSizes];
-    formData.append("sizes", JSON.stringify(allSizes));
-  
+    if (isUniqueSize) {
+      allSizes.push("Talle Único");
+    }
+
+    if (allSizes.length > 0) {
+      formData.append("size", JSON.stringify(allSizes));
+    } else {
+      console.error("No se seleccionaron talles.");
+    }
+
     photos.forEach((photo) => {
       formData.append("photos", photo);
     });
-  
+
     smallPrints.forEach((print) => {
       formData.append("smallPrint", print);
     });
-  
+
     largePrints.forEach((print) => {
       formData.append("largePrint", print);
     });
-  
+
     fetch("http://localhost:3000/products", {
       method: "POST",
       body: formData,
@@ -70,7 +80,7 @@ const CreateProduct: React.FC = () => {
         console.log("Producto creado exitosamente:", data);
         setLoading(false);
         setIsModalVisible(true); // Mostrar el modal de éxito
-  
+
         // Restablecer los estados solo después de que el modal se haya mostrado
         setTimeout(() => {
           reset();
@@ -84,7 +94,8 @@ const CreateProduct: React.FC = () => {
           setLargePrints([]);
           setKidsSizes([]);
           setAdultSizes([]);
-          setPrice(null);
+          setIsUniqueSize(false);
+          setPrices([]);
           setStock(null);
           setCategory("");
           setColor([]);
@@ -96,7 +107,6 @@ const CreateProduct: React.FC = () => {
         setLoading(false);
       });
   };
-  
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -109,8 +119,19 @@ const CreateProduct: React.FC = () => {
       case "description":
         setProductDescription(value);
         break;
-      case "price":
-        setPrice(value ? parseFloat(value) : null);
+      case "priceKids":
+        setPrices((prev) => {
+          const updatedPrices = [...prev];
+          updatedPrices[0] = value; // Índice 0 para precio niños
+          return updatedPrices;
+        });
+        break;
+      case "priceAdults":
+        setPrices((prev) => {
+          const updatedPrices = [...prev];
+          updatedPrices[1] = value; // Índice 1 para precio adultos
+          return updatedPrices;
+        });
         break;
       case "stock":
         setStock(value ? parseInt(value) : null);
@@ -170,6 +191,10 @@ const CreateProduct: React.FC = () => {
     setLargePrintsPreview((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleUniqueSizeChange = () => {
+    setIsUniqueSize(!isUniqueSize);
+  };
+
   const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
     const updateSizes = type === "kids" ? setKidsSizes : setAdultSizes;
 
@@ -192,7 +217,8 @@ const CreateProduct: React.FC = () => {
       setLargePrints([]);
       setKidsSizes([]);
       setAdultSizes([]);
-      setPrice(null);
+
+      setPrices([]);
       setStock(null);
       setCategory("");
     }
@@ -256,23 +282,59 @@ const CreateProduct: React.FC = () => {
           />
         </div>
 
-        {/* Precio y Stock */}
-        <div className="flex justify-items-stretch space-x-4 mb-4">
-          <div className="w-1/3">
-            <label htmlFor="price" className="block text-sm font-medium">
-              Precio:
+        <div className="flex justify-between items-center space-x-4 mb-4">
+          {/* Precio para niños */}
+          <div className="w-1/4">
+            <label htmlFor="priceKids" className="block text-sm font-medium">
+              Precio Niños:
             </label>
             <input
-              id="price"
+              id="priceKids"
               type="number"
-              {...register("price", { required: true })}
-              onChange={handleChange}
-              placeholder="Precio"
-              className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              {...register("priceKids")}
+              placeholder="Precio para niños"
+              className="w-full border-b-2 border-white bg-transparent p-1 text-white outline-none"
+              onChange={(e) => {
+                const value = e.target.value;
+                setPrices((prev) => {
+                  const updated = [...prev];
+                  updated[0] = value; // Índice 0 para precio niños
+                  return updated;
+                });
+              }}
             />
+            {errors.priceKids && (
+              <span className="text-red-500">Campo requerido</span>
+            )}
           </div>
 
-          <div className="w-1/3">
+          {/* Precio para adultos */}
+          <div className="w-1/4">
+            <label htmlFor="priceAdults" className="block text-sm font-medium">
+              Precio Adultos:
+            </label>
+            <input
+              id="priceAdults"
+              type="number"
+              {...register("priceAdults")}
+              placeholder="Precio para adultos"
+              className="w-full border-b-2 border-white bg-transparent p-1 text-white outline-none"
+              onChange={(e) => {
+                const value = e.target.value;
+                setPrices((prev) => {
+                  const updated = [...prev];
+                  updated[1] = value; // Índice 1 para precio adultos
+                  return updated;
+                });
+              }}
+            />
+            {errors.priceAdults && (
+              <span className="text-red-500">Campo requerido</span>
+            )}
+          </div>
+
+          {/* Stock */}
+          <div className="w-1/4">
             <label htmlFor="stock" className="block text-sm font-medium">
               Stock:
             </label>
@@ -280,15 +342,29 @@ const CreateProduct: React.FC = () => {
               id="stock"
               type="number"
               {...register("stock", { required: true })}
-              onChange={handleChange}
               placeholder="Stock"
-              className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              className="w-full border-b-2 border-white bg-transparent p-1 text-white outline-none"
             />
+            {errors.stock && (
+              <span className="text-red-500">Campo requerido</span>
+            )}
           </div>
         </div>
 
         {/* Tamaños */}
         <div className="flex space-x-8 mb-4">
+          <div>
+            <label className="block text-sm font-medium">Talle Único:</label>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                value="Unique"
+                onChange={handleUniqueSizeChange}
+                checked={isUniqueSize}
+                className="mr-1"
+              />
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium">Talle Niños:</label>
             <div className="flex space-x-2">
@@ -336,7 +412,15 @@ const CreateProduct: React.FC = () => {
               defaultValue={color} // color es ahora un arreglo de strings
               render={({ field }) => (
                 <div className="flex space-x-4">
-                  {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
+                  {[
+                    "#000000",
+                    "#f5f5ef",
+                    "#a6a6a6",
+                    "#d80032",
+                    "#05299e",
+                    "#f7e90f",
+                    "#00913f",
+                  ].map((c) => (
                     <div
                       key={c}
                       onClick={() => {
@@ -347,7 +431,7 @@ const CreateProduct: React.FC = () => {
                         setColor(newColorArray);
                       }}
                       style={{ backgroundColor: c }}
-                      className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
+                      className={`w-6 h-6 rounded-full cursor-pointer border-2 ${
                         color.includes(c)
                           ? "border-white"
                           : "border-transparent"
@@ -386,20 +470,14 @@ const CreateProduct: React.FC = () => {
               <option value="Buzos" className="text-black hover:bg-violet-500">
                 Buzos
               </option>
-              <option value="Gorras" className="text-black hover:bg-violet-500">
-                Gorras
-              </option>
               <option
-                value="Gorros de lana"
+                value="Accesorios"
                 className="text-black hover:bg-violet-500"
               >
-                Gorros de Lana
+                Accesorios
               </option>
-              <option
-                value="Totebags"
-                className="text-black hover:bg-violet-500"
-              >
-                Totebags
+              <option value="Combos" className="text-black hover:bg-violet-500">
+                Combos
               </option>
             </select>
           </div>
@@ -496,10 +574,11 @@ const CreateProduct: React.FC = () => {
       <ProductPreview
         productName={productName}
         productDescription={productDescription}
-        price={price}
+        prices={prices}
         stock={stock}
         category={category}
         color={color}
+        isUniqueSize={isUniqueSize}
         kidsSizes={kidsSizes}
         adultSizes={adultSizes}
         previewImages={previewImages}
