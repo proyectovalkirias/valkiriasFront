@@ -83,7 +83,7 @@ const ProductDetail: React.FC = () => {
 
     fetchProduct();
   }, [productId]);
-  const getMaxPrice = (prices: number[]): number => {
+  const getMaxPrice = (prices: string[]): number => {
     return Math.max(...prices.map(Number));
   };
 
