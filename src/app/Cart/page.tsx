@@ -1,11 +1,24 @@
 "use client";
 
+import Link from "next/link";
 import { CartItem } from "../../interfaces/Product";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const colorNameMap: Record<string, string> = {
+    "#ff0000": "Rojo",
+    "#00ff00": "Verde",
+    "#0000ff": "Azul",
+    "#ffffff": "Blanco",
+    "#000000": "Negro",
+    "#ffff00": "Amarillo",
+    "#ff00ff": "Fucsia",
+    "#00ffff": "Cian",
+    "#a6a6a6": "Gris",
+    "#f5f5ef": "Marfil",
+  };
 
   useEffect(() => {
     // Cargar los productos del carrito desde localStorage
@@ -76,7 +89,7 @@ const Cart: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-purple-200 py-8 px-4 text-black">
-      <h1 className="text-3xl font-bold mb-6 md:text-4xl text-center">
+      <h1 className="text-3xl lg:text-4xl font-bold text-purple-dark mb-4">
         Carrito de Compras
       </h1>
 
@@ -123,7 +136,7 @@ const Cart: React.FC = () => {
                   <strong>Tamaño:</strong> {item.selectedSize}
                 </p>
                 <p className="text-sm text-gray-700 mb-1">
-                  <strong>Color:</strong> {item.selectedColor}
+                  <strong>Color:</strong> {colorNameMap[item.selectedColor]}
                 </p>
                 <div className="flex items-center gap-4 mb-2">
                   <div>
@@ -157,7 +170,7 @@ const Cart: React.FC = () => {
               <div>
                 <button
                   onClick={() => handleRemoveItem(item.id, index)}
-                  className="flex items-center gap-2 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
+                  className="flex items-center gap-2 bg-purple-300 text-white py-2 px-4 rounded hover:bg-purple-400"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -182,13 +195,13 @@ const Cart: React.FC = () => {
           <div className="flex gap-4 mt-4">
             <button
               onClick={handleClearCart}
-              className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
+              className="bg-purple-300 text-white py-2 px-4 rounded hover:bg-purple-400"
             >
               Vaciar Carrito
             </button>
             <button
               onClick={handlePurchase}
-              className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 font-bold"
+              className="bg-purple-300 text-white py-2 px-4 rounded hover:bg-purple-400"
             >
               Realizar Compra
             </button>
