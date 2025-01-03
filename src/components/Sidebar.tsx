@@ -45,6 +45,7 @@ const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
   const [isProfileAccordionOpen, setIsProfileAccordionOpen] = useState(false);
+  const [showChevron, setShowChevron] = useState(true); // Estado para controlar la visibilidad de la flecha
 
   const [user, setUser] = useState<{
     firstname: string;
@@ -94,6 +95,11 @@ const Sidebar: React.FC = () => {
   const toggleProfileAccordion = () => {
     setIsProfileAccordionOpen(!isProfileAccordionOpen);
   };
+
+  // Monitorear el tamaño de la sidebar
+  useEffect(() => {
+    setShowChevron(isOpen); // Solo mostrar la flecha si la sidebar está abierta
+  }, [isOpen]);
 
   return (
     <div
@@ -150,6 +156,7 @@ const Sidebar: React.FC = () => {
                 onClick={() => handleNavigation("/Dashboard")}
               >
                 <FiUser size={24} />
+
                 {isOpen && (
                   <>
                     <span>Mi Perfil</span>
@@ -166,7 +173,7 @@ const Sidebar: React.FC = () => {
                         marginLeft: "auto",
                       }}
                     />
-                  </>
+
                 )}
               </div>
 

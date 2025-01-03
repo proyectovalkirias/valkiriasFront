@@ -1,7 +1,7 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import AccountFormDniPhone from "./AccountFormDniPhone";
 
 // FUNCIÓN PARA OBTENER LOS DATOS DEL USUARIO DESDE EL BACKEND
 const fetchUserDataFromBackend = async (userId: string) => {
@@ -20,114 +20,79 @@ const AccountForm: React.FC = () => {
     email: "",
     firstname: "",
     lastname: "",
-    dni: "",
-    phone: "",
-  });
-
-  const [errors, setErrors] = useState({
-    dni: "",
-    phone: "",
   });
 
   const [isDniPhoneMissing, setIsDniPhoneMissing] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // OBTIENE LOS DATOS DEL USUARIO AL MONTAR EL COMPONENTE
   useEffect(() => {
     const fetchData = async () => {
       const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const storedUserInfo = JSON.parse(localStorage.getItem("user_info") || "{}");
 
-      // Verifica si el usuario ha iniciado sesión con Google
-      if (storedUser?.user?.google) {
-        // Datos del usuario de Google
+      // Si los datos de Google están disponibles
+      if (storedUserInfo?.email) {
         setFormData({
-          email: storedUser.user.email || "",
-          firstname: storedUser.user.firstName || "",
-          lastname: storedUser.user.lastName || "",
-          dni: "",  // No aplicable para usuarios de Google
-          phone: "", // No aplicable para usuarios de Google
+          email: storedUserInfo.email || "",
+          firstname: storedUserInfo.given_name || "",
+          lastname: storedUserInfo.family_name || "",
         });
-        setIsDniPhoneMissing(false);  // No es necesario que falten estos datos
-      } else {
-        const userId = storedUser?.user?.id;
 
-        if (userId) {
-          const userData = await fetchUserDataFromBackend(userId);
-          if (userData) {
-            setFormData({
-              email: userData.email || "",
-              firstname: userData.firstname || "",
-              lastname: userData.lastname || "",
-              dni: userData.dni || "",
-              phone: userData.phone || "",
-            });
+        // Verificar si el usuario de Google necesita ingresar el DNI o teléfono
+        setIsDniPhoneMissing(true); // Si el usuario es de Google, se asume que faltan estos datos
+      } else if (storedUser?.user) {
+        // Si el usuario está registrado localmente
+        const userId = storedUser.user.id;
+        setUserId(userId);
 
-            if (!userData.dni || !userData.phone) {
-              setIsDniPhoneMissing(true);
-            }
-          }
-        } else {
-          console.warn("No user ID found in localStorage.");
+        const userData = await fetchUserDataFromBackend(userId);
+        if (userData) {
+          setFormData({
+            email: userData.email || "",
+            firstname: userData.firstname || "",
+            lastname: userData.lastname || "",
+          });
+
+          // Verificar si faltan DNI o teléfono para el usuario local
+          setIsDniPhoneMissing(!userData.dni || !userData.phone);
         }
+      } else {
+        console.warn("No user data found in localStorage.");
       }
     };
+
     fetchData();
   }, []);
 
-  // ACTUALIZA LOS VALORES DEL FORMULARIO
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
-
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: "", // Limpiamos cualquier error anterior para ese campo
-    }));
   };
 
-  // VALIDA Y ENVÍA LOS DATOS AL BACKEND
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newErrors = {
-      dni: formData.dni.trim() === "" ? "El campo N° de DNI es obligatorio" : "",
-      phone: formData.phone.trim() === "" ? "El campo N° de Teléfono es obligatorio" : "",
-    };
-
-    setErrors(newErrors);
-
-    if (Object.values(newErrors).some((error) => error !== "")) {
-      return; // No enviamos los datos si hay errores
-    }
-
     try {
+      if (!userId) {
+        throw new Error("User ID not found.");
+      }
+
       const updatedUserData = {
         firstname: formData.firstname,
         lastname: formData.lastname,
         email: formData.email,
-        dni: formData.dni ? Number(formData.dni) : null,
-        phone: formData.phone ? Number(formData.phone) : null,
       };
-
-      // Verifica si es un usuario local o de Google
-      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-      const userId = storedUser?.user?.id;
-
-      if (!userId) {
-        throw new Error("User ID not found.");
-      }
 
       const response = await axios.put(
         `http://localhost:3000/users/${userId}`,
         updatedUserData
       );
-      console.log("PUT response:", response);
 
       if (response.status === 200) {
         alert("¡Datos actualizados correctamente!");
-        setIsDniPhoneMissing(false);
       }
     } catch (error) {
       console.error("Error al procesar la solicitud:", error);
@@ -149,36 +114,12 @@ const AccountForm: React.FC = () => {
           <h2 className="text-2xl sm:text-3xl font-bold flex items-center justify-center mb-6">
             Datos de la Cuenta
           </h2>
-          {isDniPhoneMissing ? (
-            // Si faltan los datos de DNI o Teléfono, muestra el formulario para ingresarlos
-            <form className="flex flex-col" onSubmit={handleSubmit}>
-              <input
-                type="text"
-                name="dni"
-                placeholder="N° de DNI"
-                value={formData.dni}
-                onChange={handleChange}
-                className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-              />
-              {errors.dni && <p className="text-red-500 text-sm">{errors.dni}</p>}
-              <input
-                type="text"
-                name="phone"
-                placeholder="N° de Teléfono"
-                value={formData.phone}
-                onChange={handleChange}
-                className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-              />
-              {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
-              <button
-                type="submit"
-                className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
-              >
-                Registrar
-              </button>
-            </form>
+          {isDniPhoneMissing && userId ? (
+            <AccountFormDniPhone
+              userId={userId}
+              onSuccess={() => setIsDniPhoneMissing(false)}
+            />
           ) : (
-            // Si no faltan datos, muestra el formulario de edición de datos generales
             <form className="flex flex-col" onSubmit={handleSubmit}>
               <input
                 type="email"
@@ -208,7 +149,7 @@ const AccountForm: React.FC = () => {
                 type="submit"
                 className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
               >
-                Guardar
+                Guardar Cambios
               </button>
             </form>
           )}
