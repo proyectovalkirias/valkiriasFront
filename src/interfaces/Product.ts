@@ -14,3 +14,15 @@ export interface Product {
   largePrint: string[];
   isAvailable?: boolean;
 }
+
+export interface CartItem {
+  product: Product;
+  id: string;
+  name: string;
+  quantity: number;
+  selectedColor: string;
+  selectedSize: string;
+  selectedLargePrint: string;
+  selectedSmallPrint: string;
+  totalPrice: number;
+}
