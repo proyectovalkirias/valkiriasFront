@@ -6,7 +6,7 @@ import { IoShirtOutline } from "react-icons/io5";
 import { CiLogin } from "react-icons/ci";
 import { useRouter } from "next/navigation";
 import { FiUser, FiUsers } from "react-icons/fi";
-import { HiChevronDown } from "react-icons/hi"; // Importamos el ícono de la flecha
+import { HiChevronDown } from "react-icons/hi";
 import { FaShoppingCart } from "react-icons/fa";
 import Link from "next/link";
 
@@ -39,14 +39,11 @@ const getUserData = () => {
     return null;
   }
 };
-const cartItems = JSON.parse(localStorage.getItem("cart") || "[]");
 
 const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
   const [isProfileAccordionOpen, setIsProfileAccordionOpen] = useState(false);
-  const [showChevron, setShowChevron] = useState(true); // Estado para controlar la visibilidad de la flecha
-
   const [user, setUser] = useState<{
     firstname: string;
     lastname: string;
@@ -60,7 +57,9 @@ const Sidebar: React.FC = () => {
     if (userData) setUser(userData);
   }, []);
 
-  const handleNavigation = (path: string) => router.push(path);
+  const handleNavigation = (path: string) => {
+    router.push(path);
+  };
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -91,21 +90,15 @@ const Sidebar: React.FC = () => {
     };
   }, []);
 
-  // Función para alternar el estado de la visibilidad del perfil
   const toggleProfileAccordion = () => {
     setIsProfileAccordionOpen(!isProfileAccordionOpen);
   };
-
-  // Monitorear el tamaño de la sidebar
-  useEffect(() => {
-    setShowChevron(isOpen); // Solo mostrar la flecha si la sidebar está abierta
-  }, [isOpen]);
 
   return (
     <div
       ref={sidebarRef}
       className={`${
-        isOpen ? "w-64" : "w-16 closed"
+        isOpen ? "w-64" : "w-16"
       } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300 overflow-hidden`}
     >
       {/* LOGO */}
@@ -113,20 +106,12 @@ const Sidebar: React.FC = () => {
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={toggleSidebar}
       >
-        {isOpen ? (
-          <img
-            src="/images/valkiriaslogo.jpg"
-            alt="Logo Valkirias"
-            style={{ width: isOpen ? "150px" : "40px", objectFit: "contain" }}
-          />
-        ) : (
-          <img
-            src="/images/LogCircular.jpg"
-            alt="Logo Circular"
-            className="rounded-full"
-            style={{ width: "40px", objectFit: "contain" }}
-          />
-        )}
+        <img
+          src={isOpen ? "/images/valkiriaslogo.jpg" : "/images/LogCircular.jpg"}
+          alt="Logo"
+          className={isOpen ? "" : "rounded-full"}
+          style={{ width: isOpen ? "150px" : "40px", objectFit: "contain" }}
+        />
       </div>
 
       {/* NAVEGACIÓN */}
@@ -148,7 +133,6 @@ const Sidebar: React.FC = () => {
             {isOpen && <span>Productos</span>}
           </li>
 
-          {/* Solo muestra "Mi Perfil" si el usuario está logueado */}
           {user && (
             <li>
               <div
@@ -156,7 +140,6 @@ const Sidebar: React.FC = () => {
                 onClick={() => handleNavigation("/Dashboard")}
               >
                 <FiUser size={24} />
-
                 {isOpen && (
                   <>
                     <span>Mi Perfil</span>
@@ -166,14 +149,12 @@ const Sidebar: React.FC = () => {
                         isProfileAccordionOpen ? "transform rotate-180" : ""
                       }`}
                       onClick={(e) => {
-                        e.stopPropagation(); // Evita que el clic en la flecha cierre el sidebar
+                        e.stopPropagation();
                         toggleProfileAccordion();
                       }}
-                      style={{
-                        marginLeft: "auto",
-                      }}
+                      style={{ marginLeft: "auto" }}
                     />
-
+                  </>
                 )}
               </div>
 
@@ -216,7 +197,6 @@ const Sidebar: React.FC = () => {
             {isOpen && <span>Sobre Nosotros</span>}
           </li>
 
-          {/* Mostrar "Iniciar Sesión" o "Cerrar Sesión" dependiendo del estado de usuario */}
           {!user ? (
             <li
               className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
@@ -236,21 +216,14 @@ const Sidebar: React.FC = () => {
           )}
         </ul>
       </nav>
-      {/* CARRITO */}
 
       <Link href="/Cart">
         <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
           <FaShoppingCart size={24} />
-
-          {isOpen && (
-            <>
-              <span>Mi carrito</span>
-            </>
-          )}
+          {isOpen && <span>Mi carrito</span>}
         </div>
       </Link>
 
-      {/* PERFIL DEL USUARIO */}
       {user && (
         <div className="p-4 flex items-center gap-4">
           <img
