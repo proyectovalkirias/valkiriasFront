@@ -1,5 +1,7 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 interface Address {
   id: number;
@@ -16,6 +18,28 @@ const Addresses: React.FC = () => {
     province: "",
     city: "",
   });
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Identificar al usuario
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Intentar obtener datos desde el localStorage
+        const googleUser = localStorage.getItem("user_info");
+        if (googleUser) {
+          const userInfo = JSON.parse(googleUser);
+          setUserId(userInfo.id); // ID del usuario de Google
+        } else {
+          // Obtener datos del backend para usuarios locales
+          const response = await axios.get("http://localhost:3000/users/me");
+          setUserId(response.data.id); // ID del usuario local
+        }
+      } catch (error) {
+        console.error("Error al obtener los datos del usuario:", error);
+      }
+    };
+    fetchUserData();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -29,13 +53,30 @@ const Addresses: React.FC = () => {
     setFormData({ address: "", province: "", city: "" });
   };
 
-  const handleSaveAddress = () => {
+  const handleSaveAddress = async () => {
     if (formData.address && formData.province && formData.city) {
-      setAddresses([
-        ...addresses,
-        { id: Date.now(), ...formData },
-      ]);
-      setShowForm(false);
+      try {
+        if (!userId) {
+          alert("No se pudo identificar al usuario.");
+          return;
+        }
+        // Enviar dirección al backend
+        await axios.put(`http://localhost:3000/users/${userId}`, {
+          address: formData.address,
+          city: formData.city,
+          state: formData.province,
+        });
+
+        // Actualizar la lista de direcciones localmente
+        setAddresses([
+          ...addresses,
+          { id: Date.now(), ...formData },
+        ]);
+        setShowForm(false);
+      } catch (error) {
+        console.error("Error al guardar la dirección:", error);
+        alert("Hubo un problema al guardar la dirección.");
+      }
     } else {
       alert("Por favor, completa todos los campos.");
     }
