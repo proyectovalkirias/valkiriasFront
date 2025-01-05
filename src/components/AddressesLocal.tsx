@@ -5,11 +5,10 @@ import axios from "axios";
 
 interface UserData {
   id?: string;
-  address: string;
-  city: string;
-  state: string;
+  addresses: { address: string; city: string; state: string }[];  // Usar un arreglo de direcciones
   type: "local" | "google";
 }
+
 
 const AddressesLocal = () => {
   const [addressData, setAddressData] = useState<UserData | null>(null);
@@ -30,22 +29,18 @@ const AddressesLocal = () => {
     try {
       const storedUser = localStorage.getItem("user");
       const storedGoogleUser = localStorage.getItem("user_info");
-
+  
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
         return {
           id: parsedUser.user.id,
-          address: parsedUser.user.address || "",
-          city: parsedUser.user.city || "",
-          state: parsedUser.user.state || "",
+          addresses: parsedUser.user.addresses || [],  // Inicializar con un arreglo vacío si no hay direcciones
           type: "local",
         };
       } else if (storedGoogleUser) {
         const googleUser = JSON.parse(storedGoogleUser);
         return {
-          address: googleUser.address || "",
-          city: googleUser.city || "",
-          state: googleUser.state || "",
+          addresses: googleUser.addresses || [],  // Inicializar con un arreglo vacío si no hay direcciones
           type: "google",
         };
       }
@@ -55,6 +50,7 @@ const AddressesLocal = () => {
       return null;
     }
   };
+  
 
   // Obtén los datos de dirección de la API para el usuario local
   const fetchUserAddress = async (userId: string) => {
@@ -143,66 +139,66 @@ const AddressesLocal = () => {
   };
 
   // Maneja la acción de guardar la dirección
-const handleSaveAddress = async () => {
-  console.log("Intentando guardar dirección...");
-  if (validateForm()) {
-    const user = getUserData();
-    console.log("Datos de usuario antes de guardar:", user);
-
-    // Verificamos si el usuario es local o de Google
-    if (user?.type === "local") {
-      const updatedUser = {
-        ...user,  // Conservamos todos los datos del usuario
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-      };
-
-      try {
-        // Actualizamos solo los datos de dirección en localStorage
-        localStorage.setItem("user", JSON.stringify({ user: updatedUser }));
-        console.log("Dirección guardada en localStorage:", updatedUser);
-        setAddressData(updatedUser);
-        setShowForm(false);  // Ocultamos el formulario
-      } catch (error) {
-        console.error("Error al guardar dirección:", error);
-      }
-    } else if (user?.type === "google") {
-      // Si es usuario de Google, actualizamos solo la dirección
-      const updatedGoogleUser = {
-        ...user,  // Conservamos todos los datos del usuario
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-      };
-
-      try {
-        // Actualizamos solo los datos de dirección en localStorage para Google
-        localStorage.setItem("user_info", JSON.stringify(updatedGoogleUser));
-        console.log("Dirección guardada en localStorage para Google:", updatedGoogleUser);
-        setAddressData(updatedGoogleUser);
-        setShowForm(false);  // Ocultamos el formulario
-      } catch (error) {
-        console.error("Error al guardar dirección para Google:", error);
+  const handleSaveAddress = async () => {
+    if (validateForm()) {
+      const user = getUserData();
+  
+      if (user?.type === "local") {
+        // Agregar la nueva dirección a las direcciones existentes
+        const updatedUser = {
+          ...user,
+          addresses: [
+            ...user.addresses, // Mantener las direcciones anteriores
+            { address: formData.address, city: formData.city, state: formData.state },
+          ],
+        };
+  
+        try {
+          // Guardar el objeto actualizado con las direcciones agregadas en localStorage
+          localStorage.setItem("user", JSON.stringify({ user: updatedUser }));
+          setAddressData(updatedUser);  // Actualizar estado con las direcciones
+          setShowForm(false);  // Ocultar el formulario
+        } catch (error) {
+          console.error("Error al guardar dirección:", error);
+        }
+      } else if (user?.type === "google") {
+        const updatedGoogleUser = {
+          ...user,
+          addresses: [
+            ...user.addresses,  // Mantener las direcciones anteriores
+            { address: formData.address, city: formData.city, state: formData.state },
+          ],
+        };
+  
+        try {
+          // Guardar las direcciones agregadas en localStorage para el usuario de Google
+          localStorage.setItem("user_info", JSON.stringify(updatedGoogleUser));
+          setAddressData(updatedGoogleUser);  // Actualizar estado con las direcciones
+          setShowForm(false);  // Ocultar el formulario
+        } catch (error) {
+          console.error("Error al guardar dirección para Google:", error);
+        }
       }
     }
-  } else {
-    console.log("Errores en el formulario:", errors);
-  }
-};
+  };
+  
+// Cargar la información al inicio
+useEffect(() => {
+  const user = getUserData();
+  if (user) {
+    setAddressData(user);  // Asegura que addressData siempre se sincronice con el usuario y sus direcciones
 
-  // Cargar la información al inicio
-  useEffect(() => {
-    const user = getUserData();
-    if (user) {
-      setAddressData(user); // Asegura que addressData siempre se sincronice
+    // Si hay direcciones, establece el formData para mostrar la primera dirección, o un valor por defecto
+    if (user.addresses && user.addresses.length > 0) {
       setFormData({
-        address: user.address || "",
-        city: user.city || "",
-        state: user.state || "",
+        address: user.addresses[0].address || "",  // Usamos la primera dirección por defecto
+        city: user.addresses[0].city || "",
+        state: user.addresses[0].state || "",
       });
     }
-  }, []);
+  }
+}, []);
+
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-center bg-[#7b548b] min-h-screen p-6 space-y-6 md:space-y-0 md:space-x-6">
@@ -221,12 +217,17 @@ const handleSaveAddress = async () => {
           Mis Direcciones
         </h2>
   
-        {addressData && (
-          <div className="w-full max-w-lg bg-purple-200 text-purple-900 rounded-lg p-4 shadow-md mb-6 relative">
-            <p className="font-bold">{addressData.address}</p>
-            <p>{`${addressData.city}, ${addressData.state}`}</p>
-          </div>
-        )}
+        {addressData && addressData.addresses.length > 0 && (
+  <div className="w-full max-w-lg bg-purple-200 text-purple-900 rounded-lg p-4 shadow-md mb-6 relative">
+    {addressData.addresses.map((address, index) => (
+      <div key={index}>
+        <p className="font-bold">{address.address}</p>
+        <p>{`${address.city}, ${address.state}`}</p>
+      </div>
+    ))}
+  </div>
+)}
+
   
         <button
           onClick={handleEditAddress}
