@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { FaUsers, FaChartBar, FaHome } from "react-icons/fa";
 import axios from "axios";
 import Link from "next/link";
+import ProductList from "@/components/ProductList";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
@@ -57,31 +58,14 @@ const Admin = () => {
           <div className="flex flex-col items-center  min-h-screen ">
             <Link
               href="/CreateProduct"
-              className="mb-4 border-b-2 border-black bg-transparent p-2  outline-none w-full"
+              className="mb-4 border-b-2 border-black  p-2 mt-4 w-full"
             >
               {" "}
-              <button className="text-black text-xl   mt-4  px-4 py-2  ">
+              <button className="text-2xl font-bold mb-6 text-gray-800 ">
                 Crear Productos
               </button>
             </Link>
-            <Link
-              href="/UpdateProduct"
-              className="mb-4 border-b-2 border-black bg-transparent p-2  outline-none w-full"
-            >
-              {" "}
-              <button className="text-black text-xl   mt-4  px-4 py-2 ">
-                Modificar Productos
-              </button>
-            </Link>
-            <Link
-              href="/DeleteProduct"
-              className="mb-4 border-b-2 border-black bg-transparent p-2 outline-none w-full"
-            >
-              {" "}
-              <button className="text-black text-xl   mt-4  px-4 py-2  ">
-                Eliminar Productos
-              </button>
-            </Link>
+            <ProductList />
           </div>
         );
       case "users":

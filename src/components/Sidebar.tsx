@@ -19,18 +19,22 @@ const getUserData = () => {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
-        firstname: parsedUser.user?.firstname || "",
-        lastname: parsedUser.user?.lastname || "",
-        email: parsedUser.user?.email || "",
-        photoUrl: parsedUser.user?.photo || "/images/Avatar.png",
+        firstname: parsedUser.user.firstname || "",
+        lastname: parsedUser.user.lastname || "",
+        email: parsedUser.user.email || "",
+        photoUrl: parsedUser.user.photo || "/images/Avatar.png",
+        isGoogleUser: false,
       };
     } else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
       return {
-        firstname: googleUser?.given_name || "",
-        lastname: googleUser?.family_name || "",
-        email: googleUser?.email || "",
-        photoUrl: googleUser?.picture || "/images/Avatar.png",
+        firstname: googleUser.given_name || "",
+        lastname: googleUser.family_name || "",
+        email: googleUser.email || "",
+        photoUrl: googleUser.picture || "/images/Avatar.png",
+        isGoogleUser: true,
+        dni: googleUser.dni || null,
+        phone: googleUser.phone || null,
       };
     }
 
@@ -60,6 +64,9 @@ const Sidebar: React.FC = () => {
     lastname: string;
     email: string;
     photoUrl: string;
+    isGoogleUser: boolean;
+    dni?: string | null;
+    phone?: string | null;
   } | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -156,9 +163,7 @@ const Sidebar: React.FC = () => {
                     <span>Mi Perfil</span>
                     <HiChevronDown
                       size={20}
-                      className={`transition-transform duration-300 ${
-                        isProfileAccordionOpen ? "transform rotate-180" : ""
-                      }`}
+                      className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleProfileAccordion();
@@ -171,12 +176,24 @@ const Sidebar: React.FC = () => {
 
               {isProfileAccordionOpen && (
                 <ul className="ml-8">
-                  <li
-                    className="py-1 hover:bg-gray-700 cursor-pointer"
-                    onClick={() => handleNavigation("/ProfileConfiguration")}
-                  >
-                    Configuración
-                  </li>
+                  {/* Oculta Configuración si el usuario se registró con Google */}
+                  {!localStorage.getItem("user_info") && (
+                    <li
+                      className="py-1 hover:bg-gray-700 cursor-pointer"
+                      onClick={() => handleNavigation("/ProfileConfiguration")}
+                    >
+                      Configuración
+                    </li>
+                  )}
+                  {/* Botón "Agregar Información" solo para usuarios de Google */}
+                  {user.isGoogleUser && (!user.dni || !user.phone) && (
+                    <li
+                      className="py-1 hover:bg-gray-700 cursor-pointer"
+                      onClick={() => handleNavigation("/GoogleDniPhone")}
+                    >
+                      Agregar información
+                    </li>
+                  )}
                   <li
                     className="py-1 hover:bg-gray-700 cursor-pointer"
                     onClick={() => handleNavigation("/Addresses")}
