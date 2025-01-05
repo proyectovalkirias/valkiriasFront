@@ -6,17 +6,12 @@ const AboutPage: React.FC = () => {
       {/* Hero Section */}
       <div className="flex flex-col md:flex-row h-auto md:h-1/3">
         {/* Left Section */}
-        <div className="flex-1 bg-pink-300 p-6 flex flex-col justify-center items-center overflow-hidden">
+        <div className="bg-pink-300 flex flex-col justify-center items-center overflow-hidden">
           <p className="text-white text-sm md:text-base lg:text-md xl:text-lg text-center max-w-screen-lg overflow-y-auto">
-            Bienvenido a VALKIRIAS,
             <br />
-            ¡donde la moda se encuentra con la personalización!
-            <br />
-            Descubrí una amplia variedad de remeras, buzos y accesorios que podés
-            personalizar a tu estilo.
-            <br />
-            Nuestro objetivo es ofrecerte opciones únicas para expresar tu personalidad
-            a través de prendas diseñadas especialmente para vos.
+            En Valkirias, creemos que tus prendas son una extensión de quién eres, por eso nos 
+            especializamos en crear diseños personalizados que se adaptan a tu estilo y personalidad.
+            Somos madre e hija trabajando juntas en nuestro taller en casa, donde cada prenda se convierte en una pieza única hecha con amor y dedicación.
           </p>
         </div>
 
@@ -42,16 +37,11 @@ const AboutPage: React.FC = () => {
         {/* Description */}
         <div className="p-6 md:w-3/4 overflow-auto flex items-center justify-center bg-pink h-full max-w-full">
           <p className="text-black text-xs md:text-sm lg:text-base xl:text-lg text-center break-words max-h-full">
-            Desde 2022, Valkirias ha estado ayudando a las personas, jóvenes y adultos,
-            a expresar su estilo único con prendas personalizadas. Ofrecemos una amplia
-            variedad de remeras, buzos y accesorios que podés personalizar con estampados,
-            colores y diseños exclusivos. 
+          Ofrecemos una amplia variedad de productos básicos, clásicos, sin género para vestir niños y adultos: 
+          remeras, buzos canguro, buzos con cuello redondo, tazas y gorras trucker, ideales para cualquier ocasión. 
+          Nos gusta que cada diseño sea un reflejo auténtico de lo que amas, ya sea para llevar a tu artista favorito, sorprender con un regalo especial, 
+          o vestir tu propia marca con un toque único.
             <br />
-            <br />
-            Creemos en la importancia de la moda como una forma de expresión personal,
-            y estamos aquí para ayudarte a encontrar la prenda perfecta que hable sobre ti.
-            Nuestras colecciones incluyen eventos especiales y colaboraciones con diseñadores
-            emergentes para ofrecerte siempre lo último en tendencias y estilo personalizado.
           </p>
         </div>
 
@@ -78,12 +68,8 @@ const AboutPage: React.FC = () => {
         {/* Goal Text */}
         <div className="flex-1 bg-purple-400 p-6 flex items-center justify-center overflow-y-auto h-full max-w-full">
           <p className="text-white text-xs md:text-sm lg:text-base xl:text-lg text-center break-words max-h-full">
-            Nuestro objetivo es permitirte personalizar tus compras y crear piezas únicas
-            que te representen. Con Valkirias, podés transformar tus prendas en algo
-            verdaderamente especial, con estampados personalizados y diseños únicos.
-            Creemos que cada prenda debe contar una historia y ser un reflejo de quien eres,
-            por eso trabajamos para ofrecerte la máxima calidad y variedad para que puedas
-            expresar tu estilo sin límites.
+          "Tu creatividad en tus prendas" es nuestro lema, porque queremos que te sientas cómodo 
+          y auténtico, sin importar la ocasión.
           </p>
         </div>
       </div>
