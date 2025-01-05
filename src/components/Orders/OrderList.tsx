@@ -35,15 +35,9 @@ const OrderList: React.FC<OrderListProps> = ({ userToken }) => {
       <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">
         Your Order History
       </h2>
-
+  
       <div className="flex-grow grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-        {loading ? (
-          <div className="col-span-full text-center text-gray-500">
-            <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-t-transparent border-gray-900" role="status">
-              <span className="sr-only">Loading...</span>
-            </div>
-          </div>
-        ) : userOrders.length === 0 ? (
+        {userOrders.length === 0 ? (
           <div className="col-span-full text-center text-gray-500">
             <img
               src="/images/EmptyBox.png"

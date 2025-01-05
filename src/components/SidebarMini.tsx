@@ -1,37 +1,60 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
 import { CiLogin } from "react-icons/ci";
 import { FiUser, FiUsers } from "react-icons/fi";
+import { FaShoppingCart } from "react-icons/fa"; // Agregado ícono de carrito
 
 const SidebarMini: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Estado de autenticación
+  const [isLocalUser, setIsLocalUser] = useState(false); // Indica si el usuario es local
+  const [isGoogleUser, setIsGoogleUser] = useState(false); // Indica si el usuario es de Google
+  const [needsMoreInfo, setNeedsMoreInfo] = useState(false); // Si necesita agregar información
 
-  // Verifica si el usuario está logueado leyendo del localStorage
+  const sidebarRef = useRef<HTMLDivElement | null>(null); // Ref para la barra lateral
+
   useEffect(() => {
     const checkUserLoggedIn = () => {
       const user = localStorage.getItem("user");
       const googleUser = localStorage.getItem("user_info");
-      setIsLoggedIn(!!user || !!googleUser); // Actualiza el estado según la existencia de datos de usuario
+
+      setIsLoggedIn(!!user || !!googleUser);
+      setIsLocalUser(!!user && !googleUser);
+      setIsGoogleUser(!!googleUser && !user);
+
+      if (googleUser) {
+        try {
+          const parsedUser = JSON.parse(googleUser);
+          setNeedsMoreInfo(!parsedUser.dni || !parsedUser.phone);
+        } catch (error) {
+          console.error("Error al analizar user_info:", error);
+          setNeedsMoreInfo(true);
+        }
+      } else {
+        setNeedsMoreInfo(false);
+      }
     };
     checkUserLoggedIn();
   }, []);
 
-  // Cierra el menú cuando se hace clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const sidebar = document.getElementById("sidebar-mini");
-      if (sidebar && !sidebar.contains(event.target as Node)) {
-        setActiveMenu(null);
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setActiveMenu(null); // Cierra el menú si se hace clic fuera
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (activeMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [activeMenu]);
 
   const toggleMenu = (menu: string) => {
     setActiveMenu((prevMenu) => (prevMenu === menu ? null : menu));
@@ -59,7 +82,10 @@ const SidebarMini: React.FC = () => {
       className="fixed bottom-0 left-0 w-full bg-purple-dark text-white flex justify-around items-center py-2 shadow-lg z-50"
     >
       {activeMenu ? (
-        <div className="w-full h-10 bg-purple-dark relative px-4 flex justify-center">
+        <div
+          ref={sidebarRef}
+          className="w-full h-10 bg-purple-dark relative px-4 flex justify-center"
+        >
           {activeMenu === "products" && (
             <div className="flex gap-4 text-xs">
               <button
@@ -91,12 +117,22 @@ const SidebarMini: React.FC = () => {
               >
                 Mi Perfil
               </button>
-              <button
-                className="py-1 px-2 hover:bg-gray-600 rounded"
-                onClick={() => handleNavigation("/ProfileConfiguration")}
-              >
-                Configuración
-              </button>
+              {isLocalUser && (
+                <button
+                  className="py-1 px-2 hover:bg-gray-600 rounded"
+                  onClick={() => handleNavigation("/ProfileConfiguration")}
+                >
+                  Configuración
+                </button>
+              )}
+              {isGoogleUser && needsMoreInfo && (
+                <button
+                  className="py-1 px-2 hover:bg-gray-600 rounded"
+                  onClick={() => handleNavigation("/GoogleDniPhone")}
+                >
+                  Agregar información
+                </button>
+              )}
               <button
                 className="py-1 px-2 hover:bg-gray-600 rounded"
                 onClick={() => handleNavigation("/Addresses")}
@@ -136,7 +172,6 @@ const SidebarMini: React.FC = () => {
             <span className="text-xs">Productos</span>
           </button>
 
-          {/* Mostrar el botón de perfil solo si el usuario está logueado */}
           {isLoggedIn && (
             <button
               className="flex flex-col items-center text-gray-300 hover:text-white"
@@ -153,6 +188,15 @@ const SidebarMini: React.FC = () => {
           >
             <FiUsers size={24} />
             <span className="text-xs">Nosotros</span>
+          </button>
+
+          {/* Botón de carrito */}
+          <button
+            className="flex flex-col items-center text-gray-300 hover:text-white"
+            onClick={() => handleNavigation("/Cart")}
+          >
+            <FaShoppingCart size={24} />
+            <span className="text-xs">Carrito</span>
           </button>
 
           <button
