@@ -22,6 +22,7 @@ const getUserData = () => {
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
+        isGoogleUser: false,
       };
     } else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
@@ -30,7 +31,7 @@ const getUserData = () => {
         lastname: googleUser.family_name || "",
         email: googleUser.email || "",
         photoUrl: googleUser.picture || "/images/Avatar.png",
-        // Agregamos la comprobación de los datos de DNI y Phone
+        isGoogleUser: true,
         dni: googleUser.dni || null,
         phone: googleUser.phone || null,
       };
@@ -52,6 +53,7 @@ const Sidebar: React.FC = () => {
     lastname: string;
     email: string;
     photoUrl: string;
+    isGoogleUser: boolean;
     dni?: string | null;
     phone?: string | null;
   } | null>(null);
@@ -172,8 +174,8 @@ const Sidebar: React.FC = () => {
                       Configuración
                     </li>
                   )}
-                  {/* Condicional para el botón "Agregar Información" */}
-                  {user.dni && user.phone ? null : (
+                  {/* Botón "Agregar Información" solo para usuarios de Google */}
+                  {user.isGoogleUser && (!user.dni || !user.phone) && (
                     <li
                       className="py-1 hover:bg-gray-700 cursor-pointer"
                       onClick={() => handleNavigation("/GoogleDniPhone")}

@@ -1,52 +1,61 @@
- import Swal from "sweetalert2";
+import { ICreateOrder, IUserOrder } from "@/interfaces/index";
 
- const APIURL = process.env.NEXT_PUBLIC_API_URL
+// URL base de la API
+const API_BASE_URL = "http://localhost:3000/order";
 
- export const createOrder= async (products: number[], token: string) => {
-     try {
-         const response = await fetch(`${APIURL}/orders`, {
-             method: 'POST',
-             headers: {
-                 'Content-Type': 'application/json',
-                 Authorization: token
-         },
-         body: JSON.stringify({ products })
-     });
+// Obtener todas las órdenes del usuario
+export const getOrders = async (userToken: string): Promise<IUserOrder[]> => {
+  const response = await fetch(`${API_BASE_URL}/orders`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${userToken}`,
+    },
+  });
 
-     await Swal.fire({
-         title: "Éxito!",
-         icon: "success",
-         text: "Compra exitosa",
-     });
+  if (!response.ok) {
+    throw new Error("Error fetching orders");
+  }
 
-     return response.json()
-     } catch (error: any){
-         Swal.fire({
-             title: "Ups!",
-             icon: "error",
-             text: "Error al crear la orden de compra"
-         })
-         throw new Error(error)
-     }
- }
+  return response.json();
+};
 
- export const getOrders =async (token: string) => {
-     try {
-         const response = await fetch(`${APIURL}/users/orders`, {
-             method: "GET",
-             cache: "no-store",
-             headers: {
-                 "Content-type": "application/json",
-                 Authorization: token
-             }
-             });
-             return response.json()
-         } catch (error: any) {
-             Swal.fire({
-                 title: "Ups!",
-                 icon: "error",
-                 text: "Error al obtener ordenes de compra"
-             })
-             throw new Error(error)
-         }
- }
+// Crear una nueva orden
+export const createOrder = async (orderData: ICreateOrder): Promise<IUserOrder> => {
+  const response = await fetch(`${API_BASE_URL}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(orderData),
+  });
+
+  if (!response.ok) {
+    throw new Error("Error creating order");
+  }
+
+  return response.json();
+};
+
+// Obtener detalles de una orden por ID
+export const getOrderById = async (orderId: string): Promise<IUserOrder> => {
+  const response = await fetch(`${API_BASE_URL}/${orderId}`, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error("Error fetching order details");
+  }
+
+  return response.json();
+};
+
+// Eliminar una orden por ID
+export const deleteOrder = async (orderId: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/${orderId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Error deleting order");
+  }
+};
