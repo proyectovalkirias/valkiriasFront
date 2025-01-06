@@ -2,6 +2,12 @@
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 
+interface UserInfo {
+  picture: string;
+  name: string;
+  email: string;
+}
+
 const Landingoogle: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -53,7 +59,7 @@ const Landingoogle: React.FC = () => {
         },
       });
 
-      const userInfo = await response.json();
+      const userInfo: UserInfo = await response.json();
       localStorage.setItem("user_info", JSON.stringify(userInfo));
       showToast(userInfo);
     } catch (error) {
@@ -61,39 +67,7 @@ const Landingoogle: React.FC = () => {
     }
   };
 
-  const revokeToken = async () => {
-  const accessToken = localStorage.getItem("access_token");
-
-  if (!accessToken) {
-    console.error("No access token found");
-    return;
-  }
-
-  try {
-    // Revocar el token en Google
-    await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-
-    // Limpiar la sesión de tu app
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user_info");
-    toast.success("Has cerrado sesión correctamente");
-
-    // Opcional: Redirigir al usuario a la página de inicio
-    window.location.href = "/";
-  } catch (error) {
-    console.error("Error revoking token:", error);
-    toast.error("Error cerrando sesión");
-  }
-};
-
-
-
-  const showToast = (userInfo: any) => {
+  const showToast = (userInfo: UserInfo) => {
     toast.custom((t) => (
       <div
         className={`${

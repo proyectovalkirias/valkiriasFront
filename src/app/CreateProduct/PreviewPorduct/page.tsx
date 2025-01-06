@@ -1,6 +1,6 @@
 import React from "react";
 
-const ProductPreview: React.FC<{
+export const ProductPreview: React.FC<{
   productName: string;
   productDescription: string;
   stock: number | null;
@@ -158,4 +158,3 @@ const ProductPreview: React.FC<{
   );
 };
 
-export default ProductPreview;

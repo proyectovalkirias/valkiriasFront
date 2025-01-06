@@ -9,6 +9,7 @@ import { FiUser, FiUsers } from "react-icons/fi";
 import { HiChevronDown } from "react-icons/hi";
 import { FaShoppingCart } from "react-icons/fa";
 import Link from "next/link";
+import { toast } from "react-toastify";
 
 const getUserData = () => {
   try {
@@ -83,14 +84,46 @@ const Sidebar: React.FC = () => {
     setIsOpen(!isOpen);
     setIsProfileAccordionOpen(false);
   };
+  
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("user_info");
-    setUser(null);
-    handleNavigation("/Login");
+  const handleLogout = async () => {
+    const accessToken = localStorage.getItem("access_token");
+  
+    try {
+      // Revocar el token de Google si existe
+      if (accessToken) {
+        const response = await fetch("https://oauth2.googleapis.com/revoke", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `token=${accessToken}`,
+        });
+  
+        if (response.ok) {
+          toast.success("Sesión cerrada correctamente en Google");
+        } else {
+          console.error("Error al revocar el token de Google:", response.statusText);
+          toast.error("No se pudo cerrar sesión en Google correctamente");
+        }
+      }
+  
+      // Limpiar datos locales
+      localStorage.removeItem("user");
+      localStorage.removeItem("user_info");
+      localStorage.removeItem("access_token");
+  
+      // Limpiar estado del usuario
+      setUser(null);
+  
+      // Redirigir al login
+      handleNavigation("/Login");
+    } catch (error) {
+      console.error("Error durante el logout:", error);
+      toast.error("Ocurrió un error al cerrar sesión");
+    }
   };
-
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
