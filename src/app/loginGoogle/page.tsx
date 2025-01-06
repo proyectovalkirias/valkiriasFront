@@ -2,6 +2,12 @@
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 
+interface UserInfo {
+  picture: string;
+  name: string;
+  email: string;
+}
+
 const Landingoogle: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -53,7 +59,7 @@ const Landingoogle: React.FC = () => {
         },
       });
 
-      const userInfo = await response.json();
+      const userInfo: UserInfo = await response.json();
       localStorage.setItem("user_info", JSON.stringify(userInfo));
       showToast(userInfo);
     } catch (error) {
@@ -61,7 +67,7 @@ const Landingoogle: React.FC = () => {
     }
   };
 
-  const showToast = (userInfo: any) => {
+  const showToast = (userInfo: UserInfo) => {
     toast.custom((t) => (
       <div
         className={`${

@@ -122,7 +122,7 @@ const Sidebar: React.FC = () => {
 
       handleNavigation("/Login");
     } catch (error) {
-      toast.error("Ocurrió un error al cerrar sesión");
+      toast.error("Ocurrió un error al cerrar sesión" + error);
     }
   };
 
