@@ -4,14 +4,14 @@ import { FaUsers, FaChartBar, FaHome } from "react-icons/fa";
 import axios from "axios";
 import Link from "next/link";
 import ProductList from "@/components/ProductList";
+import { User } from "@/interfaces/User";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
-  // Fetch users from the backend
   useEffect(() => {
     if (activeTab === "users") {
       fetchUsers();
@@ -31,7 +31,7 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/users");
+      const response = await axios.get<User[]>("http://localhost:3000/users");
       setUsers(response.data);
       setFilteredUsers(response.data);
     } catch (error) {
@@ -39,13 +39,13 @@ const Admin = () => {
     }
   };
 
-  const toggleUserStatus = async (id: string, activate: boolean) => {
+  const toggleUserStatus = async (id: number, activate: boolean) => {
     try {
       const url = activate
         ? `http://localhost:3000/users/${id}/activate`
         : `http://localhost:3000/users/${id}/deactivate`;
       await axios.put(url);
-      fetchUsers(); // Refresh the users list after the update
+      fetchUsers();
     } catch (error) {
       console.error("Error updating user status:", error);
     }
@@ -55,13 +55,12 @@ const Admin = () => {
     switch (activeTab) {
       case "dashboard":
         return (
-          <div className="flex flex-col items-center  min-h-screen ">
+          <div className="flex flex-col items-center min-h-screen">
             <Link
               href="/CreateProduct"
-              className="mb-4 border-b-2 border-black  p-2 mt-4 w-full"
+              className="mb-4 border-b-2 border-black p-2 mt-4 w-full"
             >
-              {" "}
-              <button className="text-2xl font-bold mb-6 text-gray-800 ">
+              <button className="text-2xl font-bold mb-6 text-gray-800">
                 Crear Productos
               </button>
             </Link>
@@ -85,10 +84,10 @@ const Admin = () => {
                     Email
                   </th>
                   <th className="border border-gray-300 p-2 text-black">
-                    Direccion
+                    Dirección
                   </th>
                   <th className="border border-gray-300 p-2 text-black">
-                    Telefono
+                    Teléfono
                   </th>
                   <th className="border border-gray-300 p-2 text-black">
                     Acciones
@@ -104,7 +103,7 @@ const Admin = () => {
               <tbody>
                 {filteredUsers.map((user) => (
                   <tr key={user.id}>
-                    <td className="border border-gray-300 p-2 text-black ">
+                    <td className="border border-gray-300 p-2 text-black">
                       {user.id}
                     </td>
                     <td className="border border-gray-300 p-2 text-black">
@@ -119,7 +118,7 @@ const Admin = () => {
                     <td className="border border-gray-300 p-2 text-black">
                       {user.phone}
                     </td>
-                    <td className="border border-gray-300  p-2 flex text-black">
+                    <td className="border border-gray-300 p-2 flex text-black">
                       <button
                         className="bg-green-500 text-white px-2 py-1 rounded mr-2"
                         onClick={() => toggleUserStatus(user.id, true)}
@@ -134,10 +133,10 @@ const Admin = () => {
                       </button>
                     </td>
                     <td className="border border-gray-300 p-2 text-black">
-                      {user.active ? "Active" : "Inactive"}
+                      {user.active ? "Activo" : "Inactivo"}
                     </td>
                     <td className="border border-gray-300 p-2 text-black">
-                      {user.isAdmin ? "Yes" : "No"}
+                      {user.isAdmin ? "Sí" : "No"}
                     </td>
                   </tr>
                 ))}
@@ -162,27 +161,26 @@ const Admin = () => {
           </div>
         );
       default:
-        return <p>Select a tab to view content.</p>;
+        return <p>Seleccione una pestaña para ver el contenido.</p>;
     }
   };
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Topbar */}
       <header className="bg-purple-dark text-white flex justify-between items-center p-4">
-        <div className="text-xl font-bold">Panel de Administración</div>
+        <div className="text-xl font-bold">Panel de Administración</div>
         <nav className="flex space-x-4">
           <button
-            className={`p-2  flex items-center cursor-pointer ${
+            className={`p-2 flex items-center cursor-pointer ${
               activeTab === "dashboard" ? "border-b-2 border-white" : ""
             }`}
             onClick={() => setActiveTab("dashboard")}
           >
             <FaHome className="mr-2" />
-            Administracion
+            Administración
           </button>
           <button
-            className={`p-2  flex items-center cursor-pointer ${
+            className={`p-2 flex items-center cursor-pointer ${
               activeTab === "users" ? "border-b-2 border-white" : ""
             }`}
             onClick={() => setActiveTab("users")}
@@ -191,7 +189,7 @@ const Admin = () => {
             Usuarios
           </button>
           <button
-            className={`  flex items-center cursor-pointer ${
+            className={`flex items-center cursor-pointer ${
               activeTab === "reports" ? "border-b-2 border-white" : ""
             }`}
             onClick={() => setActiveTab("reports")}
@@ -201,9 +199,7 @@ const Admin = () => {
           </button>
         </nav>
       </header>
-
-      {/* Main Content */}
-      <main className="flex-1 bg-gray-100 bg-[#7b548b]">{renderContent()}</main>
+      <main className="flex-1 bg-[#7b548b]">{renderContent()}</main>
     </div>
   );
 };

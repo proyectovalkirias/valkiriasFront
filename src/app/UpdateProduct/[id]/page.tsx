@@ -1,5 +1,6 @@
 "use client";
-import { useForm, Controller } from "react-hook-form";
+
+import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
@@ -9,7 +10,6 @@ const UpdateProduct: React.FC = () => {
   const {
     register,
     handleSubmit,
-    control,
     setValue,
     formState: { errors },
   } = useForm<Product>();
@@ -55,7 +55,7 @@ const UpdateProduct: React.FC = () => {
     setValue("smallPrint", productData.smallPrint);
     setValue("largePrint", productData.largePrint);
     setValue("isAvailable", productData.isAvailable);
-    setValue("size", productData.size);
+    setValue("sizes", productData.sizes);
   };
 
   const onSubmit = async (data: Product) => {
@@ -103,6 +103,7 @@ const UpdateProduct: React.FC = () => {
     <div className="flex flex-col items-center p-6 bg-[#7b548b] min-h-screen">
       <h1 className="text-2xl font-bold mb-6 text-white">Modificar Producto</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-lg">
+        {/* Aquí van todos los campos del formulario, adaptados a `register` */}
         <div className="mb-4">
           <label
             htmlFor="name"
@@ -201,7 +202,7 @@ const UpdateProduct: React.FC = () => {
           </label>
           <input
             id="size"
-            {...register("size")}
+            {...register("sizes")}
             className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
             placeholder="Tamaños (separados por comas)"
           />

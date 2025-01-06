@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import AccountFormDniPhone from "./AccountFormDniPhone";
+import Image from "next/image";
 
 // FUNCIÓN PARA OBTENER LOS DATOS DEL USUARIO DESDE EL BACKEND
 const fetchUserDataFromBackend = async (userId: string) => {
@@ -128,10 +129,12 @@ const AccountForm: React.FC = () => {
   return (
     <div className="flex flex-col md:flex-row h-screen items-center justify-center bg-[#7b548b] p-6">
       <div className="w-full md:w-1/3 flex justify-center mb-8 md:mb-0">
-        <img
+        <Image
           src="/images/Gear1.png"
           alt="Imagen ajustes"
           className="w-full h-auto max-w-[200px] sm:max-w-[250px] md:max-w-[300px]"
+          width={150}
+          height={150}
         />
       </div>
       <div className="w-full max-w-lg rounded-lg bg-[#7b548b] p-6 sm:p-8 md:p-10">

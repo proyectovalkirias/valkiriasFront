@@ -9,13 +9,15 @@ import { FiUser, FiUsers } from "react-icons/fi";
 import { HiChevronDown } from "react-icons/hi";
 import { FaShoppingCart } from "react-icons/fa";
 import Link from "next/link";
+import { toast } from "react-toastify";
 
+// Define la función getUserData
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
     const storedGoogleUser = localStorage.getItem("user_info");
 
-
+    // Si hay un usuario local
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
@@ -23,27 +25,31 @@ const getUserData = () => {
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
-        isGoogleUser: false,
+        isGoogleUser: false,  // Asegura que esté definido como booleano
       };
-    } else if (storedGoogleUser) {
+    } 
+    // Si hay un usuario de Google
+    else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
       return {
         firstname: googleUser.given_name || "",
         lastname: googleUser.family_name || "",
         email: googleUser.email || "",
         photoUrl: googleUser.picture || "/images/Avatar.png",
-        isGoogleUser: true,
+        isGoogleUser: true,  // Asegura que esté definido como booleano
         dni: googleUser.dni || null,
         phone: googleUser.phone || null,
       };
     }
 
+    // Si no hay datos, devuelve un objeto vacío por defecto
     return {
       firstname: "",
       lastname: "",
       email: "",
       photoUrl: "/images/Avatar.png",
-    }; // Objeto por defecto
+      isGoogleUser: false,  // Asegura que esté definido como booleano
+    };
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
     return {
@@ -51,10 +57,12 @@ const getUserData = () => {
       lastname: "",
       email: "",
       photoUrl: "/images/Avatar.png",
+      isGoogleUser: false,  // Asegura que esté definido como booleano
     }; // Objeto por defecto
   }
 };
 
+// Componente Sidebar
 const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
@@ -72,9 +80,10 @@ const Sidebar: React.FC = () => {
 
   useEffect(() => {
     const userData = getUserData();
-    if (userData) setUser(userData);
+    setUser(userData);  // Establecer datos del usuario
   }, []);
 
+  // Función para manejar la navegación
   const handleNavigation = (path: string) => {
     router.push(path);
   };
@@ -84,19 +93,42 @@ const Sidebar: React.FC = () => {
     setIsProfileAccordionOpen(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("user_info");
-    setUser(null);
-    handleNavigation("/Login");
+  // Función de cierre de sesión
+  const handleLogout = async () => {
+    const accessToken = localStorage.getItem("access_token");
+
+    try {
+      if (accessToken) {
+        const response = await fetch("https://oauth2.googleapis.com/revoke", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `token=${accessToken}`,
+        });
+
+        if (response.ok) {
+          toast.success("Sesión cerrada correctamente en Google");
+        } else {
+          toast.error("No se pudo cerrar sesión en Google correctamente");
+        }
+      }
+
+      localStorage.removeItem("user");
+      localStorage.removeItem("user_info");
+      localStorage.removeItem("access_token");
+
+      setUser(null);  // Limpiar estado del usuario
+
+      handleNavigation("/Login");
+    } catch (error) {
+      toast.error("Ocurrió un error al cerrar sesión" + error);
+    }
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        sidebarRef.current &&
-        !sidebarRef.current.contains(event.target as Node)
-      ) {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setIsProfileAccordionOpen(false);
       }
@@ -111,6 +143,7 @@ const Sidebar: React.FC = () => {
   const toggleProfileAccordion = () => {
     setIsProfileAccordionOpen(!isProfileAccordionOpen);
   };
+
 
   return (
     <div
