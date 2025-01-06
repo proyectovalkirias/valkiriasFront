@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -62,38 +61,6 @@ const Landingoogle: React.FC = () => {
     }
   };
 
-  const revokeToken = async () => {
-  const accessToken = localStorage.getItem("access_token");
-
-  if (!accessToken) {
-    console.error("No access token found");
-    return;
-  }
-
-  try {
-    // Revocar el token en Google
-    await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-
-    // Limpiar la sesión de tu app
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user_info");
-    toast.success("Has cerrado sesión correctamente");
-
-    // Opcional: Redirigir al usuario a la página de inicio
-    window.location.href = "/";
-  } catch (error) {
-    console.error("Error revoking token:", error);
-    toast.error("Error cerrando sesión");
-  }
-};
-
-
-
   const showToast = (userInfo: any) => {
     toast.custom((t) => (
       <div
@@ -108,12 +75,10 @@ const Landingoogle: React.FC = () => {
         <div className="flex-1 w-0 p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0 pt-0.5">
-              <Image
+              <img
                 className="h-10 w-10 rounded-full"
                 src={userInfo.picture}
                 alt={userInfo.name}
-                width={100} 
-                height={100} 
               />
             </div>
             <div className="ml-3 flex-1">
