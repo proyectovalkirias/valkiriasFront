@@ -8,6 +8,8 @@ import HomeSection5 from "./Home/Homesection5";
 import HomeSection6 from "./Home/Homesection6";
 import HomeSection7 from "./Home/Homesection7";
 import HomeSection8 from "./Home/Homesection8";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Home() {
   return (
@@ -21,6 +23,9 @@ export default function Home() {
       <HomeSection6 />
       <HomeSection7 />
       <HomeSection8 />
+      <ToastContainer />
     </div>
+    
+  
   );
 }

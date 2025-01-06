@@ -89,6 +89,23 @@ const AddressesGoogle: React.FC = () => {
     setShowForm(false); // Cerrar el formulario de edición
   };
 
+  const handleDeleteAddress = () => {
+    if (confirm("¿Estás seguro de que deseas eliminar esta dirección?")) {
+      setFormData({
+        address: "",
+        city: "",
+        state: "",
+      });
+      setOriginalData({
+        address: "",
+        city: "",
+        state: "",
+      });
+      localStorage.removeItem("google_address");
+      alert("¡Dirección eliminada correctamente!");
+    }
+  };
+
   if (!isMounted) {
     return null;
   }
@@ -113,6 +130,13 @@ const AddressesGoogle: React.FC = () => {
         {/* Mostrar la dirección si existe, si no, mostrar "Sin direcciones" */}
         {formData.address ? (
           <div className="w-full max-w-lg bg-purple-200 text-purple-900 rounded-lg p-4 shadow-md mb-6 relative">
+            <button
+              onClick={handleDeleteAddress}
+              className="absolute top-2 right-2 bg-red-500 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+              aria-label="Eliminar dirección"
+            >
+              ✕
+            </button>
             <p className="font-bold">{formData.address}</p>
             <p>{`${formData.city}, ${formData.state}`}</p>
           </div>
