@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CartItem } from "../../interfaces/Product";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import axios from "axios";
 import Image from "next/image";
 
 const Cart: React.FC = () => {
@@ -69,7 +70,7 @@ const Cart: React.FC = () => {
     });
   };
 
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
     Swal.fire({
       title: "Procesando compra...",
       allowOutsideClick: false,
@@ -78,13 +79,39 @@ const Cart: React.FC = () => {
       },
     });
 
-    setTimeout(() => {
-      Swal.close();
-      Swal.fire("¡Compra exitosa!", "Gracias por tu compra.", "success");
-      setCartItems([]);
-      localStorage.removeItem("cart");
-    }, 2000); // Simulación de tiempo de procesamiento
-  };
+  //   setTimeout(() => {
+  //     Swal.close();
+  //     Swal.fire("¡Compra exitosa!", "Gracias por tu compra.", "success");
+  //     setCartItems([]);
+  //     localStorage.removeItem("cart");
+  //   }, 2000); // Simulación de tiempo de procesamiento
+  // };
+
+
+  try {
+
+    const products = cartItems.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.totalPrice, 
+      quantity: item.quantity,
+    }));
+
+    const response = await axios.post('http://localhost:3001/payment/create', products);
+
+    if (response.data && response.data.url) {
+
+      window.location.href = response.data.url;
+    } else {
+      Swal.fire("Error", "No se pudo obtener la URL de pago", "error");
+    }
+  } catch (error) {
+    console.error("Error al crear la preferencia de pago:", error);
+    Swal.fire("Error", "Hubo un problema al procesar tu compra", "error");
+  } finally {
+    Swal.close();
+  }
+};
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.totalPrice, 0);
 
@@ -125,12 +152,10 @@ const Cart: React.FC = () => {
               className="p-4 bg-white rounded-lg shadow-md flex flex-col md:flex-row items-center md:items-start gap-6"
             >
               <div className="flex-shrink-0">
-                <Image
-                  src={item.product.photos[0] || "/placeholder.png"}
+                <img
+                  src={item.product?.photos?.[0] || "/placeholder.png"}
                   alt={`Imagen de ${item.name}`}
-                  className="w-32 h-32  rounded"
-                  width={150}
-                  height={150}
+                  className="w-32 h-32 rounded"
                 />
               </div>
               <div className="flex-1">

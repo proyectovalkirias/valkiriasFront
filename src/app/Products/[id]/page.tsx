@@ -94,14 +94,12 @@ const ProductDetail: React.FC = () => {
 
   useEffect(() => {
     if (selectedSize && product) {
-      const childSizes = ["2", "4", "6", "8", "10", "12", "14", "16"];
-      const adultSizes = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
-      const [childPrice, adultPrice] = product.prices.map(Number);
+      const sizePrice = product.prices.find(
+        (sizeObj) => sizeObj.size === selectedSize
+      );
 
-      if (childSizes.includes(selectedSize)) {
-        setTotalPrice(childPrice * quantity);
-      } else if (adultSizes.includes(selectedSize)) {
-        setTotalPrice(adultPrice * quantity);
+      if (sizePrice) {
+        setTotalPrice(sizePrice.price * quantity);
       }
     }
   }, [selectedSize, quantity, product]);
@@ -267,7 +265,7 @@ const ProductDetail: React.FC = () => {
         <p className="text-xl font-bold text-gray-800 mt-4">
           Precio: $
           {Array.isArray(product.prices) && product.prices.length > 0
-            ? getMaxPrice(product.prices)
+            ? Math.min(...product.prices.map((priceObj) => priceObj.price))
             : "N/A"}
         </p>
       </div>
