@@ -64,11 +64,7 @@ const ProductDetail: React.FC = () => {
 
         console.log(fetchedProduct); // Verifica la estructura completa del producto
 
-        if (fetchedProduct.sizes && fetchedProduct.sizes.length > 0) {
-          setProduct(fetchedProduct);
-        } else {
-          setError("No se encontraron talles para este producto.");
-        }
+        setProduct(fetchedProduct);
 
         setMainImage(
           Array.isArray(fetchedProduct.photos) &&
@@ -242,8 +238,8 @@ const ProductDetail: React.FC = () => {
             src={mainImage}
             alt={product.name}
             className="w-[500px] aspect-square mx-auto rounded-xl shadow-md "
-            width={100} 
-            height={100} 
+            width={100}
+            height={100}
           />
           <button
             onClick={handleNextPhoto}
@@ -311,8 +307,8 @@ const ProductDetail: React.FC = () => {
                   src={smallPrint}
                   alt={`Estampa pequeña ${index}`}
                   className="w-20 h-20 object-cover rounded-md"
-                  width={100} 
-                  height={100} 
+                  width={100}
+                  height={100}
                 />
               </button>
             ))}
@@ -341,8 +337,8 @@ const ProductDetail: React.FC = () => {
                   src={largePrint}
                   alt={`Estampa grande ${index}`}
                   className="w-20 h-20 object-cover rounded-md"
-                  width={100} 
-                  height={100} 
+                  width={100}
+                  height={100}
                 />
               </button>
             ))}
