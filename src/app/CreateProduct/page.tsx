@@ -43,14 +43,16 @@ const CreateProduct: React.FC = () => {
     formData.append("prices", JSON.stringify(sizePriceMapping));
     console.log(sizePriceMapping, "prices")
     formData.append("stock", data.stock.toString());
-    formData.append("color", JSON.stringify(data.color));
+    formData.append("color", data.color.join(","));  // Convierte el array de colores a una cadena separada por comas
+
     formData.append("category", category);
 
     const allSizes = [...kidsSizes, ...adultSizes];
     if (isUniqueSize) {
       allSizes.push("Talle Único");
     }
-    formData.append("size", JSON.stringify(allSizes));
+    formData.append("size", allSizes.join(","));  // Convierte el array de tamaños a una cadena separada por comas
+
     console.log("sizes", allSizes)
 
     photos.forEach((photo) => {

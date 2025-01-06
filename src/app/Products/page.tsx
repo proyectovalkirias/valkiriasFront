@@ -221,13 +221,17 @@ const Products: React.FC = () => {
                         {product.description}
                       </p>
                       <div className="flex justify-between items-center mt-4">
-                        <span className="text-gray-600 font-bold">
-                          ${" "}
-                          {Array.isArray(product.prices) && product.prices[0]
-                            ? getMaxPrice(product.prices)
+                        <p className="text-xl font-bold text-gray-800 mt-4">
+                          Precio: $
+                          {Array.isArray(product.prices) &&
+                          product.prices.length > 0
+                            ? Math.min(
+                                ...product.prices.map(
+                                  (priceObj) => priceObj.price
+                                )
+                              )
                             : "N/A"}
-                          .00
-                        </span>
+                        </p>
                         <p className="text-gray-600 ">Stock: {product.stock}</p>
                       </div>
                     </div>
