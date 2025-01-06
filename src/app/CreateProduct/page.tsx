@@ -18,12 +18,16 @@ const CreateProduct: React.FC = () => {
   const [smallPrints, setSmallPrints] = useState<File[]>([]);
   const [largePrints, setLargePrints] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isUniqueSize, setIsUniqueSize] = useState<boolean>(false);
   const [kidsSizes, setKidsSizes] = useState<string[]>([]);
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [price, setPrice] = useState<number | null>(null);
+  const [prices, setPrice] = useState<string[]>([]);
   const [stock, setStock] = useState<number | null>(null);
+  const [sizePriceMapping, setSizePriceMapping] = useState<
+    { size: string; price: number }[]
+  >([]);
   const [color, setColor] = useState<string[]>([]);
   const [category, setCategory] = useState<string>("");
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -32,30 +36,35 @@ const CreateProduct: React.FC = () => {
 
   const onSubmit = (data: Product) => {
     setLoading(true);
-  
+
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
-    formData.append("price", data.price.toString());
+    formData.append("prices", JSON.stringify(sizePriceMapping));
+    console.log(sizePriceMapping, "prices")
     formData.append("stock", data.stock.toString());
     formData.append("color", JSON.stringify(data.color));
     formData.append("category", category);
-  
+
     const allSizes = [...kidsSizes, ...adultSizes];
-    formData.append("sizes", JSON.stringify(allSizes));
-  
+    if (isUniqueSize) {
+      allSizes.push("Talle Único");
+    }
+    formData.append("size", JSON.stringify(allSizes));
+    console.log("sizes", allSizes)
+
     photos.forEach((photo) => {
       formData.append("photos", photo);
     });
-  
+
     smallPrints.forEach((print) => {
       formData.append("smallPrint", print);
     });
-  
+
     largePrints.forEach((print) => {
       formData.append("largePrint", print);
     });
-  
+
     fetch("http://localhost:3000/products", {
       method: "POST",
       body: formData,
@@ -70,7 +79,7 @@ const CreateProduct: React.FC = () => {
         console.log("Producto creado exitosamente:", data);
         setLoading(false);
         setIsModalVisible(true); // Mostrar el modal de éxito
-  
+
         // Restablecer los estados solo después de que el modal se haya mostrado
         setTimeout(() => {
           reset();
@@ -84,7 +93,7 @@ const CreateProduct: React.FC = () => {
           setLargePrints([]);
           setKidsSizes([]);
           setAdultSizes([]);
-          setPrice(null);
+          setPrice([]);
           setStock(null);
           setCategory("");
           setColor([]);
@@ -96,7 +105,6 @@ const CreateProduct: React.FC = () => {
         setLoading(false);
       });
   };
-  
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -109,8 +117,8 @@ const CreateProduct: React.FC = () => {
       case "description":
         setProductDescription(value);
         break;
-      case "price":
-        setPrice(value ? parseFloat(value) : null);
+      case "prices":
+        setPrice([value]);
         break;
       case "stock":
         setStock(value ? parseInt(value) : null);
@@ -170,6 +178,10 @@ const CreateProduct: React.FC = () => {
     setLargePrintsPreview((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleUniqueSizeChange = () => {
+    setIsUniqueSize(!isUniqueSize);
+  };
+
   const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
     const updateSizes = type === "kids" ? setKidsSizes : setAdultSizes;
 
@@ -178,6 +190,23 @@ const CreateProduct: React.FC = () => {
         ? prevSizes.filter((s) => s !== size)
         : [...prevSizes, size as string]
     );
+  };
+
+  const handleSizePriceChange = (size: string, price: number) => {
+    setSizePriceMapping((prevMapping) => {
+      const existingEntryIndex = prevMapping.findIndex(
+        (entry) => entry.size === size
+      );
+      if (existingEntryIndex !== -1) {
+        // Actualiza el precio para la talla existente
+        const updatedMapping = [...prevMapping];
+        updatedMapping[existingEntryIndex].price = price;
+        return updatedMapping;
+      } else {
+        // Agrega una nueva entrada
+        return [...prevMapping, { size, price }];
+      }
+    });
   };
 
   const handleCancel = () => {
@@ -192,7 +221,7 @@ const CreateProduct: React.FC = () => {
       setLargePrints([]);
       setKidsSizes([]);
       setAdultSizes([]);
-      setPrice(null);
+      setPrice([]);
       setStock(null);
       setCategory("");
     }
@@ -257,19 +286,22 @@ const CreateProduct: React.FC = () => {
         </div>
 
         {/* Precio y Stock */}
-        <div className="flex justify-items-stretch space-x-4 mb-4">
-          <div className="w-1/3">
-            <label htmlFor="price" className="block text-sm font-medium">
-              Precio:
-            </label>
-            <input
-              id="price"
-              type="number"
-              {...register("price", { required: true })}
-              onChange={handleChange}
-              placeholder="Precio"
-              className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
-            />
+        <div className="flex justify-items-stretch space-x-4 mb-4 text-black">
+          <div>
+            <h3>Tallas y Precios:</h3>
+            {[...kidsSizes, ...adultSizes].map((size, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <span>{size}</span>
+                <input
+                  type="number"
+                  placeholder={`Precio para ${size}`}
+                  onChange={(e) =>
+                    handleSizePriceChange(size, parseFloat(e.target.value) || 0)
+                  }
+                  className="border p-2"
+                />
+              </div>
+            ))}
           </div>
 
           <div className="w-1/3">
@@ -289,6 +321,18 @@ const CreateProduct: React.FC = () => {
 
         {/* Tamaños */}
         <div className="flex space-x-8 mb-4">
+          <div>
+            <label className="block text-sm font-medium">Talle Único:</label>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                value="Unique"
+                onChange={handleUniqueSizeChange}
+                checked={isUniqueSize}
+                className="mr-1"
+              />
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium">Talle Niños:</label>
             <div className="flex space-x-2">
@@ -336,7 +380,15 @@ const CreateProduct: React.FC = () => {
               defaultValue={color} // color es ahora un arreglo de strings
               render={({ field }) => (
                 <div className="flex space-x-4">
-                  {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
+                  {[
+                    "#000000",
+                    "#f5f5ef",
+                    "#a6a6a6",
+                    "#d80032",
+                    "#05299e",
+                    "#f7e90f",
+                    "#00913f",
+                  ].map((c) => (
                     <div
                       key={c}
                       onClick={() => {
@@ -347,7 +399,7 @@ const CreateProduct: React.FC = () => {
                         setColor(newColorArray);
                       }}
                       style={{ backgroundColor: c }}
-                      className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
+                      className={`w-6 h-6 rounded-full cursor-pointer border-2 ${
                         color.includes(c)
                           ? "border-white"
                           : "border-transparent"
@@ -386,20 +438,14 @@ const CreateProduct: React.FC = () => {
               <option value="Buzos" className="text-black hover:bg-violet-500">
                 Buzos
               </option>
-              <option value="Gorras" className="text-black hover:bg-violet-500">
-                Gorras
-              </option>
               <option
-                value="Gorros de lana"
+                value="Accesorios"
                 className="text-black hover:bg-violet-500"
               >
-                Gorros de Lana
+                Accesorios
               </option>
-              <option
-                value="Totebags"
-                className="text-black hover:bg-violet-500"
-              >
-                Totebags
+              <option value="Combos" className="text-black hover:bg-violet-500">
+                Combos
               </option>
             </select>
           </div>
@@ -496,10 +542,10 @@ const CreateProduct: React.FC = () => {
       <ProductPreview
         productName={productName}
         productDescription={productDescription}
-        price={price}
         stock={stock}
         category={category}
         color={color}
+        isUniqueSize={isUniqueSize}
         kidsSizes={kidsSizes}
         adultSizes={adultSizes}
         previewImages={previewImages}

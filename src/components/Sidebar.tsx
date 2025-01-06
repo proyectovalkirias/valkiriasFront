@@ -15,6 +15,7 @@ const getUserData = () => {
     const storedUser = localStorage.getItem("user");
     const storedGoogleUser = localStorage.getItem("user_info");
 
+
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
@@ -37,10 +38,20 @@ const getUserData = () => {
       };
     }
 
-    return null;
+    return {
+      firstname: "",
+      lastname: "",
+      email: "",
+      photoUrl: "/images/Avatar.png",
+    }; // Objeto por defecto
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
-    return null;
+    return {
+      firstname: "",
+      lastname: "",
+      email: "",
+      photoUrl: "/images/Avatar.png",
+    }; // Objeto por defecto
   }
 };
 
