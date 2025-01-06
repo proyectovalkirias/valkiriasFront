@@ -61,8 +61,8 @@ const ChangePassword: React.FC = () => {
 
       setSuccess("Contraseña cambiada exitosamente.");
       setTimeout(() => router.push("/Login"), 2000); 
-    } catch (err) {
-      setError("Hubo un problema al conectar con el servidor.");
+    } catch (error) {
+      setError("Hubo un problema al conectar con el servidor." + error);
     }
   };
 

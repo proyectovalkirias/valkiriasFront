@@ -22,8 +22,8 @@ const colorNameMap: Record<string, string> = {
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setLoading] = useState(true);
+  const [, setError] = useState<string | null>(null);
 
   // Estados para filtros
   const [categories, setCategories] = useState<string[]>([]);
@@ -87,8 +87,8 @@ const Products: React.FC = () => {
         setCategories(uniqueCategories);
         setColors(uniqueColors);
         setSizes(uniqueSizes);
-      } catch (err: any) {
-        setError("Error al cargar los productos. Intenta nuevamente.");
+      } catch (err) {
+        setError("Error al cargar los productos. Intenta nuevamente. " + err);
       } finally {
         setLoading(false);
       }
@@ -138,9 +138,6 @@ const Products: React.FC = () => {
     },
     {}
   );
-  const getMaxPrice = (prices: string[]): number => {
-    return Math.max(...prices.map(Number));
-  };
 
   return (
     <div className="bg-[#7b548b] min-h-screen p-8">
