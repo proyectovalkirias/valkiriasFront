@@ -114,15 +114,19 @@ const Sidebar: React.FC = () => {
         }
       }
 
+      // Limpiar datos locales
       localStorage.removeItem("user");
       localStorage.removeItem("user_info");
       localStorage.removeItem("access_token");
 
-      setUser(null);  // Limpiar estado del usuario
+      // Limpiar estado del usuario
+      setUser(null);
 
+      // Redirigir al login
       handleNavigation("/Login");
     } catch (error) {
-      toast.error("Ocurrió un error al cerrar sesión" + error);
+      console.error("Error durante el logout:", error);
+      toast.error("Ocurrió un error al cerrar sesión");
     }
   };
 
@@ -196,7 +200,9 @@ const Sidebar: React.FC = () => {
                     <span>Mi Perfil</span>
                     <HiChevronDown
                       size={20}
-                      className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
+                      className={`transition-transform duration-300 ${
+                        isProfileAccordionOpen ? "transform rotate-180" : ""
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleProfileAccordion();
@@ -278,7 +284,7 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {user && (
+      {user && localStorage.getItem("user") && (
         <>
           <Link href="/Cart">
             <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">

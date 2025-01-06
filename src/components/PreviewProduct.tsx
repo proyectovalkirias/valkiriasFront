@@ -166,4 +166,3 @@ const ProductPreview: React.FC<{
   );
 };
 
-export default ProductPreview;
