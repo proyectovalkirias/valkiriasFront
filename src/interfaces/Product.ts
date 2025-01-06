@@ -1,11 +1,16 @@
+export interface Price {
+  size: string;
+  price: number;
+}
+
 export interface Product {
   quantity?: number;
   id: string;
   name: string;
   description: string;
-  prices: string[]; 
-  priceAdults: string[];
-  priceKids:string[]
+  prices: Price[];
+  priceAdults: Price[];
+  priceKids:Price[];
   sizes: string[];
   category: string;
   photos: string[];
