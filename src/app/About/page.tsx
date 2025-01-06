@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 
 const AboutPage: React.FC = () => {
@@ -22,10 +23,11 @@ const AboutPage: React.FC = () => {
 
         {/* Right Section */}
         <div className="flex-1 relative h-40 md:h-full">
-          <img
+          <Image
             src="/images/love.jpg"
             alt="Dos mujeres acostadas, mirando hacia la cámara"
             className="w-full h-full object-cover"
+            fill
           />
         </div>
       </div>
@@ -56,10 +58,12 @@ const AboutPage: React.FC = () => {
         </div>
 
         <div className="bg-pink-200 p-4 flex items-center justify-center md:w-1/4">
-          <img
+          <Image
             src="/images/valkiriaslogo.jpg"
             alt="Logo de Valkirias"
-            className="h-16 md:h-20 w-auto object-contain"
+            className=" object-contain"
+            width={200} 
+            height={200} 
           />
         </div>
       </div>
@@ -68,10 +72,11 @@ const AboutPage: React.FC = () => {
       <div className="flex flex-col md:flex-row h-auto md:h-1/3">
         {/* Image Section */}
         <div className="flex-1 relative h-40 md:h-full">
-          <img
+          <Image
             src="/images/valkiriashirt.jpg"
             alt="Mujer de cabello oscuro, mirando hacia abajo"
             className="w-full h-full object-cover"
+            fill
           />
         </div>
 

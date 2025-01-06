@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface AccountFormDniPhoneProps {
   userId: string;
@@ -147,7 +148,13 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
 
       {isGoogleUser && googleUserData && (
         <div className="mb-4">
-          <img src={googleUserData.picture} alt={googleUserData.name} className="w-16 h-16 rounded-full" />
+          <Image 
+            src={googleUserData.picture} 
+            alt={googleUserData.name} 
+            className="w-16 h-16 rounded-full"
+            width={150}
+            height={150} 
+          />
           <p className="text-white">{googleUserData.name}</p>
           <p className="text-white">{googleUserData.email}</p>
         </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CartItem } from "../../interfaces/Product";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import Image from "next/image";
 
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -124,10 +125,12 @@ const Cart: React.FC = () => {
               className="p-4 bg-white rounded-lg shadow-md flex flex-col md:flex-row items-center md:items-start gap-6"
             >
               <div className="flex-shrink-0">
-                <img
+                <Image
                   src={item.product.photos[0] || "/placeholder.png"}
                   alt={`Imagen de ${item.name}`}
                   className="w-32 h-32  rounded"
+                  width={150}
+                  height={150}
                 />
               </div>
               <div className="flex-1">
@@ -143,20 +146,24 @@ const Cart: React.FC = () => {
                     <p className="text-sm text-gray-700">
                       <strong>Estampado pequeño:</strong>
                     </p>
-                    <img
+                    <Image
                       src={item.selectedSmallPrint}
                       alt={`Estampado pequeño de ${item.name}`}
                       className="w-16 h-16 object-cover rounded"
+                      width={100} 
+                      height={100} 
                     />
                   </div>
                   <div>
                     <p className="text-sm text-gray-700">
                       <strong>Estampado grande:</strong>
                     </p>
-                    <img
+                    <Image
                       src={item.selectedLargePrint}
                       alt={`Estampado grande de ${item.name}`}
                       className="w-16 h-16 object-cover rounded"
+                      width={100} 
+                      height={100} 
                     />
                   </div>
                 </div>
