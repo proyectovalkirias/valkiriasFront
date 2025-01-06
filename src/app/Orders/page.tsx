@@ -39,11 +39,11 @@ const Orders: React.FC = () => {
   return (
     <div className="p-6 max-w-screen-2xl mx-auto flex flex-col bg-[#7b548b] min-h-screen overflow-hidden">
       <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">
-        Your Order History
+        Historial de compras
       </h2>
 
       {loading ? (
-        <p className="text-center text-gray-500">Loading your orders...</p>
+        <p className="text-center text-gray-500">cargando tu historial...</p>
       ) : error ? (
         <div className="text-center text-red-500">{error}</div>
       ) : (
@@ -55,7 +55,7 @@ const Orders: React.FC = () => {
                 alt="Empty orders illustration"
                 className="w-60 h-60 mx-auto mb-6 object-contain sm:w-96 sm:h-96"
               />
-              <p className="text-lg ">Order history is empty.</p>
+              <p className="text-lg ">Historial de compras vacio.</p>
             </div>
           ) : (
             userOrders.map((order) => (
