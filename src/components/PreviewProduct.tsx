@@ -1,6 +1,8 @@
+import Image from "next/image";
 import React from "react";
 
-export const ProductPreview: React.FC<{
+
+const ProductPreview: React.FC<{
   productName: string;
   productDescription: string;
   stock: number | null;
@@ -94,10 +96,12 @@ export const ProductPreview: React.FC<{
           <div className="flex space-x-2 mt-2">
             {previewImages.map((src, index) => (
               <div key={index} className="relative">
-                <img
+                <Image
                   src={src}
                   alt={`Vista previa ${index + 1}`}
                   className="w-16 h-16 object-cover rounded-md"
+                  width={100} 
+                  height={100} 
                 />
                 <button
                   onClick={() => onRemoveImage(index)}
@@ -116,10 +120,12 @@ export const ProductPreview: React.FC<{
           <div className="flex space-x-2 mt-2">
             {smallPrintsPreview.map((src, index) => (
               <div key={index} className="relative">
-                <img
+                <Image
                   src={src}
                   alt={`Estampa pequeña ${index + 1}`}
                   className="w-16 h-16 object-cover rounded-md"
+                  width={100} 
+                  height={100} 
                 />
                 <button
                   onClick={() => onRemoveSmallPrint(index)} // Elimina imagen de estampa pequeña
@@ -138,10 +144,12 @@ export const ProductPreview: React.FC<{
           <div className="flex space-x-2 mt-2">
             {largePrintsPreview.map((src, index) => (
               <div key={index} className="relative">
-                <img
+                <Image
                   src={src}
                   alt={`Estampa grande ${index + 1}`}
                   className="w-16 h-16 object-cover rounded-md"
+                  width={100} 
+                  height={100} 
                 />
                 <button
                   onClick={() => onRemoveLargePrint(index)} // Elimina imagen de estampa grande

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import Image from "next/image";
 
 interface UserData {
   id?: string;
@@ -55,20 +56,20 @@ const AddressesLocal = () => {
     }
   };
 
-  // Obtén los datos de dirección de la API para el usuario local
-  const fetchUserAddress = async (userId: string) => {
-    try {
-      const response = await axios.get(`http://localhost:3000/users/${userId}`);
-      setAddressData(response.data);
-      setFormData({
-        address: response.data.address || "",
-        city: response.data.city || "",
-        state: response.data.state || "",
-      });
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
+  // // Obtén los datos de dirección de la API para el usuario local
+  // const fetchUserAddress = async (userId: string) => {
+  //   try {
+  //     const response = await axios.get(`http://localhost:3000/users/${userId}`);
+  //     setAddressData(response.data);
+  //     setFormData({
+  //       address: response.data.address || "",
+  //       city: response.data.city || "",
+  //       state: response.data.state || "",
+  //     });
+  //   } catch (error) {
+  //     console.error("Error fetching user data:", error);
+  //   }
+  // };
 
   // Maneja la eliminación de la dirección
   const handleDeleteAddress = async () => {
@@ -110,7 +111,7 @@ const AddressesLocal = () => {
 
   // Valida los campos del formulario
   const validateForm = () => {
-    let formErrors = { ...errors };
+    const formErrors = { ...errors };
     let isValid = true;
 
     if (!formData.address) {
@@ -201,10 +202,12 @@ const AddressesLocal = () => {
   return (
     <div className="flex flex-col md:flex-row items-center justify-center bg-[#7b548b] min-h-screen p-6 space-y-6 md:space-y-0 md:space-x-6">
       <div className="w-full md:w-1/3 flex justify-center">
-        <img
+        <Image
           src="/images/Mundito.png"
           alt="Imagen ajustes"
           className="w-full h-auto max-w-[200px] sm:max-w-[250px] md:max-w-[300px]"
+          width={150}
+          height={150}
         />
       </div>
 
