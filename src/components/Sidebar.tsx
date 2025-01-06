@@ -92,12 +92,13 @@ const Sidebar: React.FC = () => {
     setIsOpen(!isOpen);
     setIsProfileAccordionOpen(false);
   };
+  
 
-  // Función de cierre de sesión
   const handleLogout = async () => {
     const accessToken = localStorage.getItem("access_token");
-
+  
     try {
+      // Revocar el token de Google si existe
       if (accessToken) {
         const response = await fetch("https://oauth2.googleapis.com/revoke", {
           method: "POST",
@@ -106,26 +107,31 @@ const Sidebar: React.FC = () => {
           },
           body: `token=${accessToken}`,
         });
-
+  
         if (response.ok) {
           toast.success("Sesión cerrada correctamente en Google");
         } else {
+          console.error("Error al revocar el token de Google:", response.statusText);
           toast.error("No se pudo cerrar sesión en Google correctamente");
         }
       }
-
+  
+      // Limpiar datos locales
       localStorage.removeItem("user");
       localStorage.removeItem("user_info");
       localStorage.removeItem("access_token");
-
-      setUser(null);  // Limpiar estado del usuario
-
+  
+      // Limpiar estado del usuario
+      setUser(null);
+  
+      // Redirigir al login
       handleNavigation("/Login");
     } catch (error) {
-      toast.error("Ocurrió un error al cerrar sesión" + error);
+      console.error("Error durante el logout:", error);
+      toast.error("Ocurrió un error al cerrar sesión");
     }
   };
-
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {

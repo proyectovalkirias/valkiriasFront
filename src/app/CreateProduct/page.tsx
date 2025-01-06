@@ -2,7 +2,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { useState } from "react";
 import { Product } from "@/interfaces/Product";
-import ProductPreview from "@/components/PreviewProduct";
+import ProductPreview from "./PreviewProduct/page";
 
 const CreateProduct: React.FC = () => {
   const {
@@ -23,7 +23,7 @@ const CreateProduct: React.FC = () => {
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [,setPrice] = useState<string[]>([]);
+  const [, setPrice] = useState<string[]>([]);
   const [stock, setStock] = useState<number | null>(null);
   const [sizePriceMapping, setSizePriceMapping] = useState<
     { size: string; price: number }[]
