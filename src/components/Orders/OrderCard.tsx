@@ -18,15 +18,15 @@ const OrderCard: React.FC<IOrderCardProps> = ({ order }) => {
     <div className="p-4 sm:p-6 md:p-8 lg:p-8 bg-white shadow-lg rounded-lg flex flex-col gap-6 mb-6 max-w-4xl mx-auto">
       {/* Header */}
       <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 text-center">
-        Purchase ID: {order.id}
+      ID de compra: {order.id}
       </h3>
 
       <div className="space-y-2 text-center">
         <p className="text-sm sm:text-base text-gray-500">
-          Status: <span className="font-bold text-gray-700">{order.status?.toUpperCase() || "N/A"}</span>
+          Estado: <span className="font-bold text-gray-700">{order.status?.toUpperCase() || "N/A"}</span>
         </p>
         <p className="text-sm sm:text-base text-gray-500">
-          Date: <span className="font-bold text-gray-700">{isValidDate ? orderDate.toLocaleDateString() : "Invalid date"}</span>
+          Fecha: <span className="font-bold text-gray-700">{isValidDate ? orderDate.toLocaleDateString() : "Invalid date"}</span>
         </p>
         <p className="text-sm sm:text-base text-gray-500">
           {order.products && order.products.length > 0 
@@ -60,11 +60,11 @@ const OrderCard: React.FC<IOrderCardProps> = ({ order }) => {
 
               {/* Product Details */}
               <div className="space-y-2 text-gray-600">
-                <p><strong>Description:</strong> {product.description || "No description available"}</p>
-                <p><strong>Category:</strong> {product.category || "N/A"}</p>
+                <p><strong>Descripcion:</strong> {product.description || "No description available"}</p>
+                <p><strong>Categoria:</strong> {product.category || "N/A"}</p>
 
                 <div className="flex flex-wrap gap-4">
-                  <p><strong>Size:</strong> {product.size?.join(", ") || "N/A"}</p>
+                  <p><strong>Talle:</strong> {product.size?.join(", ") || "N/A"}</p>
                   <p><strong>Color:</strong> {product.color?.join(", ") || "N/A"}</p>
                 </div>
 
@@ -74,7 +74,7 @@ const OrderCard: React.FC<IOrderCardProps> = ({ order }) => {
                     Price: {product.prices.join(", ") || "N/A"}
                   </p>
                 ) : (
-                  <p className="text-sm sm:text-base text-gray-500">Price not available</p>
+                  <p className="text-sm sm:text-base text-gray-500">Precio no disponible</p>
                 )}
 
                 {/* Stock */}
