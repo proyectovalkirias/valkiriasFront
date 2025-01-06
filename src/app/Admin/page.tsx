@@ -199,7 +199,7 @@ const Admin = () => {
           </button>
         </nav>
       </header>
-      <main className="flex-1 bg-gray-100 bg-[#7b548b]">{renderContent()}</main>
+      <main className="flex-1 bg-[#7b548b]">{renderContent()}</main>
     </div>
   );
 };
