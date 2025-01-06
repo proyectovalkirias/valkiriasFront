@@ -23,8 +23,11 @@ const CreateProduct: React.FC = () => {
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [prices, setPrices] = useState<string[]>([]);
+  const [prices, setPrice] = useState<string[]>([]);
   const [stock, setStock] = useState<number | null>(null);
+  const [sizePriceMapping, setSizePriceMapping] = useState<
+    { size: string; price: number }[]
+  >([]);
   const [color, setColor] = useState<string[]>([]);
   const [category, setCategory] = useState<string>("");
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -34,17 +37,11 @@ const CreateProduct: React.FC = () => {
   const onSubmit = (data: Product) => {
     setLoading(true);
 
-    if (!prices || prices.length < 2 || prices.some(price => !price)) {
-      console.error("Prices are invalid or incomplete.");
-      setLoading(false);
-      return;
-    }
-    
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
-    formData.append("prices", JSON.stringify(prices.filter((price) => price !== null && price !== undefined)));
-    console.log(prices)
+    formData.append("prices", JSON.stringify(sizePriceMapping));
+    console.log(sizePriceMapping, "prices")
     formData.append("stock", data.stock.toString());
     formData.append("color", JSON.stringify(data.color));
     formData.append("category", category);
@@ -53,12 +50,8 @@ const CreateProduct: React.FC = () => {
     if (isUniqueSize) {
       allSizes.push("Talle Único");
     }
-
-    if (allSizes.length > 0) {
-      formData.append("size", JSON.stringify(allSizes));
-    } else {
-      console.error("No se seleccionaron talles.");
-    }
+    formData.append("size", JSON.stringify(allSizes));
+    console.log("sizes", allSizes)
 
     photos.forEach((photo) => {
       formData.append("photos", photo);
@@ -100,8 +93,7 @@ const CreateProduct: React.FC = () => {
           setLargePrints([]);
           setKidsSizes([]);
           setAdultSizes([]);
-          setIsUniqueSize(false);
-          setPrices([]);
+          setPrice([]);
           setStock(null);
           setCategory("");
           setColor([]);
@@ -125,20 +117,9 @@ const CreateProduct: React.FC = () => {
       case "description":
         setProductDescription(value);
         break;
-        case "priceKids":
-          setPrices((prev) => {
-            const updatedPrices = prev.length > 0 ? [...prev] : ["", ""]; // Asegúrate de que existan índices
-            updatedPrices[0] = value;
-            return updatedPrices;
-          });
-          break;
-        case "priceAdults":
-          setPrices((prev) => {
-            const updatedPrices = prev.length > 0 ? [...prev] : ["", ""]; // Asegúrate de que existan índices
-            updatedPrices[1] = value;
-            return updatedPrices;
-          });
-          break;          
+      case "prices":
+        setPrice([value]);
+        break;
       case "stock":
         setStock(value ? parseInt(value) : null);
         break;
@@ -211,6 +192,23 @@ const CreateProduct: React.FC = () => {
     );
   };
 
+  const handleSizePriceChange = (size: string, price: number) => {
+    setSizePriceMapping((prevMapping) => {
+      const existingEntryIndex = prevMapping.findIndex(
+        (entry) => entry.size === size
+      );
+      if (existingEntryIndex !== -1) {
+        // Actualiza el precio para la talla existente
+        const updatedMapping = [...prevMapping];
+        updatedMapping[existingEntryIndex].price = price;
+        return updatedMapping;
+      } else {
+        // Agrega una nueva entrada
+        return [...prevMapping, { size, price }];
+      }
+    });
+  };
+
   const handleCancel = () => {
     const confirmCancel = window.confirm(
       "¿Estás seguro de que deseas eliminar el producto y restablecer el formulario?"
@@ -223,8 +221,7 @@ const CreateProduct: React.FC = () => {
       setLargePrints([]);
       setKidsSizes([]);
       setAdultSizes([]);
-
-      setPrices([]);
+      setPrice([]);
       setStock(null);
       setCategory("");
     }
@@ -288,59 +285,26 @@ const CreateProduct: React.FC = () => {
           />
         </div>
 
-        <div className="flex justify-between items-center space-x-4 mb-4">
-          {/* Precio para niños */}
-          <div className="w-1/4">
-            <label htmlFor="priceKids" className="block text-sm font-medium">
-              Precio Niños:
-            </label>
-            <input
-              id="priceKids"
-              type="number"
-              {...register("priceKids")}
-              placeholder="Precio para niños"
-              className="w-full border-b-2 border-white bg-transparent p-1 text-white outline-none"
-              onChange={(e) => {
-                const value = e.target.value;
-                setPrices((prev) => {
-                  const updated = [...prev];
-                  updated[0] = value; // Índice 0 para precio niños
-                  return updated;
-                });
-              }}
-            />
-            {errors.priceKids && (
-              <span className="text-red-500">Campo requerido</span>
-            )}
+        {/* Precio y Stock */}
+        <div className="flex justify-items-stretch space-x-4 mb-4 text-black">
+          <div>
+            <h3>Tallas y Precios:</h3>
+            {[...kidsSizes, ...adultSizes].map((size, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <span>{size}</span>
+                <input
+                  type="number"
+                  placeholder={`Precio para ${size}`}
+                  onChange={(e) =>
+                    handleSizePriceChange(size, parseFloat(e.target.value) || 0)
+                  }
+                  className="border p-2"
+                />
+              </div>
+            ))}
           </div>
 
-          {/* Precio para adultos */}
-          <div className="w-1/4">
-            <label htmlFor="priceAdults" className="block text-sm font-medium">
-              Precio Adultos:
-            </label>
-            <input
-              id="priceAdults"
-              type="number"
-              {...register("priceAdults")}
-              placeholder="Precio para adultos"
-              className="w-full border-b-2 border-white bg-transparent p-1 text-white outline-none"
-              onChange={(e) => {
-                const value = e.target.value;
-                setPrices((prev) => {
-                  const updated = [...prev];
-                  updated[1] = value; // Índice 1 para precio adultos
-                  return updated;
-                });
-              }}
-            />
-            {errors.priceAdults && (
-              <span className="text-red-500">Campo requerido</span>
-            )}
-          </div>
-
-          {/* Stock */}
-          <div className="w-1/4">
+          <div className="w-1/3">
             <label htmlFor="stock" className="block text-sm font-medium">
               Stock:
             </label>
@@ -348,12 +312,10 @@ const CreateProduct: React.FC = () => {
               id="stock"
               type="number"
               {...register("stock", { required: true })}
+              onChange={handleChange}
               placeholder="Stock"
-              className="w-full border-b-2 border-white bg-transparent p-1 text-white outline-none"
+              className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
             />
-            {errors.stock && (
-              <span className="text-red-500">Campo requerido</span>
-            )}
           </div>
         </div>
 
@@ -580,7 +542,6 @@ const CreateProduct: React.FC = () => {
       <ProductPreview
         productName={productName}
         productDescription={productDescription}
-        prices={prices}
         stock={stock}
         category={category}
         color={color}
