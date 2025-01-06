@@ -2,7 +2,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { useState } from "react";
 import { Product } from "@/interfaces/Product";
-import ProductPreview from "./PreviewPorduct/page";
+import { ProductPreview } from "./PreviewPorduct/page";
 
 const CreateProduct: React.FC = () => {
   const {
