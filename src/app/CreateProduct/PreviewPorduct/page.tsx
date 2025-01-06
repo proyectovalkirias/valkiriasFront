@@ -2,7 +2,7 @@ import Image from "next/image";
 import React from "react";
 
 
-export const ProductPreview: React.FC<{
+const ProductPreview: React.FC<{
   productName: string;
   productDescription: string;
   stock: number | null;
@@ -166,3 +166,4 @@ export const ProductPreview: React.FC<{
   );
 };
 
+export default ProductPreview;
