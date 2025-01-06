@@ -11,11 +11,9 @@ const ProductDetail: React.FC = () => {
   const params = useParams();
   const productId = Array.isArray(params?.id) ? params.id[0] : params.id;
   const router = useRouter();
-
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [mainImage, setMainImage] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
@@ -50,21 +48,26 @@ const ProductDetail: React.FC = () => {
       return;
     }
 
-    const user = localStorage.getItem("user");
-
     const fetchProduct = async () => {
       try {
         setLoading(true);
         const fetchedProduct = await getProductById(productId);
 
-        const processedColors =
-          fetchedProduct.color?.map((color) => color.replace(/\[|\]|"/g, "")) ||
-          [];
+        // Limpia los tamaños recibidos
+        if (Array.isArray(fetchedProduct.sizes)) {
+          const cleanedSizes = fetchedProduct.sizes.map((size: string) =>
+            size.replace(/\\|"/g, "")
+          );
+          fetchedProduct.sizes = cleanedSizes;
+        }
 
-        setProduct({
-          ...fetchedProduct,
-          color: processedColors,
-        });
+        console.log(fetchedProduct); // Verifica la estructura completa del producto
+
+        if (fetchedProduct.sizes && fetchedProduct.sizes.length > 0) {
+          setProduct(fetchedProduct);
+        } else {
+          setError("No se encontraron talles para este producto.");
+        }
 
         setMainImage(
           Array.isArray(fetchedProduct.photos) &&
@@ -83,6 +86,7 @@ const ProductDetail: React.FC = () => {
 
     fetchProduct();
   }, [productId]);
+
   const getMaxPrice = (prices: string[]): number => {
     return Math.max(...prices.map(Number));
   };
@@ -352,8 +356,9 @@ const ProductDetail: React.FC = () => {
             onChange={(e) => setSelectedSize(e.target.value)}
           >
             <option value="">Selecciona un tamaño</option>
-            {sizeOrder
-              .filter((size) => product.size?.includes(size)) // Filtra solo los tamaños disponibles
+            {product.sizes
+              .map((size: string) => size.replace(/\\|"/g, "")) // Limpia los tamaños
+              .filter((size) => sizeOrder.includes(size)) // Compara con sizeOrder
               .map((size) => (
                 <option key={size} value={size}>
                   {size}
