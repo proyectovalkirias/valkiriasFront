@@ -49,3 +49,4 @@ stock: number
       size: string;
     }[];
   }
+
