@@ -1,10 +1,9 @@
-// ProductPreview.tsx
 import React from "react";
 
 const ProductPreview: React.FC<{
   productName: string;
   productDescription: string;
-  prices: string[];
+  price: number | null;
   stock: number | null;
   category: string;
   color: string[];
@@ -15,12 +14,12 @@ const ProductPreview: React.FC<{
   onRemoveImage: (index: number) => void;
   smallPrintsPreview: string[];
   largePrintsPreview: string[];
-  onRemoveSmallPrint: (index: number) => void;  // Nueva prop
-  onRemoveLargePrint: (index: number) => void;  // Nueva prop
+  onRemoveSmallPrint: (index: number) => void; // Nueva prop
+  onRemoveLargePrint: (index: number) => void; // Nueva prop
 }> = ({
   productName,
   productDescription,
-  prices,
+  price,
   stock,
   category,
   color,
@@ -31,8 +30,8 @@ const ProductPreview: React.FC<{
   onRemoveImage,
   smallPrintsPreview,
   largePrintsPreview,
-  onRemoveSmallPrint,  // Nueva prop
-  onRemoveLargePrint,  // Nueva prop
+  onRemoveSmallPrint, // Nueva prop
+  onRemoveLargePrint, // Nueva prop
 }) => {
   return (
     <div className="w-1/2 p-4 text-white">
@@ -49,9 +48,9 @@ const ProductPreview: React.FC<{
           {productDescription || "Descripción del producto"}
         </p>
 
-        {/* Precio y Stock */}
+        {/* Stock */}
         <div className="flex gap-4">
-          <p className="text-sm">Precio: ${prices !== null ? prices : "0.00"}</p>
+          <p className="text-sm">Precio: ${price !== null ? price : "0.00"}</p>
           <p className="text-sm">Stock: {stock !== null ? stock : "0"}</p>
         </div>
 
@@ -81,9 +80,6 @@ const ProductPreview: React.FC<{
             Tamaños seleccionados:
           </h4>
           <div className="flex gap-4">
-          <p className="text-sm">
-            Único: {isUniqueSize ? 'Talle único' : "Ninguno"}
-            </p>
             <p className="text-sm">
               Niños: {kidsSizes.length ? kidsSizes.join(", ") : "Ninguno"}
             </p>
@@ -126,7 +122,7 @@ const ProductPreview: React.FC<{
                   className="w-16 h-16 object-cover rounded-md"
                 />
                 <button
-                  onClick={() => onRemoveSmallPrint(index)}  // Elimina imagen de estampa pequeña
+                  onClick={() => onRemoveSmallPrint(index)} // Elimina imagen de estampa pequeña
                   className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1"
                 >
                   X
@@ -148,7 +144,7 @@ const ProductPreview: React.FC<{
                   className="w-16 h-16 object-cover rounded-md"
                 />
                 <button
-                  onClick={() => onRemoveLargePrint(index)}  // Elimina imagen de estampa grande
+                  onClick={() => onRemoveLargePrint(index)} // Elimina imagen de estampa grande
                   className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1"
                 >
                   X

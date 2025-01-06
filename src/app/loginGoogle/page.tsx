@@ -17,7 +17,6 @@ const Landingoogle: React.FC = () => {
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
     const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI!;
     const tokenUrl = process.env.TOKEN_URL!;
-
     const body = new URLSearchParams();
     body.append("code", code);
     body.append("client_id", clientId);

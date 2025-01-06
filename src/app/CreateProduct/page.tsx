@@ -25,6 +25,9 @@ const CreateProduct: React.FC = () => {
   const [productDescription, setProductDescription] = useState("");
   const [prices, setPrice] = useState<string[]>([]);
   const [stock, setStock] = useState<number | null>(null);
+  const [sizePriceMapping, setSizePriceMapping] = useState<
+    { size: string; price: number }[]
+  >([]);
   const [color, setColor] = useState<string[]>([]);
   const [category, setCategory] = useState<string>("");
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -33,33 +36,30 @@ const CreateProduct: React.FC = () => {
 
   const onSubmit = (data: Product) => {
     setLoading(true);
-  
+
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
-    formData.append("prices", data.prices.toString());
+    formData.append("price", data.price.toString());
     formData.append("stock", data.stock.toString());
     formData.append("color", JSON.stringify(data.color));
     formData.append("category", category);
-  
+
     const allSizes = [...kidsSizes, ...adultSizes];
-    if (isUniqueSize) {
-      allSizes.push("Talle Único"); 
-    }
     formData.append("sizes", JSON.stringify(allSizes));
   
     photos.forEach((photo) => {
       formData.append("photos", photo);
     });
-  
+
     smallPrints.forEach((print) => {
       formData.append("smallPrint", print);
     });
-  
+
     largePrints.forEach((print) => {
       formData.append("largePrint", print);
     });
-  
+
     fetch("http://localhost:3000/products", {
       method: "POST",
       body: formData,
@@ -74,7 +74,7 @@ const CreateProduct: React.FC = () => {
         console.log("Producto creado exitosamente:", data);
         setLoading(false);
         setIsModalVisible(true); // Mostrar el modal de éxito
-  
+
         // Restablecer los estados solo después de que el modal se haya mostrado
         setTimeout(() => {
           reset();
@@ -100,7 +100,6 @@ const CreateProduct: React.FC = () => {
         setLoading(false);
       });
   };
-  
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -188,6 +187,23 @@ const CreateProduct: React.FC = () => {
     );
   };
 
+  const handleSizePriceChange = (size: string, price: number) => {
+    setSizePriceMapping((prevMapping) => {
+      const existingEntryIndex = prevMapping.findIndex(
+        (entry) => entry.size === size
+      );
+      if (existingEntryIndex !== -1) {
+        // Actualiza el precio para la talla existente
+        const updatedMapping = [...prevMapping];
+        updatedMapping[existingEntryIndex].price = price;
+        return updatedMapping;
+      } else {
+        // Agrega una nueva entrada
+        return [...prevMapping, { size, price }];
+      }
+    });
+  };
+
   const handleCancel = () => {
     const confirmCancel = window.confirm(
       "¿Estás seguro de que deseas eliminar el producto y restablecer el formulario?"
@@ -267,13 +283,13 @@ const CreateProduct: React.FC = () => {
         {/* Precio y Stock */}
         <div className="flex justify-items-stretch space-x-4 mb-4">
           <div className="w-1/3">
-            <label htmlFor="prices" className="block text-sm font-medium">
+            <label htmlFor="price" className="block text-sm font-medium">
               Precio:
             </label>
             <input
-              id="prices"
+              id="price"
               type="number"
-              {...register("prices", { required: true })}
+              {...register("price", { required: true })}
               onChange={handleChange}
               placeholder="Precio"
               className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
@@ -297,18 +313,6 @@ const CreateProduct: React.FC = () => {
 
         {/* Tamaños */}  
         <div className="flex space-x-8 mb-4">
-          <div>
-            <label className="block text-sm font-medium">Talle Único:</label>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                value="Unique"
-                onChange={handleUniqueSizeChange} 
-                checked={isUniqueSize}
-                className="mr-1"
-              />
-            </div>
-          </div>
           <div>
             <label className="block text-sm font-medium">Talle Niños:</label>
             <div className="flex space-x-2">
@@ -356,7 +360,7 @@ const CreateProduct: React.FC = () => {
               defaultValue={color} // color es ahora un arreglo de strings
               render={({ field }) => (
                 <div className="flex space-x-4">
-                  {["#000000", "#f5f5ef", "#a6a6a6", "#d80032", "#05299e", "#f7e90f", "#00913f"].map((c) => (
+                  {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
                     <div
                       key={c}
                       onClick={() => {
@@ -406,14 +410,20 @@ const CreateProduct: React.FC = () => {
               <option value="Buzos" className="text-black hover:bg-violet-500">
                 Buzos
               </option>
-              <option value="Accesorios" className="text-black hover:bg-violet-500">
-                Accesorios
+              <option value="Gorras" className="text-black hover:bg-violet-500">
+                Gorras
               </option>
               <option
-                value="Combos"
+                value="Gorros de lana"
                 className="text-black hover:bg-violet-500"
               >
-                Combos
+                Gorros de Lana
+              </option>
+              <option
+                value="Totebags"
+                className="text-black hover:bg-violet-500"
+              >
+                Totebags
               </option>
             </select>
           </div>
@@ -510,7 +520,7 @@ const CreateProduct: React.FC = () => {
       <ProductPreview
         productName={productName}
         productDescription={productDescription}
-        prices={prices}
+        price={price}
         stock={stock}
         category={category}
         color={color}
