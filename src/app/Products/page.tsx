@@ -77,7 +77,7 @@ const Products: React.FC = () => {
         const uniqueSizes = Array.from(
           new Set(
             allProducts
-              .flatMap((p) => p.size || [])
+              .flatMap((p) => p.sizes || [])
               .filter(Boolean)
               .map((size) => size.replace(/"|\[|\]/g, ""))
           )
@@ -117,7 +117,7 @@ const Products: React.FC = () => {
       );
     const matchesSize =
       !selectedSize ||
-      product.size?.some(
+      product.sizes?.some(
         (s) =>
           s.replace(/"|\[|\]/g, "").toLowerCase() === selectedSize.toLowerCase()
       );

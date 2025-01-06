@@ -6,7 +6,7 @@ export interface Product {
   prices: string[];
   priceAdults: string[];
   priceKids:string[]
-  size: string[];
+  sizes: string[];
   category: string;
   photos: string[];
   stock: number;
