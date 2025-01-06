@@ -10,6 +10,12 @@ interface AccountFormDniPhoneProps {
   onSuccess: () => void;
 }
 
+interface GoogleUserData {
+  name: string;
+  email: string;
+  picture: string;
+}
+
 const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuccess }) => {
   const [formData, setFormData] = useState({
     dni: "",
@@ -22,7 +28,7 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
   });
 
   const [isGoogleUser, setIsGoogleUser] = useState(false);
-  const [googleUserData, setGoogleUserData] = useState<any>(null);
+  const [googleUserData, setGoogleUserData] = useState<GoogleUserData | null>(null);
 
   const router = useRouter();
 

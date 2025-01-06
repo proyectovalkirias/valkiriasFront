@@ -56,20 +56,20 @@ const AddressesLocal = () => {
     }
   };
 
-  // Obtén los datos de dirección de la API para el usuario local
-  const fetchUserAddress = async (userId: string) => {
-    try {
-      const response = await axios.get(`http://localhost:3000/users/${userId}`);
-      setAddressData(response.data);
-      setFormData({
-        address: response.data.address || "",
-        city: response.data.city || "",
-        state: response.data.state || "",
-      });
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
+  // // Obtén los datos de dirección de la API para el usuario local
+  // const fetchUserAddress = async (userId: string) => {
+  //   try {
+  //     const response = await axios.get(`http://localhost:3000/users/${userId}`);
+  //     setAddressData(response.data);
+  //     setFormData({
+  //       address: response.data.address || "",
+  //       city: response.data.city || "",
+  //       state: response.data.state || "",
+  //     });
+  //   } catch (error) {
+  //     console.error("Error fetching user data:", error);
+  //   }
+  // };
 
   // Maneja la eliminación de la dirección
   const handleDeleteAddress = async () => {
@@ -111,7 +111,7 @@ const AddressesLocal = () => {
 
   // Valida los campos del formulario
   const validateForm = () => {
-    let formErrors = { ...errors };
+    const formErrors = { ...errors };
     let isValid = true;
 
     if (!formData.address) {

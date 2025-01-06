@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { CartItem } from "../../interfaces/Product";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";

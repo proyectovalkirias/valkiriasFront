@@ -88,10 +88,6 @@ const ProductDetail: React.FC = () => {
     fetchProduct();
   }, [productId]);
 
-  const getMaxPrice = (prices: string[]): number => {
-    return Math.max(...prices.map(Number));
-  };
-
   useEffect(() => {
     if (selectedSize && product) {
       const sizePrice = product.prices.find(

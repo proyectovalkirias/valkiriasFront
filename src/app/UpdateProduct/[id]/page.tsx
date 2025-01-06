@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
@@ -10,7 +10,6 @@ const UpdateProduct: React.FC = () => {
   const {
     register,
     handleSubmit,
-    control,
     setValue,
     formState: { errors },
   } = useForm<Product>();
@@ -56,7 +55,7 @@ const UpdateProduct: React.FC = () => {
     setValue("smallPrint", productData.smallPrint);
     setValue("largePrint", productData.largePrint);
     setValue("isAvailable", productData.isAvailable);
-    setValue("size", productData.size);
+    setValue("sizes", productData.sizes);
   };
 
   const onSubmit = async (data: Product) => {
@@ -203,7 +202,7 @@ const UpdateProduct: React.FC = () => {
           </label>
           <input
             id="size"
-            {...register("size")}
+            {...register("sizes")}
             className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
             placeholder="Tamaños (separados por comas)"
           />
