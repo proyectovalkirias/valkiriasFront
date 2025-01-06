@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
 const AddressesGoogle: React.FC = () => {
@@ -114,10 +115,12 @@ const AddressesGoogle: React.FC = () => {
     <div className="flex flex-col md:flex-row items-center justify-center bg-[#7b548b] min-h-screen p-6 space-y-6 md:space-y-0 md:space-x-6">
       {/* Contenedor de la imagen */}
       <div className="w-full md:w-1/3 flex justify-center">
-        <img
+        <Image
           src="/images/Mundito.png"
           alt="Imagen ajustes"
           className="w-full h-auto max-w-[200px] sm:max-w-[250px] md:max-w-[300px]"
+          width={150}
+          height={150}
         />
       </div>
 

@@ -5,6 +5,7 @@ import { getProducts } from "@/api/productAPI";
 import { Product } from "@/interfaces/Product";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 const colorNameMap: Record<string, string> = {
   "#ff0000": "Rojo",
@@ -205,13 +206,15 @@ const Products: React.FC = () => {
                 {groupedProducts[category].map((product) => (
                   <Link key={product.id} href={`/Products/${product.id}`}>
                     <div className="w-64 h-96 rounded   overflow-hidden p-4 bg-white hover:scale-105 ease-in-out shadow-lg">
-                      <img
+                      <Image
                         className="rounded-lg object-cover w-48 h-48 mb-4 mx-auto"
                         src={
                           Array.isArray(product.photos) && product.photos[0]
                             ? product.photos[0]
                             : "/placeholder.png"
                         }
+                        width={100} 
+                        height={100} 
                         alt={product.name}
                       />
                       <h2 className="text-lg font-bold mb-2 text-center text-gray-800 ">

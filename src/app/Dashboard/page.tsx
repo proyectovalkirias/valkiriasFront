@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 // Función para obtener los datos de usuario desde localStorage o desde la API
@@ -108,10 +109,12 @@ const Dashboard: React.FC = () => {
       </h1>
 
       {/* Foto de perfil */}
-      <img
+      <Image
         src={user.photoUrl}
         alt="Foto de perfil"
         className="w-24 h-24 sm:w-32 sm:h-32 mb-6 rounded-full border-4 border-white object-cover"
+        width={100} 
+        height={100} 
       />
 
       <div className="w-full max-w-md p-6">

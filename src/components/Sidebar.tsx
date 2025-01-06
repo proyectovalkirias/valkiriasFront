@@ -9,6 +9,7 @@ import { FiUser, FiUsers } from "react-icons/fi";
 import { HiChevronDown } from "react-icons/hi";
 import { FaShoppingCart } from "react-icons/fa";
 import Link from "next/link";
+import Image from "next/image";
 
 const getUserData = () => {
   try {
@@ -124,11 +125,13 @@ const Sidebar: React.FC = () => {
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={toggleSidebar}
       >
-        <img
+        <Image
           src={isOpen ? "/images/valkiriaslogo.jpg" : "/images/LogCircular.jpg"}
           alt="Logo"
-          className={isOpen ? "" : "rounded-full"}
+          className={isOpen ? "" : "rounded-full "}
           style={{ width: isOpen ? "150px" : "40px", objectFit: "contain" }}
+          width={100} 
+          height={100} 
         />
       </div>
 
@@ -254,7 +257,7 @@ const Sidebar: React.FC = () => {
             </div>
           </Link>
           <div className="p-4 flex items-center gap-4">
-            <img
+            <Image
               src={user.photoUrl}
               alt="Foto de perfil"
               className="rounded-full border-2 border-gray-500"
@@ -263,6 +266,8 @@ const Sidebar: React.FC = () => {
                 height: isOpen ? "48px" : "32px",
                 objectFit: "cover",
               }}
+              width={100} 
+              height={100} 
             />
             {isOpen && (
               <div className="text-sm">

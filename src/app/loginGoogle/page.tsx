@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -107,10 +108,12 @@ const Landingoogle: React.FC = () => {
         <div className="flex-1 w-0 p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0 pt-0.5">
-              <img
+              <Image
                 className="h-10 w-10 rounded-full"
                 src={userInfo.picture}
                 alt={userInfo.name}
+                width={100} 
+                height={100} 
               />
             </div>
             <div className="ml-3 flex-1">

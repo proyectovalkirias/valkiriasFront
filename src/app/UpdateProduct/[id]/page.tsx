@@ -1,4 +1,5 @@
 "use client";
+
 import { useForm, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -103,6 +104,7 @@ const UpdateProduct: React.FC = () => {
     <div className="flex flex-col items-center p-6 bg-[#7b548b] min-h-screen">
       <h1 className="text-2xl font-bold mb-6 text-white">Modificar Producto</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-lg">
+        {/* Aquí van todos los campos del formulario, adaptados a `register` */}
         <div className="mb-4">
           <label
             htmlFor="name"

@@ -5,6 +5,7 @@ import { CartItem } from "../../interfaces/Product";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import Image from "next/image";
 
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -170,20 +171,24 @@ const Cart: React.FC = () => {
                     <p className="text-sm text-gray-700">
                       <strong>Estampado pequeño:</strong>
                     </p>
-                    <img
+                    <Image
                       src={item.selectedSmallPrint}
                       alt={`Estampado pequeño de ${item.name}`}
                       className="w-16 h-16 object-cover rounded"
+                      width={100} 
+                      height={100} 
                     />
                   </div>
                   <div>
                     <p className="text-sm text-gray-700">
                       <strong>Estampado grande:</strong>
                     </p>
-                    <img
+                    <Image
                       src={item.selectedLargePrint}
                       alt={`Estampado grande de ${item.name}`}
                       className="w-16 h-16 object-cover rounded"
+                      width={100} 
+                      height={100} 
                     />
                   </div>
                 </div>

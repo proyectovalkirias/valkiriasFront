@@ -6,6 +6,7 @@ import { getProductById } from "@/api/productAPI";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { Product } from "@/interfaces/Product";
+import Image from "next/image";
 
 const ProductDetail: React.FC = () => {
   const params = useParams();
@@ -241,10 +242,12 @@ const ProductDetail: React.FC = () => {
           >
             ◀
           </button>
-          <img
-            src={mainImage || undefined}
+          <Image
+            src={mainImage}
             alt={product.name}
             className="w-[500px] aspect-square mx-auto rounded-xl shadow-md "
+            width={100} 
+            height={100} 
           />
           <button
             onClick={handleNextPhoto}
@@ -308,10 +311,12 @@ const ProductDetail: React.FC = () => {
                 }`}
                 onClick={() => setSelectedSmallPrint(smallPrint)}
               >
-                <img
+                <Image
                   src={smallPrint}
                   alt={`Estampa pequeña ${index}`}
                   className="w-20 h-20 object-cover rounded-md"
+                  width={100} 
+                  height={100} 
                 />
               </button>
             ))}
@@ -336,10 +341,12 @@ const ProductDetail: React.FC = () => {
                 }`}
                 onClick={() => setSelectedLargePrint(largePrint)}
               >
-                <img
+                <Image
                   src={largePrint}
                   alt={`Estampa grande ${index}`}
                   className="w-20 h-20 object-cover rounded-md"
+                  width={100} 
+                  height={100} 
                 />
               </button>
             ))}
