@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation"; // Importa useRouter
+import { toast } from "react-hot-toast"; // Importa react-hot-toast
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -14,8 +15,6 @@ const Register: React.FC = () => {
   });
 
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-
   const router = useRouter(); // Inicializa useRouter
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,17 +27,20 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
 
     const { firstName, lastName, email, password, confirmPassword } = formData;
 
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      setError("Todos los campos son obligatorios.");
+      toast.error("Todos los campos son obligatorios.", {
+        duration: 3000,
+      });
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden.");
+      toast.error("Las contraseñas no coinciden.", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -62,15 +64,21 @@ const Register: React.FC = () => {
       if (!response.ok) {
         if (contentType?.includes("application/json")) {
           const errorData = await response.json();
-          setError(errorData.message || "Error al registrarse.");
+          toast.error(errorData.message || "Error al registrarse.", {
+            duration: 3000,
+          });
         } else {
           const errorText = await response.text();
-          setError(errorText || "Error al registrarse.");
+          toast.error(errorText || "Error al registrarse.", {
+            duration: 3000,
+          });
         }
         return;
       }
 
-      setSuccess("Registro exitoso. Redirigiendo a la página de inicio de sesión...");
+      toast.success("Registro exitoso. Redirigiendo a la página de inicio de sesión...", {
+        duration: 3000,
+      });
 
       // Redirigir al usuario a la página de login
       setTimeout(() => {
@@ -86,7 +94,9 @@ const Register: React.FC = () => {
         confirmPassword: "",
       });
     } catch (err) {
-      setError("Hubo un problema al conectar con el servidor.");
+      toast.error("Hubo un problema al conectar con el servidor.", {
+        duration: 3000,
+      });
       console.error(err);
     }
   };
@@ -163,8 +173,6 @@ const Register: React.FC = () => {
               Registrarse
             </button>
           </form>
-          {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
-          {success && <p className="mt-4 text-sm text-green-500">{success}</p>}
 
           <p className="mt-4 text-sm text-white">
             ¿Ya tienes cuenta?{" "}

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Image from "next/image";
+import { toast } from "react-hot-toast";
 
 interface UserData {
   id?: string;
@@ -56,21 +57,6 @@ const AddressesLocal = () => {
     }
   };
 
-  // // Obtén los datos de dirección de la API para el usuario local
-  // const fetchUserAddress = async (userId: string) => {
-  //   try {
-  //     const response = await axios.get(`http://localhost:3000/users/${userId}`);
-  //     setAddressData(response.data);
-  //     setFormData({
-  //       address: response.data.address || "",
-  //       city: response.data.city || "",
-  //       state: response.data.state || "",
-  //     });
-  //   } catch (error) {
-  //     console.error("Error fetching user data:", error);
-  //   }
-  // };
-
   // Maneja la eliminación de la dirección
   const handleDeleteAddress = async () => {
     const user = getUserData();
@@ -97,8 +83,10 @@ const AddressesLocal = () => {
           city: "",
           state: "",
         });
+        toast.success("¡Dirección eliminada correctamente!");
       } catch (error) {
         console.error("Error deleting address:", error);
+        toast.error("Hubo un problema al eliminar la dirección. Intenta nuevamente.");
       }
     }
   };
@@ -141,7 +129,21 @@ const AddressesLocal = () => {
 
   // Maneja la acción de guardar la dirección
   const handleSaveAddress = async () => {
-    if (validateForm()) {
+    const newErrors = {
+      address: formData.address.trim() === "" ? "El campo Dirección es obligatorio" : "",
+      city: formData.city.trim() === "" ? "El campo Ciudad es obligatorio" : "",
+      state: formData.state.trim() === "" ? "El campo Provincia es obligatorio" : "",
+    };
+
+    // Filtrar los errores que no están vacíos
+    const errorsArray = Object.values(newErrors).filter((error) => error !== "");
+
+    // Mostrar notificaciones de Toast en lugar de errores en rojo
+    if (errorsArray.length > 1) {
+      toast.error("Todos los campos son obligatorios.");
+    } else if (errorsArray.length === 1) {
+      toast.error(errorsArray[0]);
+    } else {
       const user = getUserData();
 
       if (user?.type === "local") {
@@ -164,8 +166,10 @@ const AddressesLocal = () => {
           localStorage.setItem("user", JSON.stringify({ user: updatedUser }));
           setAddressData(updatedUser);
           setShowForm(false);
+          toast.success("¡Dirección guardada correctamente!"); // Mensaje de éxito
         } catch (error) {
           console.error("Error al guardar dirección:", error);
+          toast.error("Hubo un problema al guardar la dirección. Intenta nuevamente."); // Mensaje de error
         }
       } else if (user?.type === "google") {
         const updatedGoogleUser = {
@@ -180,8 +184,10 @@ const AddressesLocal = () => {
           localStorage.setItem("user_info", JSON.stringify(updatedGoogleUser));
           setAddressData(updatedGoogleUser);
           setShowForm(false);
+          toast.success("¡Dirección guardada correctamente!"); // Mensaje de éxito
         } catch (error) {
           console.error("Error al guardar dirección para Google:", error);
+          toast.error("Hubo un problema al guardar la dirección. Intenta nuevamente."); // Mensaje de error
         }
       }
     }
