@@ -183,10 +183,6 @@ const CreateProduct: React.FC = () => {
     setLargePrintsPreview((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleUniqueSizeChange = () => {
-    setIsUniqueSize(!isUniqueSize);
-  };
-
   const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
     const updateSizes = type === "kids" ? setKidsSizes : setAdultSizes;
 
