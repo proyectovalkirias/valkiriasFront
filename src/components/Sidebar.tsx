@@ -9,7 +9,8 @@ import { FiUser, FiUsers } from "react-icons/fi";
 import { HiChevronDown } from "react-icons/hi";
 import { FaShoppingCart } from "react-icons/fa";
 import Link from "next/link";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify"; // Asegúrate de tener esto importado
+import { FaCog } from "react-icons/fa";
 
 // Define la función getUserData
 const getUserData = () => {
@@ -25,9 +26,10 @@ const getUserData = () => {
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
-        isGoogleUser: false,  // Asegura que esté definido como booleano
+        isAdmin: parsedUser.user.isAdmin || false,
+        isGoogleUser: false, // Asegura que esté definido como booleano
       };
-    } 
+    }
     // Si hay un usuario de Google
     else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
@@ -36,7 +38,7 @@ const getUserData = () => {
         lastname: googleUser.family_name || "",
         email: googleUser.email || "",
         photoUrl: googleUser.picture || "/images/Avatar.png",
-        isGoogleUser: true,  // Asegura que esté definido como booleano
+        isGoogleUser: true, // Asegura que esté definido como booleano
         dni: googleUser.dni || null,
         phone: googleUser.phone || null,
       };
@@ -48,7 +50,7 @@ const getUserData = () => {
       lastname: "",
       email: "",
       photoUrl: "/images/Avatar.png",
-      isGoogleUser: false,  // Asegura que esté definido como booleano
+      isGoogleUser: false, // Asegura que esté definido como booleano
     };
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
@@ -57,7 +59,7 @@ const getUserData = () => {
       lastname: "",
       email: "",
       photoUrl: "/images/Avatar.png",
-      isGoogleUser: false,  // Asegura que esté definido como booleano
+      isGoogleUser: false, // Asegura que esté definido como booleano
     }; // Objeto por defecto
   }
 };
@@ -75,12 +77,13 @@ const Sidebar: React.FC = () => {
     isGoogleUser: boolean;
     dni?: string | null;
     phone?: string | null;
+    isAdmin?: boolean;
   } | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const userData = getUserData();
-    setUser(userData);  // Establecer datos del usuario
+    setUser(userData); // Establecer datos del usuario
   }, []);
 
   // Función para manejar la navegación
@@ -93,16 +96,51 @@ const Sidebar: React.FC = () => {
     setIsProfileAccordionOpen(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("user_info");
-    setUser(null);
-    handleNavigation("/Login");
+  // Función de cierre de sesión
+  const handleLogout = async () => {
+    const accessToken = localStorage.getItem("access_token");
+
+    try {
+      if (accessToken) {
+        const response = await fetch("https://oauth2.googleapis.com/revoke", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `token=${accessToken}`,
+        });
+
+        if (response.ok) {
+          toast.success("Sesión cerrada correctamente en Google");
+        } else {
+          toast.error("No se pudo cerrar sesión en Google correctamente");
+        }
+      }
+
+      // Limpiar datos locales
+      localStorage.removeItem("user");
+      localStorage.removeItem("user_info");
+      localStorage.removeItem("access_token");
+
+      setUser(null); // Limpiar estado del usuario
+
+      // Mostrar alerta de cierre de sesión
+      toast.success("Sesión cerrada correctamente");
+
+      // Redirigir al login
+      handleNavigation("/Login");
+    } catch (error) {
+      console.error("Error durante el logout:", error);
+      toast.error("Ocurrió un error al cerrar sesión");
+    }
   };
-  
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setIsProfileAccordionOpen(false);
       }
@@ -117,7 +155,6 @@ const Sidebar: React.FC = () => {
   const toggleProfileAccordion = () => {
     setIsProfileAccordionOpen(!isProfileAccordionOpen);
   };
-
 
   return (
     <div
@@ -170,7 +207,9 @@ const Sidebar: React.FC = () => {
                     <span>Mi Perfil</span>
                     <HiChevronDown
                       size={20}
-                      className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
+                      className={`transition-transform duration-300 ${
+                        isProfileAccordionOpen ? "transform rotate-180" : ""
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleProfileAccordion();
@@ -183,7 +222,6 @@ const Sidebar: React.FC = () => {
 
               {isProfileAccordionOpen && (
                 <ul className="ml-8">
-                  {/* Oculta Configuración si el usuario se registró con Google */}
                   {!localStorage.getItem("user_info") && (
                     <li
                       className="py-1 hover:bg-gray-700 cursor-pointer"
@@ -192,7 +230,6 @@ const Sidebar: React.FC = () => {
                       Configuración
                     </li>
                   )}
-                  {/* Botón "Agregar Información" solo para usuarios de Google */}
                   {user.isGoogleUser && (!user.dni || !user.phone) && (
                     <li
                       className="py-1 hover:bg-gray-700 cursor-pointer"
@@ -252,8 +289,16 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {user && (
+      {user && localStorage.getItem("user") && (
         <>
+          {user.isAdmin && (
+            <Link href="/Admin">
+              <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
+                <FaCog size={24} color="white" />
+                {isOpen && <span>Administrador</span>}
+              </div>
+            </Link>
+          )}
           <Link href="/Cart">
             <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
               <FaShoppingCart size={24} />
@@ -268,15 +313,12 @@ const Sidebar: React.FC = () => {
               style={{
                 width: isOpen ? "48px" : "32px",
                 height: isOpen ? "48px" : "32px",
-                objectFit: "cover",
               }}
             />
             {isOpen && (
-              <div className="text-sm">
-                <p className="font-semibold">
-                  {user.firstname} {user.lastname}
-                </p>
-                <p className="text-gray-300 text-xs">{user.email}</p>
+              <div className="flex flex-col">
+                <span className="font-medium">{user.firstname} {user.lastname}</span>
+                <span className="text-sm">{user.email}</span>
               </div>
             )}
           </div>

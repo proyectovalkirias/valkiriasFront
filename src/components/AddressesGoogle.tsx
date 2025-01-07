@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast"; // Importar toast
+import Swal from "sweetalert2";
 
 const AddressesGoogle: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -61,25 +63,32 @@ const AddressesGoogle: React.FC = () => {
     const newErrors = {
       address: formData.address.trim() === "" ? "El campo Dirección es obligatorio" : "",
       city: formData.city.trim() === "" ? "El campo Ciudad es obligatorio" : "",
-      state: formData.state.trim() === "" ? "El campo Estado es obligatorio" : "",
+      state: formData.state.trim() === "" ? "El campo Provincia es obligatorio" : "",
     };
-
-    setErrors(newErrors);
-
-    if (Object.values(newErrors).some((error) => error !== "")) {
-      return;
-    }
-
-    try {
-      localStorage.setItem("google_address", JSON.stringify(formData));
-      alert("¡Dirección registrada correctamente!");
-      setOriginalData(formData); // Guardar los datos actuales como los originales
-      setShowForm(false); // Cerrar el formulario de edición
-    } catch (error) {
-      console.error("Error al guardar los datos:", error);
-      alert("Hubo un problema al guardar los datos. Intenta nuevamente.");
+  
+    // Filtrar los errores que no están vacíos
+    const errorsArray = Object.values(newErrors).filter((error) => error !== "");
+  
+    // Mostrar notificaciones de Toast en lugar de errores en rojo
+    if (errorsArray.length > 1) {
+      toast.error("Todos los campos son obligatorios.");
+    } else if (errorsArray.length === 1) {
+      toast.error(errorsArray[0]);
+    } else {
+      try {
+        localStorage.setItem("google_address", JSON.stringify(formData));
+        toast.success("¡Dirección registrada correctamente!");
+        setOriginalData(formData); // Guardar los datos actuales como los originales
+        setShowForm(false); // Cerrar el formulario de edición
+      } catch (error) {
+        console.error("Error al guardar los datos:", error);
+        toast.error("Hubo un problema al guardar los datos. Intenta nuevamente.");
+      }
     }
   };
+  
+  
+  
 
   const handleEditAddress = () => {
     setShowForm(true); // Abrir el formulario de edición
@@ -90,22 +99,35 @@ const AddressesGoogle: React.FC = () => {
     setShowForm(false); // Cerrar el formulario de edición
   };
 
+
+
   const handleDeleteAddress = () => {
-    if (confirm("¿Estás seguro de que deseas eliminar esta dirección?")) {
-      setFormData({
-        address: "",
-        city: "",
-        state: "",
-      });
-      setOriginalData({
-        address: "",
-        city: "",
-        state: "",
-      });
-      localStorage.removeItem("google_address");
-      alert("¡Dirección eliminada correctamente!");
-    }
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminarla",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setFormData({
+          address: "",
+          city: "",
+          state: "",
+        });
+        setOriginalData({
+          address: "",
+          city: "",
+          state: "",
+        });
+        localStorage.removeItem("google_address");
+        toast.success("¡Dirección eliminada correctamente!"); // Mensaje de éxito
+      }
+    });
   };
+  
 
   if (!isMounted) {
     return null;
@@ -141,7 +163,7 @@ const AddressesGoogle: React.FC = () => {
               ✕
             </button>
             <p className="font-bold">{formData.address}</p>
-            <p>{`${formData.city}, ${formData.state}`}</p>
+            <p>{`${formData.state}, ${formData.city}`}</p>
           </div>
         ) : (
           <div className="w-full max-w-lg bg-purple-100 text-purple-900 rounded-lg p-4 shadow-md mb-6 text-center">
@@ -178,7 +200,7 @@ const AddressesGoogle: React.FC = () => {
               <input
                 type="text"
                 name="state"
-                placeholder="Estado"
+                placeholder="Provincia"
                 value={formData.state}
                 onChange={handleInputChange}
                 className="w-full p-2 border-b-2 border-purple-500 bg-transparent outline-none text-purple-900"

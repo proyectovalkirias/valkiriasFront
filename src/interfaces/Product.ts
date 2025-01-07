@@ -10,7 +10,7 @@ export interface Product {
   description: string;
   prices: Price[];
   priceAdults: Price[];
-  priceKids:Price[];
+  priceKids: Price[];
   sizes: string[];
   category: string;
   photos: string[];

@@ -210,18 +210,18 @@ const Products: React.FC = () => {
                             ? product.photos[0]
                             : "/placeholder.png"
                         }
-                        width={100} 
-                        height={100} 
+                        width={100}
+                        height={100}
                         alt={product.name}
                       />
-                      <h2 className="text-lg font-bold mb-2 text-center text-gray-800 ">
+                      <h2 className="text-lg font-bold mb-2 text-center text-gray-800 line-clamp-2 ">
                         {product.name}
                       </h2>
                       <p className="text-gray-600 text-center line-clamp-2 ">
                         {product.description}
                       </p>
-                      <div className="flex justify-between items-center mt-4">
-                        <p className="text-xl font-bold text-gray-800 mt-4">
+                      <div className="flex justify-between items-center mt-4 gap-4">
+                        <p className="text-xl font-bold text-gray-800">
                           Precio: $
                           {Array.isArray(product.prices) &&
                           product.prices.length > 0
@@ -232,7 +232,7 @@ const Products: React.FC = () => {
                               )
                             : "N/A"}
                         </p>
-                        <p className="text-gray-600 ">Stock: {product.stock}</p>
+                        <p className="text-gray-600">Stock: {product.stock}</p>
                       </div>
                     </div>
                   </Link>

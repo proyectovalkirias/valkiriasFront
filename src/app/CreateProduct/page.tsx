@@ -2,7 +2,8 @@
 import { useForm, Controller } from "react-hook-form";
 import { useState } from "react";
 import { Product } from "@/interfaces/Product";
-import {ProductPreview} from "./PreviewPorduct/page";
+import ProductPreview from "./PreviewProduct/page";
+import { toast } from "react-hot-toast";
 
 const CreateProduct: React.FC = () => {
   const {
@@ -36,36 +37,25 @@ const CreateProduct: React.FC = () => {
 
   const onSubmit = (data: Product) => {
     setLoading(true);
-
+  
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
-    formData.append("price", data.price.toString());
+    formData.append("prices", JSON.stringify(sizePriceMapping));
     formData.append("stock", data.stock.toString());
-    formData.append("color", data.color.join(","));  // Convierte el array de colores a una cadena separada por comas
-
+    formData.append("color", data.color.join(","));
     formData.append("category", category);
-
+  
     const allSizes = [...kidsSizes, ...adultSizes];
     if (isUniqueSize) {
       allSizes.push("Talle Único");
     }
-    formData.append("size", allSizes.join(","));  // Convierte el array de tamaños a una cadena separada por comas
-
-    console.log("sizes", allSizes)
-
-    photos.forEach((photo) => {
-      formData.append("photos", photo);
-    });
-
-    smallPrints.forEach((print) => {
-      formData.append("smallPrint", print);
-    });
-
-    largePrints.forEach((print) => {
-      formData.append("largePrint", print);
-    });
-
+    formData.append("size", allSizes.join(","));
+  
+    photos.forEach((photo) => formData.append("photos", photo));
+    smallPrints.forEach((print) => formData.append("smallPrint", print));
+    largePrints.forEach((print) => formData.append("largePrint", print));
+  
     fetch("http://localhost:3000/products", {
       method: "POST",
       body: formData,
@@ -77,11 +67,10 @@ const CreateProduct: React.FC = () => {
         return response.json();
       })
       .then((data) => {
-        console.log("Producto creado exitosamente:", data);
+        toast.success("Producto creado exitosamente", data);
         setLoading(false);
-        setIsModalVisible(true); // Mostrar el modal de éxito
-
-        // Restablecer los estados solo después de que el modal se haya mostrado
+        setIsModalVisible(true);
+  
         setTimeout(() => {
           reset();
           setSmallPrintsPreview([]);
@@ -98,14 +87,15 @@ const CreateProduct: React.FC = () => {
           setStock(null);
           setCategory("");
           setColor([]);
-          setIsModalVisible(false); // Cerrar el modal después de un tiempo
-        }, 3000); // Puedes ajustar el tiempo de espera según sea necesario
+          setIsModalVisible(false);
+        }, 3000);
       })
       .catch((error) => {
         console.error("Error al crear el producto:", error);
+        toast.error("Error al crear el producto. Por favor, intente nuevamente.");
         setLoading(false);
       });
-  };
+  };  
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -138,8 +128,10 @@ const CreateProduct: React.FC = () => {
         ...prevPreviews,
         ...newPhotos.map((file) => URL.createObjectURL(file)),
       ]);
+      toast.success(`${newPhotos.length} imagen(es) añadida(s).`);
     }
   };
+  
 
   const handlePrintChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -167,6 +159,7 @@ const CreateProduct: React.FC = () => {
     setPreviewImages((prevPreviews) =>
       prevPreviews.filter((_, i) => i !== index)
     );
+    toast("Imagen eliminada.", { icon: "🗑️" });
   };
 
   const handleRemoveSmallPrint = (index: number) => {
@@ -215,6 +208,7 @@ const CreateProduct: React.FC = () => {
       "¿Estás seguro de que deseas eliminar el producto y restablecer el formulario?"
     );
     if (confirmCancel) {
+      toast("Producto eliminado y formulario reiniciado.", { icon: "🗑️" });
       reset();
       setPhotos([]);
       setPreviewImages([]);
@@ -227,6 +221,7 @@ const CreateProduct: React.FC = () => {
       setCategory("");
     }
   };
+  
 
   return (
     <div className="flex w-full bg-[#7b548b] min-h-screen">

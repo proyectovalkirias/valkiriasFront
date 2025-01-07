@@ -4,9 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { getProductById } from "@/api/productAPI";
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2";
 import { Product } from "@/interfaces/Product";
 import Image from "next/image";
+import toast from "react-hot-toast";
 
 const ProductDetail: React.FC = () => {
   const params = useParams();
@@ -64,11 +64,7 @@ const ProductDetail: React.FC = () => {
 
         console.log(fetchedProduct); // Verifica la estructura completa del producto
 
-        if (fetchedProduct.sizes && fetchedProduct.sizes.length > 0) {
-          setProduct(fetchedProduct);
-        } else {
-          setError("No se encontraron talles para este producto.");
-        }
+        setProduct(fetchedProduct);
 
         setMainImage(
           Array.isArray(fetchedProduct.photos) &&
@@ -102,55 +98,43 @@ const ProductDetail: React.FC = () => {
 
   const handleQuantityChange = (value: number) => {
     if (value > remainingStock) {
-      Swal.fire({
-        icon: "warning",
-        title: "Por favor, selecciona una cantidad válida.",
-        confirmButtonColor: "#9333ea",
-        timer: 2000,
+      toast.error("Por favor, selecciona una cantidad válida.", {
+        duration: 2000,
       });
       return;
     }
     setQuantity(value);
   };
-
+  
   const handleAddToCart = () => {
     if (!selectedSize) {
-      Swal.fire({
-        icon: "warning",
-        title: "Por favor, selecciona una talla antes de agregar al carrito.",
-        confirmButtonColor: "#9333ea",
-        timer: 2000,
+      toast.error("Por favor, selecciona una talla antes de agregar al carrito.", {
+        duration: 2000,
       });
       return;
     }
     if (!selectedSmallPrint || !selectedLargePrint) {
-      Swal.fire({
-        icon: "warning",
-        title: "Por favor, selecciona un diseño antes de agregar al carrito.",
-        confirmButtonColor: "#9333ea",
-        timer: 2000,
-      });
+      toast.error(
+        "Por favor, selecciona un diseño antes de agregar al carrito.",
+        {
+          duration: 2000,
+        }
+      );
       return;
     }
     if (quantity > remainingStock) {
-      Swal.fire({
-        icon: "warning",
-        title: "Por favor, selecciona una cantidad válida.",
-        confirmButtonColor: "#9333ea",
-        timer: 2000,
+      toast.error("Por favor, selecciona una cantidad válida.", {
+        duration: 2000,
       });
       return;
     }
     if (selectedColor === "") {
-      Swal.fire({
-        icon: "warning",
-        title: "Por favor, selecciona un color antes de agregar al carrito.",
-        confirmButtonColor: "#1d4ed8",
-        timer: 3000,
+      toast.error("Por favor, selecciona un color antes de agregar al carrito.", {
+        duration: 3000,
       });
       return;
     }
-
+  
     const personalizedProduct = {
       product,
       selectedColor,
@@ -160,21 +144,18 @@ const ProductDetail: React.FC = () => {
       quantity,
       totalPrice,
     };
-
+  
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     cart.push(personalizedProduct);
     localStorage.setItem("cart", JSON.stringify(cart));
-
+  
     setRemainingStock((prev) => prev - quantity);
-
+  
     console.log("Producto agregado al carrito:", personalizedProduct);
-    Swal.fire({
-      icon: "success",
-      title: "Producto agregado al carrito",
-      confirmButtonColor: "#1d4ed8",
-      timer: 3000,
+    toast.success("Producto agregado al carrito.", {
+      duration: 3000,
     });
-
+  
     router.push("/Cart");
   };
 
@@ -242,8 +223,8 @@ const ProductDetail: React.FC = () => {
             src={mainImage}
             alt={product.name}
             className="w-[500px] aspect-square mx-auto rounded-xl shadow-md "
-            width={100} 
-            height={100} 
+            width={100}
+            height={100}
           />
           <button
             onClick={handleNextPhoto}
@@ -311,8 +292,8 @@ const ProductDetail: React.FC = () => {
                   src={smallPrint}
                   alt={`Estampa pequeña ${index}`}
                   className="w-20 h-20 object-cover rounded-md"
-                  width={100} 
-                  height={100} 
+                  width={100}
+                  height={100}
                 />
               </button>
             ))}
@@ -341,8 +322,8 @@ const ProductDetail: React.FC = () => {
                   src={largePrint}
                   alt={`Estampa grande ${index}`}
                   className="w-20 h-20 object-cover rounded-md"
-                  width={100} 
-                  height={100} 
+                  width={100}
+                  height={100}
                 />
               </button>
             ))}
