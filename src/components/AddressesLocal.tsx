@@ -97,35 +97,7 @@ const AddressesLocal = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Valida los campos del formulario
-  const validateForm = () => {
-    const formErrors = { ...errors };
-    let isValid = true;
-
-    if (!formData.address) {
-      formErrors.address = "La dirección es obligatoria.";
-      isValid = false;
-    } else {
-      formErrors.address = "";
-    }
-
-    if (!formData.state) {
-      formErrors.state = "La provincia es obligatoria.";
-      isValid = false;
-    } else {
-      formErrors.state = "";
-    }
-
-    if (!formData.city) {
-      formErrors.city = "La ciudad es obligatoria.";
-      isValid = false;
-    } else {
-      formErrors.city = "";
-    }
-
-    setErrors(formErrors);
-    return isValid;
-  };
+ 
 
   // Maneja la acción de guardar la dirección
   const handleSaveAddress = async () => {

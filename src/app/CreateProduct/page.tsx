@@ -2,7 +2,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { useState } from "react";
 import { Product } from "@/interfaces/Product";
-import ProductPreview from "./PreviewProduct/page";
+import { ProductPreview } from "@/components/ProductPreview";
 import { toast } from "react-hot-toast";
 
 const CreateProduct: React.FC = () => {
@@ -10,7 +10,6 @@ const CreateProduct: React.FC = () => {
     register,
     handleSubmit,
     control,
-    formState: {},
     reset,
   } = useForm<Product>();
 
