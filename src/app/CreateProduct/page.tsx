@@ -2,14 +2,14 @@
 import { useForm, Controller } from "react-hook-form";
 import { useState } from "react";
 import { Product } from "@/interfaces/Product";
-import ProductPreview from "@/components/PreviewProduct";
+import { ProductPreview } from "@/components/ProductPreview";
 
 const CreateProduct: React.FC = () => {
   const {
     register,
     handleSubmit,
     control,
-    formState: { },
+    formState: {},
     reset,
   } = useForm<Product>();
 
@@ -23,7 +23,7 @@ const CreateProduct: React.FC = () => {
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [,setPrice] = useState<string[]>([]);
+  const [, setPrice] = useState<string[]>([]);
   const [stock, setStock] = useState<number | null>(null);
   const [sizePriceMapping, setSizePriceMapping] = useState<
     { size: string; price: number }[]
@@ -41,9 +41,9 @@ const CreateProduct: React.FC = () => {
     formData.append("name", data.name);
     formData.append("description", data.description);
     formData.append("prices", JSON.stringify(sizePriceMapping));
-    console.log(sizePriceMapping, "prices")
+    console.log(sizePriceMapping, "prices");
     formData.append("stock", data.stock.toString());
-    formData.append("color", data.color.join(","));  // Convierte el array de colores a una cadena separada por comas
+    formData.append("color", data.color.join(",")); // Convierte el array de colores a una cadena separada por comas
 
     formData.append("category", category);
 
@@ -51,9 +51,9 @@ const CreateProduct: React.FC = () => {
     if (isUniqueSize) {
       allSizes.push("Talle Único");
     }
-    formData.append("size", allSizes.join(","));  // Convierte el array de tamaños a una cadena separada por comas
+    formData.append("size", allSizes.join(",")); // Convierte el array de tamaños a una cadena separada por comas
 
-    console.log("sizes", allSizes)
+    console.log("sizes", allSizes);
 
     photos.forEach((photo) => {
       formData.append("photos", photo);
@@ -304,6 +304,23 @@ const CreateProduct: React.FC = () => {
                 />
               </div>
             ))}
+
+            {isUniqueSize && (
+              <div className="flex items-center space-x-2 mt-2">
+                <span>Talle Único</span>
+                <input
+                  type="number"
+                  placeholder="Precio para Talle Único"
+                  onChange={(e) =>
+                    handleSizePriceChange(
+                      "Talle Único",
+                      parseFloat(e.target.value) || 0
+                    )
+                  }
+                  className="border p-2"
+                />
+              </div>
+            )}
           </div>
 
           <div className="w-1/3">

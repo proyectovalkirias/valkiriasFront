@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
-import ProductPreview from "@/components/PreviewProduct";
+import ProductPreview from "@/components/ProductPreview";
 import Swal from "sweetalert2";
 
 const UpdateProduct: React.FC = () => {
