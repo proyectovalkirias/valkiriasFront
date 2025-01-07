@@ -552,7 +552,6 @@ const CreateProduct: React.FC = () => {
       <ProductPreview
         productName={productName}
         productDescription={productDescription}
-        price={price}
         stock={stock}
         category={category}
         color={color}
