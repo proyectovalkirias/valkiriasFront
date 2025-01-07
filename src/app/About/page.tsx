@@ -7,7 +7,7 @@ const AboutPage: React.FC = () => {
       {/* Hero Section */}
       <div className="flex flex-col md:flex-row h-auto md:h-1/3">
         {/* Left Section */}
-        <div className="bg-pink-300 flex flex-col justify-center items-center overflow-hidden">
+        <div className="bg-custom-purple flex flex-col justify-center items-center overflow-hidden">
           <p className="text-white text-sm md:text-base lg:text-md xl:text-lg text-center max-w-screen-lg overflow-y-auto">
             <br />
             En Valkirias, creemos que tus prendas son una extensión de quién eres, por eso nos 
@@ -30,15 +30,24 @@ const AboutPage: React.FC = () => {
       {/* About Section */}
       <div className="flex flex-col md:flex-row h-auto md:h-2/5">
         {/* Rotated Text */}
-        <div className="bg-pink-200 p-4 flex items-center justify-center md:w-1/4">
+        {/* <div className="bg-pink-200 p-4 flex items-center justify-center md:w-1/4">
           <p className="text-black text-xl md:text-3xl lg:text-3xl font-bold tracking-wider transform md:-rotate-90 text-center">
             SOBRE NOSOTROS
           </p>
+        </div> */}
+         <div className="bg-valkyrie-purple p-4 flex items-center justify-center md:w-1/4">
+          <Image
+            src="/images/valki.png"
+            alt="Valki"
+            className=" object-contain"
+            width={200} 
+            height={200} 
+          />
         </div>
 
         {/* Description */}
         <div className="p-6 md:w-3/4 overflow-auto flex items-center justify-center bg-pink h-full max-w-full">
-          <p className="text-black text-xs md:text-sm lg:text-base xl:text-lg text-center break-words max-h-full">
+          <p className="text-purple-dark text-xs md:text-sm lg:text-base xl:text-lg text-center break-words max-h-full">
           Ofrecemos una amplia variedad de productos básicos, clásicos, sin género para vestir niños y adultos: 
           remeras, buzos canguro, buzos con cuello redondo, tazas y gorras trucker, ideales para cualquier ocasión. 
           Nos gusta que cada diseño sea un reflejo auténtico de lo que amas, ya sea para llevar a tu artista favorito, sorprender con un regalo especial, 
@@ -47,7 +56,7 @@ const AboutPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-pink-200 p-4 flex items-center justify-center md:w-1/4">
+        <div className="bg-valkyrie-purple p-4 flex items-center justify-center md:w-1/4">
           <Image
             src="/images/valkiriaslogo.jpg"
             alt="Logo de Valkirias"
@@ -71,7 +80,7 @@ const AboutPage: React.FC = () => {
         </div>
 
         {/* Goal Text */}
-        <div className="flex-1 bg-purple-400 p-6 flex items-center justify-center overflow-y-auto h-full max-w-full">
+        <div className="flex-1 bg-purple-dark p-6 flex items-center justify-center overflow-y-auto h-full max-w-full">
           <p className="text-white text-xs md:text-sm lg:text-base xl:text-lg text-center break-words max-h-full">
           "Tu creatividad en tus prendas" es nuestro lema, porque queremos que te sientas cómodo 
           y auténtico, sin importar la ocasión.
