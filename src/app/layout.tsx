@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Toaster } from "react-hot-toast"; // Importar Toaster
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import SidebarMini from "@/components/SidebarMini";
