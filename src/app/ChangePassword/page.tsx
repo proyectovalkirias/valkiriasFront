@@ -42,7 +42,9 @@ const ChangePassword: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/auth/change-password?email=${encodeURIComponent(email)}`,
+        `http://localhost:3000/auth/change-password?email=${encodeURIComponent(
+          email
+        )}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -58,7 +60,7 @@ const ChangePassword: React.FC = () => {
 
       toast.success("Contraseña cambiada exitosamente.");
       setTimeout(() => router.push("/Login"), 2000);
-    } catch (error) {
+    } catch {
       toast.error("Hubo un problema al conectar con el servidor.");
     }
   };
@@ -68,7 +70,8 @@ const ChangePassword: React.FC = () => {
       <div className="flex w-full max-w-md rounded-lg bg-[#7b548b] p-8 sm:p-6 md:p-8 lg:p-10">
         <div className="w-full flex flex-col justify-center text-center text-white">
           <h2 className="text-2xl sm:text-3xl font-bold flex items-center justify-center mb-6">
-            Recuperar Contraseña <TbEyeHeart className="ml-2 text-white" size={24} />
+            Recuperar Contraseña{" "}
+            <TbEyeHeart className="ml-2 text-white" size={24} />
           </h2>
           <form className="flex flex-col" onSubmit={handleSubmit}>
             <input

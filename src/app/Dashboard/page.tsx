@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+
 import React, { useEffect, useState } from "react";
 
 // Función para obtener los datos de usuario desde localStorage o desde la API
