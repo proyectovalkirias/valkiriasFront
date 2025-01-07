@@ -1,52 +1,37 @@
-"use client"
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+"use client";
+import { useRouter } from "next/navigation"; 
+import { useEffect } from "react";
+import axios from "axios";
 
 const GoogleAuth = () => {
-  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Verificar si estamos en el cliente antes de ejecutar cualquier código
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isMounted) return; // Solo ejecutar en el cliente
-
     const fetchGoogleAuth = async () => {
-      const { code } = router.query;
+      // Verifica si estamos en el cliente antes de acceder a router.query o localStorage
+      if (typeof window === "undefined") return;
 
-      if (!code) return; // Si no hay código, no hacer nada.
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+
+      if (!code) return;
 
       try {
-        // Realizar la solicitud al backend para obtener el token con el código de autorización
-        const res = await axios.post(
-          'http://localhost:3000/google/redirect', { code }
-        );
-        
+        const res = await axios.post("http://localhost:3000/google/redirect", { code });
         const { token } = res.data;
-        
-        // Guardar el token JWT en el almacenamiento local
-        localStorage.setItem('token', token);
 
-        console.log('Token recibido:', token);
-        
-        // Redirigir a la página principal o dashboard
-        console.log('Redirigiendo a /dashboard...');
-        router.push('/dashboard');
+        localStorage.setItem("token", token);
+        console.log("Token recibido:", token);
+
+        router.push("/Dashboard");
       } catch (error) {
-        console.error('Error during Google authentication', error);
-        router.push('/Login'); // En caso de error, redirigir al login
+        console.error("Error during Google authentication", error);
+        router.push("/Login");
       }
     };
 
-    // Solo ejecutar la autenticación si code está disponible en la query.
-    if (router.query.code) {
-      fetchGoogleAuth();
-    }
-  }, [isMounted, router.query.code]); // Asegurarse de que solo se ejecute en el cliente
+    fetchGoogleAuth();
+  }, [router]);
 
   return <p>Authenticating...</p>;
 };
