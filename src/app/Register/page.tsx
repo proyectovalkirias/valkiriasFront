@@ -14,7 +14,6 @@ const Register: React.FC = () => {
     confirmPassword: "",
   });
 
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter(); // Inicializa useRouter
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,7 +25,6 @@ const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
 
     const { firstName, lastName, email, password, confirmPassword } = formData;
 

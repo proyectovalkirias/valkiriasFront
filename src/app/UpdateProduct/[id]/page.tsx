@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
-import ProductPreview from "@/app/CreateProduct/PreviewProduct/page";
+import { ProductPreview } from "@/components/ProductPreview";
 import toast from "react-hot-toast"; // Importamos react-hot-toast
 
 const UpdateProduct: React.FC = () => {
@@ -12,7 +12,6 @@ const UpdateProduct: React.FC = () => {
     handleSubmit,
     control,
     setValue,
-    formState: { errors },
   } = useForm<Product>();
 
   const [photos, setPhotos] = useState<File[]>([]);
@@ -233,24 +232,6 @@ const UpdateProduct: React.FC = () => {
   if (!productId) {
     return <div>Cargando producto...</div>;
   }
-
-  const handleCancel = () => {
-    const confirmCancel = window.confirm(
-      "¿Estás seguro de que deseas eliminar el producto y restablecer el formulario?"
-    );
-    if (confirmCancel) {
-      // reset();
-      setPhotos([]);
-      setPreviewImages([]);
-      setSmallPrints([]);
-      setLargePrints([]);
-      setKidsSizes([]);
-      setAdultSizes([]);
-      setPrice([]);
-      setStock(null);
-      setCategory("");
-    }
-  };
 
   return (
     <div className="flex w-full bg-[#7b548b] min-h-screen">

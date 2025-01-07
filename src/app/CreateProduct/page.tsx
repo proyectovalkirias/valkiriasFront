@@ -2,7 +2,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { useState } from "react";
 import { Product } from "@/interfaces/Product";
-import ProductPreview from "./PreviewProduct/page";
+import { ProductPreview } from "@/components/ProductPreview";
 import { toast } from "react-hot-toast";
 
 const CreateProduct: React.FC = () => {
@@ -10,7 +10,6 @@ const CreateProduct: React.FC = () => {
     register,
     handleSubmit,
     control,
-    formState: { },
     reset,
   } = useForm<Product>();
 
@@ -24,7 +23,7 @@ const CreateProduct: React.FC = () => {
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [prices, setPrice] = useState<string[]>([]);
+  const [, setPrice] = useState<string[]>([]);
   const [stock, setStock] = useState<number | null>(null);
   const [sizePriceMapping, setSizePriceMapping] = useState<
     { size: string; price: number }[]
@@ -42,20 +41,32 @@ const CreateProduct: React.FC = () => {
     formData.append("name", data.name);
     formData.append("description", data.description);
     formData.append("prices", JSON.stringify(sizePriceMapping));
+    console.log(sizePriceMapping, "prices");
     formData.append("stock", data.stock.toString());
-    formData.append("color", data.color.join(","));
+    formData.append("color", data.color.join(",")); // Convierte el array de colores a una cadena separada por comas
+
     formData.append("category", category);
   
     const allSizes = [...kidsSizes, ...adultSizes];
     if (isUniqueSize) {
       allSizes.push("Talle Único");
     }
-    formData.append("size", allSizes.join(","));
-  
-    photos.forEach((photo) => formData.append("photos", photo));
-    smallPrints.forEach((print) => formData.append("smallPrint", print));
-    largePrints.forEach((print) => formData.append("largePrint", print));
-  
+    formData.append("size", allSizes.join(",")); // Convierte el array de tamaños a una cadena separada por comas
+
+    console.log("sizes", allSizes);
+
+    photos.forEach((photo) => {
+      formData.append("photos", photo);
+    });
+
+    smallPrints.forEach((print) => {
+      formData.append("smallPrint", print);
+    });
+
+    largePrints.forEach((print) => {
+      formData.append("largePrint", print);
+    });
+
     fetch("http://localhost:3000/products", {
       method: "POST",
       body: formData,
@@ -282,19 +293,39 @@ const CreateProduct: React.FC = () => {
         </div>
 
         {/* Precio y Stock */}
-        <div className="flex justify-items-stretch space-x-4 mb-4">
-          <div className="w-1/3">
-            <label htmlFor="price" className="block text-sm font-medium">
-              Precio:
-            </label>
-            <input
-              id="price"
-              type="number"
-              {...register("price", { required: true })}
-              onChange={handleChange}
-              placeholder="Precio"
-              className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
-            />
+        <div className="flex justify-items-stretch space-x-4 mb-4 text-black">
+          <div>
+            <h3>Tallas y Precios:</h3>
+            {[...kidsSizes, ...adultSizes].map((size, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <span>{size}</span>
+                <input
+                  type="number"
+                  placeholder={`Precio para ${size}`}
+                  onChange={(e) =>
+                    handleSizePriceChange(size, parseFloat(e.target.value) || 0)
+                  }
+                  className="border p-2"
+                />
+              </div>
+            ))}
+
+            {isUniqueSize && (
+              <div className="flex items-center space-x-2 mt-2">
+                <span>Talle Único</span>
+                <input
+                  type="number"
+                  placeholder="Precio para Talle Único"
+                  onChange={(e) =>
+                    handleSizePriceChange(
+                      "Talle Único",
+                      parseFloat(e.target.value) || 0
+                    )
+                  }
+                  className="border p-2"
+                />
+              </div>
+            )}
           </div>
 
           <div className="w-1/3">
