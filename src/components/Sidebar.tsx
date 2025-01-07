@@ -123,10 +123,7 @@ const Sidebar: React.FC = () => {
       localStorage.removeItem("user_info");
       localStorage.removeItem("access_token");
 
-
       setUser(null); // Limpiar estado del usuario
-
-
 
       // Redirigir al login
       handleNavigation("/Login");
@@ -292,7 +289,7 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {user && localStorage.getItem("user") && (
+      {user && (
         <>
           {user.isAdmin && (
             <Link href="/Admin">

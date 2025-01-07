@@ -1,7 +1,6 @@
 import Image from "next/image";
 import React from "react";
 
-
 const ProductPreview: React.FC<{
   productName: string;
   productDescription: string;
@@ -100,8 +99,8 @@ const ProductPreview: React.FC<{
                   src={src}
                   alt={`Vista previa ${index + 1}`}
                   className="w-16 h-16 object-cover rounded-md"
-                  width={100} 
-                  height={100} 
+                  width={100}
+                  height={100}
                 />
                 <button
                   onClick={() => onRemoveImage(index)}
@@ -124,8 +123,8 @@ const ProductPreview: React.FC<{
                   src={src}
                   alt={`Estampa pequeña ${index + 1}`}
                   className="w-16 h-16 object-cover rounded-md"
-                  width={100} 
-                  height={100} 
+                  width={100}
+                  height={100}
                 />
                 <button
                   onClick={() => onRemoveSmallPrint(index)} // Elimina imagen de estampa pequeña
@@ -148,8 +147,8 @@ const ProductPreview: React.FC<{
                   src={src}
                   alt={`Estampa grande ${index + 1}`}
                   className="w-16 h-16 object-cover rounded-md"
-                  width={100} 
-                  height={100} 
+                  width={100}
+                  height={100}
                 />
                 <button
                   onClick={() => onRemoveLargePrint(index)} // Elimina imagen de estampa grande
@@ -166,3 +165,4 @@ const ProductPreview: React.FC<{
   );
 };
 
+export default ProductPreview;

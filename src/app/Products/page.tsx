@@ -18,6 +18,10 @@ const colorNameMap: Record<string, string> = {
   "#00ffff": "Cian",
   "#a6a6a6": "Gris",
   "#f5f5ef": "Marfil",
+  "#d80032": "Violeta",
+  "#05299e": "Azul Marino",
+  "#f7e90f": "Amarillo",
+  "#00913f": "Verde Oliva",
 };
 
 const Products: React.FC = () => {
@@ -62,6 +66,7 @@ const Products: React.FC = () => {
         setLoading(true);
         const allProducts = await getProducts();
         setProducts(allProducts);
+        console.log(allProducts);
 
         // Extraer categorías, colores y talles únicos
         const uniqueCategories = Array.from(
@@ -86,6 +91,7 @@ const Products: React.FC = () => {
 
         setCategories(uniqueCategories);
         setColors(uniqueColors);
+
         setSizes(uniqueSizes);
       } catch (err) {
         setError("Error al cargar los productos. Intenta nuevamente. " + err);
@@ -202,7 +208,8 @@ const Products: React.FC = () => {
               <div className="flex flex-wrap gap-4 justify-center items-center">
                 {groupedProducts[category].map((product) => (
                   <Link key={product.id} href={`/Products/${product.id}`}>
-                    <div className="w-64 h-96 rounded   overflow-hidden p-4 bg-white hover:scale-105 ease-in-out shadow-lg">
+                    <div className="w-64 h-96 rounded-xl overflow-hidden p-4 bg-white hover:scale-105 transform transition duration-300 shadow-xl hover:shadow-2xl border border-gray-200">
+                      {/* Imagen */}
                       <Image
                         className="rounded-lg object-cover w-48 h-48 mb-4 mx-auto"
                         src={
@@ -210,17 +217,24 @@ const Products: React.FC = () => {
                             ? product.photos[0]
                             : "/placeholder.png"
                         }
-                        width={100}
-                        height={100}
+                        width={192}
+                        height={192}
                         alt={product.name}
                       />
-                      <h2 className="text-lg font-bold mb-2 text-center text-gray-800 line-clamp-2 ">
+
+                      {/* Nombre del Producto */}
+                      <h2 className="text-lg font-bold mb-2 text-center text-gray-800 line-clamp-2 hover:text-purple-800 transition">
                         {product.name}
                       </h2>
-                      <p className="text-gray-600 text-center line-clamp-2 ">
+
+                      {/* Descripción */}
+                      <p className="text-gray-600 text-center text-sm line-clamp-2">
                         {product.description}
                       </p>
-                      <div className="flex justify-between items-center mt-4 gap-4">
+
+                      {/* Información Adicional */}
+                      <div className="flex justify-between items-center mt-6 gap-4">
+                        {/* Precio */}
                         <p className="text-xl font-bold text-gray-800">
                           Precio: $
                           {Array.isArray(product.prices) &&
@@ -232,7 +246,14 @@ const Products: React.FC = () => {
                               )
                             : "N/A"}
                         </p>
-                        <p className="text-gray-600">Stock: {product.stock}</p>
+                        {/* Stock */}
+                        <p
+                          className={`text-sm font-medium ${
+                            product.stock > 0 ? "text-gray-600" : "text-red-600"
+                          }`}
+                        >
+                          Stock: {product.stock > 0 ? product.stock : "Agotado"}
+                        </p>
                       </div>
                     </div>
                   </Link>
