@@ -151,7 +151,9 @@ const ProductList: React.FC = () => {
                 {product.name}
               </td>
               <td className="border border-gray-300 p-2 text-gray-800">
-                {product.prices[0].price}
+
+                {product.prices[0]?.price}
+
               </td>
               <td className="border border-gray-300 p-2 text-gray-800">
                 {product.stock}

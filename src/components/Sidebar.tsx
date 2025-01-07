@@ -10,6 +10,7 @@ import { HiChevronDown } from "react-icons/hi";
 import { FaShoppingCart } from "react-icons/fa";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import { FaCog } from "react-icons/fa";
 
 // Define la función getUserData
 const getUserData = () => {
@@ -25,9 +26,10 @@ const getUserData = () => {
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
-        isGoogleUser: false,  // Asegura que esté definido como booleano
+        isAdmin: parsedUser.user.isAdmin || false,
+        isGoogleUser: false, // Asegura que esté definido como booleano
       };
-    } 
+    }
     // Si hay un usuario de Google
     else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
@@ -36,7 +38,7 @@ const getUserData = () => {
         lastname: googleUser.family_name || "",
         email: googleUser.email || "",
         photoUrl: googleUser.picture || "/images/Avatar.png",
-        isGoogleUser: true,  // Asegura que esté definido como booleano
+        isGoogleUser: true, // Asegura que esté definido como booleano
         dni: googleUser.dni || null,
         phone: googleUser.phone || null,
       };
@@ -48,7 +50,7 @@ const getUserData = () => {
       lastname: "",
       email: "",
       photoUrl: "/images/Avatar.png",
-      isGoogleUser: false,  // Asegura que esté definido como booleano
+      isGoogleUser: false, // Asegura que esté definido como booleano
     };
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
@@ -57,7 +59,7 @@ const getUserData = () => {
       lastname: "",
       email: "",
       photoUrl: "/images/Avatar.png",
-      isGoogleUser: false,  // Asegura que esté definido como booleano
+      isGoogleUser: false, // Asegura que esté definido como booleano
     }; // Objeto por defecto
   }
 };
@@ -75,12 +77,14 @@ const Sidebar: React.FC = () => {
     isGoogleUser: boolean;
     dni?: string | null;
     phone?: string | null;
+    isAdmin?: boolean;
   } | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const userData = getUserData();
-    setUser(userData);  // Establecer datos del usuario
+
+    setUser(userData); // Establecer datos del usuario
   }, []);
 
   // Función para manejar la navegación
@@ -119,8 +123,10 @@ const Sidebar: React.FC = () => {
       localStorage.removeItem("user_info");
       localStorage.removeItem("access_token");
 
-      // Limpiar estado del usuario
-      setUser(null);
+
+      setUser(null); // Limpiar estado del usuario
+
+
 
       // Redirigir al login
       handleNavigation("/Login");
@@ -132,7 +138,10 @@ const Sidebar: React.FC = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setIsProfileAccordionOpen(false);
       }
@@ -147,7 +156,6 @@ const Sidebar: React.FC = () => {
   const toggleProfileAccordion = () => {
     setIsProfileAccordionOpen(!isProfileAccordionOpen);
   };
-
 
   return (
     <div
@@ -286,6 +294,14 @@ const Sidebar: React.FC = () => {
 
       {user && localStorage.getItem("user") && (
         <>
+          {user.isAdmin && (
+            <Link href="/Admin">
+              <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
+                <FaCog size={24} color="white" />
+                {isOpen && <span>Administrador</span>}
+              </div>
+            </Link>
+          )}
           <Link href="/Cart">
             <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
               <FaShoppingCart size={24} />
