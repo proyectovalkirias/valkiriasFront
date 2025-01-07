@@ -18,7 +18,7 @@ const CreateProduct: React.FC = () => {
   const [smallPrints, setSmallPrints] = useState<File[]>([]);
   const [largePrints, setLargePrints] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isUniqueSize, setIsUniqueSize] = useState<boolean>(false);
+  const [isUniqueSize] = useState<boolean>(false);
   const [kidsSizes, setKidsSizes] = useState<string[]>([]);
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
