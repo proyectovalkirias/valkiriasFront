@@ -343,20 +343,8 @@ const CreateProduct: React.FC = () => {
           </div>
         </div>
 
-        {/* Tamaños */}
+        {/* Tamaños */}  
         <div className="flex space-x-8 mb-4">
-          <div>
-            <label className="block text-sm font-medium">Talle Único:</label>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                value="Unique"
-                onChange={handleUniqueSizeChange}
-                checked={isUniqueSize}
-                className="mr-1"
-              />
-            </div>
-          </div>
           <div>
             <label className="block text-sm font-medium">Talle Niños:</label>
             <div className="flex space-x-2">
@@ -404,15 +392,7 @@ const CreateProduct: React.FC = () => {
               defaultValue={color} // color es ahora un arreglo de strings
               render={({ field }) => (
                 <div className="flex space-x-4">
-                  {[
-                    "#000000",
-                    "#f5f5ef",
-                    "#a6a6a6",
-                    "#d80032",
-                    "#05299e",
-                    "#f7e90f",
-                    "#00913f",
-                  ].map((c) => (
+                  {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
                     <div
                       key={c}
                       onClick={() => {
@@ -462,14 +442,20 @@ const CreateProduct: React.FC = () => {
               <option value="Buzos" className="text-black hover:bg-violet-500">
                 Buzos
               </option>
+              <option value="Gorras" className="text-black hover:bg-violet-500">
+                Gorras
+              </option>
               <option
-                value="Accesorios"
+                value="Gorros de lana"
                 className="text-black hover:bg-violet-500"
               >
-                Accesorios
+                Gorros de Lana
               </option>
-              <option value="Combos" className="text-black hover:bg-violet-500">
-                Combos
+              <option
+                value="Totebags"
+                className="text-black hover:bg-violet-500"
+              >
+                Totebags
               </option>
             </select>
           </div>
@@ -566,6 +552,7 @@ const CreateProduct: React.FC = () => {
       <ProductPreview
         productName={productName}
         productDescription={productDescription}
+        price={price}
         stock={stock}
         category={category}
         color={color}
