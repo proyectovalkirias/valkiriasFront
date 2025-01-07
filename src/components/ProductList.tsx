@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2";
+import { toast } from "react-hot-toast";
 import { Product } from "@/interfaces/Product";
 
 const ProductList: React.FC = () => {
@@ -24,11 +24,7 @@ const ProductList: React.FC = () => {
       setProducts(data);
     } catch (error) {
       console.error("Error al obtener los productos:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Error al obtener los productos.",
-      });
+      toast.error("Error al obtener los productos.");
     } finally {
       setLoading(false);
     }
@@ -36,27 +32,15 @@ const ProductList: React.FC = () => {
 
   const handleDelete = async (productId: string) => {
     if (!productId) {
-      Swal.fire({
-        icon: "warning",
-        title: "ID de producto inválido",
-        text: "Por favor, selecciona un producto válido.",
-        confirmButtonColor: "#9333ea",
-      });
+      toast.error("Por favor, selecciona un producto válido.");
       return;
     }
 
-    const confirmDelete = await Swal.fire({
-      title: "¿Estás seguro?",
-      text: "Esta acción no se puede deshacer.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-    });
+    const confirmation = window.confirm(
+      "¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer."
+    );
 
-    if (!confirmDelete.isConfirmed) return;
+    if (!confirmation) return;
 
     try {
       const response = await fetch(
@@ -70,31 +54,17 @@ const ProductList: React.FC = () => {
         throw new Error("Error al eliminar el producto");
       }
 
-      Swal.fire({
-        icon: "success",
-        title: "Producto eliminado",
-        text: "El producto ha sido eliminado exitosamente.",
-      });
-
+      toast.success("El producto ha sido eliminado exitosamente.");
       setProducts(products.filter((product) => product.id !== productId));
     } catch (error) {
       console.error("Error al eliminar el producto:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Error al eliminar el producto.",
-      });
+      toast.error("Error al eliminar el producto.");
     }
   };
 
   const handleEdit = (productId: string) => {
     if (!productId) {
-      Swal.fire({
-        icon: "warning",
-        title: "ID de producto inválido",
-        text: "Por favor, selecciona un producto válido.",
-        confirmButtonColor: "#9333ea",
-      });
+      toast.error("Por favor, selecciona un producto válido.");
       return;
     }
 

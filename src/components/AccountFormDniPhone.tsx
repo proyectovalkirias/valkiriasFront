@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { toast } from "react-hot-toast";
 
 interface AccountFormDniPhoneProps {
   userId: string;
@@ -18,11 +19,6 @@ interface GoogleUserData {
 
 const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuccess }) => {
   const [formData, setFormData] = useState({
-    dni: "",
-    phone: "",
-  });
-
-  const [errors, setErrors] = useState({
     dni: "",
     phone: "",
   });
@@ -54,41 +50,24 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
       }
     } catch (error) {
       console.error("Error al obtener los datos del usuario:", error);
+      toast.error("Error al cargar los datos del usuario.");
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    if (name === "dni" && !/^\d*$/.test(value)) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        dni: "El DNI debe contener solo números.",
-      }));
-      return;
-    }
-
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
-    }));
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: "",
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newErrors = {
-      dni: formData.dni.trim() === "" ? "El campo N° de DNI es obligatorio" : "",
-      phone: formData.phone.trim() === "" ? "El campo N° de Teléfono es obligatorio" : "",
-    };
-
-    setErrors(newErrors);
-
-    if (Object.values(newErrors).some((error) => error !== "")) {
+    if (!formData.dni.trim() || !formData.phone.trim()) {
+      toast.error("Por favor, completa todos los campos obligatorios.");
       return;
     }
 
@@ -102,24 +81,18 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
       const response = await axios.put(`http://localhost:3000/users/${userId}`, updatedData);
 
       if (response.status === 200) {
-        alert("¡DNI y Teléfono registrados correctamente!");
         onSuccess();
         router.push("/"); // Redirigir a la página de inicio después de guardar
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 400) {
-          const serverErrors = error.response.data.errors || {};
-          setErrors((prevErrors) => ({
-            ...prevErrors,
-            ...serverErrors,
-          }));
-          alert("Por favor, corrige los errores indicados.");
+          toast.error("Por favor, corrige los datos y vuelve a intentarlo.");
         } else {
-          console.error("Error al actualizar DNI y Teléfono:", error.response?.data || error.message);
+          toast.error("Error al guardar los datos. Intenta nuevamente.");
         }
       } else {
-        console.error("Error inesperado:", error);
+        toast.error("Ocurrió un error inesperado. Intenta nuevamente.");
       }
     }
   };
@@ -136,7 +109,7 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
             onChange={handleChange}
             className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
           />
-          {errors.dni && <p className="text-red-500 text-sm">{errors.dni}</p>}
+          {/* Mensaje de error eliminado */}
         </>
       )}
 
@@ -150,16 +123,15 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
           className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
         />
       )}
-      {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
 
       {isGoogleUser && googleUserData && (
         <div className="mb-4">
-          <Image 
-            src={googleUserData.picture} 
-            alt={googleUserData.name} 
+          <Image
+            src={googleUserData.picture}
+            alt={googleUserData.name}
             className="w-16 h-16 rounded-full"
             width={150}
-            height={150} 
+            height={150}
           />
           <p className="text-white">{googleUserData.name}</p>
           <p className="text-white">{googleUserData.email}</p>

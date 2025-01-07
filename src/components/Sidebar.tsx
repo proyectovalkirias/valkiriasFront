@@ -9,7 +9,7 @@ import { FiUser, FiUsers } from "react-icons/fi";
 import { HiChevronDown } from "react-icons/hi";
 import { FaShoppingCart } from "react-icons/fa";
 import Link from "next/link";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify"; // Asegúrate de tener esto importado
 import { FaCog } from "react-icons/fa";
 
 // Define la función getUserData
@@ -83,7 +83,6 @@ const Sidebar: React.FC = () => {
 
   useEffect(() => {
     const userData = getUserData();
-
     setUser(userData); // Establecer datos del usuario
   }, []);
 
@@ -123,10 +122,10 @@ const Sidebar: React.FC = () => {
       localStorage.removeItem("user_info");
       localStorage.removeItem("access_token");
 
-
       setUser(null); // Limpiar estado del usuario
 
-
+      // Mostrar alerta de cierre de sesión
+      toast.success("Sesión cerrada correctamente");
 
       // Redirigir al login
       handleNavigation("/Login");
@@ -223,7 +222,6 @@ const Sidebar: React.FC = () => {
 
               {isProfileAccordionOpen && (
                 <ul className="ml-8">
-                  {/* Oculta Configuración si el usuario se registró con Google */}
                   {!localStorage.getItem("user_info") && (
                     <li
                       className="py-1 hover:bg-gray-700 cursor-pointer"
@@ -232,7 +230,6 @@ const Sidebar: React.FC = () => {
                       Configuración
                     </li>
                   )}
-                  {/* Botón "Agregar Información" solo para usuarios de Google */}
                   {user.isGoogleUser && (!user.dni || !user.phone) && (
                     <li
                       className="py-1 hover:bg-gray-700 cursor-pointer"
@@ -316,15 +313,12 @@ const Sidebar: React.FC = () => {
               style={{
                 width: isOpen ? "48px" : "32px",
                 height: isOpen ? "48px" : "32px",
-                objectFit: "cover",
               }}
             />
             {isOpen && (
-              <div className="text-sm">
-                <p className="font-semibold">
-                  {user.firstname} {user.lastname}
-                </p>
-                <p className="text-gray-300 text-xs">{user.email}</p>
+              <div className="flex flex-col">
+                <span className="font-medium">{user.firstname} {user.lastname}</span>
+                <span className="text-sm">{user.email}</span>
               </div>
             )}
           </div>

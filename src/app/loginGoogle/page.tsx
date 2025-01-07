@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+
 interface UserInfo {
   picture: string;
   name: string;
@@ -10,6 +11,7 @@ interface UserInfo {
 
 const Landingoogle: React.FC = () => {
   const router = useRouter();
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
@@ -63,6 +65,7 @@ const Landingoogle: React.FC = () => {
       const userInfo: UserInfo = await response.json();
       localStorage.setItem("user_info", JSON.stringify(userInfo));
       showToast(userInfo);
+      toast.success("¡Inicio de sesión exitoso!");  // Alerta de éxito al loguearse
       router.push("/");
     } catch (error) {
       console.error("Error fetching user info:", error);
