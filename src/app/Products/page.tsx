@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-
 import { Product } from "@/interfaces/Product";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 const colorNameMap: Record<string, string> = {
@@ -24,10 +22,12 @@ const colorNameMap: Record<string, string> = {
   "#00913f": "Verde Oliva",
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || `http://localhost:3000`;
+
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [, setLoading] = useState(true);
-  const [, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Estados para filtros
   const [categories, setCategories] = useState<string[]>([]);
@@ -38,51 +38,20 @@ const Products: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  const searchParams = useSearchParams();
-  const category = searchParams.get("category");
-
-  // Orden de referencia para talles
-  const sizeOrder = [
-    "XS",
-    "S",
-    "M",
-    "L",
-    "XL",
-    "XXL",
-    "XXXL",
-    "4",
-    "6",
-    "8",
-    "10",
-    "12",
-    "14",
-    "16",
-  ];
-
   // Obtener todos los productos y opciones de filtrado
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        async function getProducts(): Promise<Product[]> {
-          try {
-            const res = await fetch(`http://localhost:3000/products`, {
-              cache: "no-cache",
-              next: { revalidate: 1500 },
-            });
-            if (!res.ok) {
-              throw new Error(`Failed to fetch products: ${res.statusText}`);
-            }
-            return (await res.json()) as Product[];
-          } catch (error) {
-            throw new Error(
-              `Error fetching products: ${(error as Error).message}`
-            );
-          }
+        const res = await fetch(`${API_URL}/products`, {
+          cache: "no-cache",
+        });
+        if (!res.ok) {
+          console.log(res);
+          throw new Error(`Failed to fetch products: ${res.statusText}`);
         }
-        const allProducts = await getProducts();
+        const allProducts = (await res.json()) as Product[];
         setProducts(allProducts);
-        console.log(allProducts);
 
         // Extraer categorías, colores y talles únicos
         const uniqueCategories = Array.from(
@@ -103,11 +72,10 @@ const Products: React.FC = () => {
               .filter(Boolean)
               .map((size) => size.replace(/"|\[|\]/g, ""))
           )
-        ).sort((a, b) => sizeOrder.indexOf(a) - sizeOrder.indexOf(b));
+        );
 
         setCategories(uniqueCategories);
         setColors(uniqueColors);
-
         setSizes(uniqueSizes);
       } catch (err) {
         setError("Error al cargar los productos. Intenta nuevamente. " + err);
@@ -118,13 +86,6 @@ const Products: React.FC = () => {
 
     fetchProducts();
   }, []);
-
-  // Establecer el filtro de categoría si viene de la URL
-  useEffect(() => {
-    if (category) {
-      setSelectedCategory(category);
-    }
-  }, [category]);
 
   // Filtrar productos según los filtros seleccionados
   const filteredProducts = products.filter((product) => {
@@ -160,6 +121,18 @@ const Products: React.FC = () => {
     },
     {}
   );
+
+  if (error) {
+    return <div className="text-center text-red-600">{error}</div>;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="w-16 h-16 border-4 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#7b548b] min-h-screen p-8">
