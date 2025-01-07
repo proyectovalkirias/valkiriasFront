@@ -118,15 +118,21 @@ const Sidebar: React.FC = () => {
         }
       }
 
+      // Limpiar datos locales
       localStorage.removeItem("user");
       localStorage.removeItem("user_info");
       localStorage.removeItem("access_token");
 
+
       setUser(null); // Limpiar estado del usuario
 
+
+
+      // Redirigir al login
       handleNavigation("/Login");
     } catch (error) {
-      toast.error("Ocurrió un error al cerrar sesión" + error);
+      console.error("Error durante el logout:", error);
+      toast.error("Ocurrió un error al cerrar sesión");
     }
   };
 
@@ -286,7 +292,7 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {user && (
+      {user && localStorage.getItem("user") && (
         <>
           {user.isAdmin && (
             <Link href="/Admin">
