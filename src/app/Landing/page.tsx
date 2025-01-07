@@ -1,12 +1,20 @@
 "use client"
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const GoogleAuth = () => {
+  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    // Verificar si estamos en el cliente antes de ejecutar cualquier código
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return; // Solo ejecutar en el cliente
+
     const fetchGoogleAuth = async () => {
       const { code } = router.query;
 
@@ -34,11 +42,11 @@ const GoogleAuth = () => {
       }
     };
 
-    // Solo ejecutar la autenticación si `code` está disponible en la query.
+    // Solo ejecutar la autenticación si code está disponible en la query.
     if (router.query.code) {
       fetchGoogleAuth();
     }
-  }, [router.query.code]); // Dependencia solo en `router.query.code`
+  }, [isMounted, router.query.code]); // Asegurarse de que solo se ejecute en el cliente
 
   return <p>Authenticating...</p>;
 };
