@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { TbEyeHeart } from "react-icons/tb";
+import { toast } from "react-hot-toast";
 
 const ChangePassword: React.FC = () => {
   const router = useRouter();
@@ -10,8 +11,6 @@ const ChangePassword: React.FC = () => {
     newPassword: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,27 +18,25 @@ const ChangePassword: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
     const { email, newPassword, confirmPassword } = formData;
 
     // Validar campos obligatorios
     if (!email || !newPassword || !confirmPassword) {
-      setError("Todos los campos son obligatorios.");
+      toast.error("Todos los campos son obligatorios.");
       return;
     }
 
     // Validar formato del email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError("Por favor ingresa un email válido.");
+      toast.error("Por favor ingresa un email válido.");
       return;
     }
 
     // Validar coincidencia de contraseñas
     if (newPassword !== confirmPassword) {
-      setError("Las contraseñas no coinciden.");
+      toast.error("Las contraseñas no coinciden.");
       return;
     }
 
@@ -55,14 +52,14 @@ const ChangePassword: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        setError(errorData.message || "Error al cambiar la contraseña.");
+        toast.error(errorData.message || "Error al cambiar la contraseña.");
         return;
       }
 
-      setSuccess("Contraseña cambiada exitosamente.");
-      setTimeout(() => router.push("/Login"), 2000); 
+      toast.success("Contraseña cambiada exitosamente.");
+      setTimeout(() => router.push("/Login"), 2000);
     } catch (error) {
-      setError("Hubo un problema al conectar con el servidor." + error);
+      toast.error("Hubo un problema al conectar con el servidor.");
     }
   };
 
@@ -98,8 +95,6 @@ const ChangePassword: React.FC = () => {
               onChange={handleChange}
               className="mb-6 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
             />
-            {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
-            {success && <p className="mt-4 text-sm text-green-500">{success}</p>}
             <button
               type="submit"
               className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
@@ -111,6 +106,6 @@ const ChangePassword: React.FC = () => {
       </div>
     </div>
   );
-};  
+};
 
 export default ChangePassword;

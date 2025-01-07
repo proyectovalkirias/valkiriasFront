@@ -5,6 +5,8 @@ import axios from "axios";
 import Link from "next/link";
 import ProductList from "@/components/ProductList";
 import { User } from "@/interfaces/User";
+import { toast } from "react-hot-toast"; // Importa toast
+
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
@@ -36,6 +38,7 @@ const Admin = () => {
       setFilteredUsers(response.data);
     } catch (error) {
       console.error("Error fetching users:", error);
+      toast.error("Error al obtener los usuarios"); // Notificación de error
     }
   };
 
@@ -46,8 +49,10 @@ const Admin = () => {
         : `http://localhost:3000/users/${id}/deactivate`;
       await axios.put(url);
       fetchUsers();
+      toast.success(activate ? "Usuario activado con éxito" : "Usuario desactivado con éxito"); // Notificación de éxito
     } catch (error) {
       console.error("Error updating user status:", error);
+      toast.error("Error al actualizar el estado del usuario"); // Notificación de error
     }
   };
 

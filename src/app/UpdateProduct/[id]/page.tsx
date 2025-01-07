@@ -3,8 +3,8 @@ import { useForm, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
-import ProductPreview from "@/components/ProductPreview";
-import Swal from "sweetalert2";
+import ProductPreview from "@/app/CreateProduct/PreviewProduct/page";
+import toast from "react-hot-toast"; // Importamos react-hot-toast
 
 const UpdateProduct: React.FC = () => {
   const {
@@ -55,11 +55,7 @@ const UpdateProduct: React.FC = () => {
       prefillForm(data);
     } catch (error) {
       console.error("Error fetching product:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Error fetching product",
-      });
+      toast.error("Error al obtener el producto");
     }
   };
 
@@ -119,22 +115,15 @@ const UpdateProduct: React.FC = () => {
       );
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Error updating product",
-        });
+        toast.error("Error al actualizar el producto");
         throw new Error("Error updating product");
       }
 
-      Swal.fire({
-        icon: "success",
-        title: "Producto actualizado",
-        text: "El producto ha sido actualizado exitosamente",
-      });
+      toast.success("Producto actualizado exitosamente");
       router.push("/Admin");
     } catch (error) {
       console.error("Error updating product:", error);
+      toast.error("Error al actualizar el producto");
     } finally {
       setLoading(false);
     }
