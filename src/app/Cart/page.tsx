@@ -146,53 +146,73 @@ const Cart: React.FC = () => {
               key={item.id || `cart-item-${index}`}
               className="p-4 bg-white rounded-lg shadow-md flex flex-col md:flex-row items-center md:items-start gap-6"
             >
-              <div className="flex-shrink-0">
-                <img
-                  src={item.product?.photos?.[0] || "/placeholder.png"}
-                  alt={`Imagen de ${item.name}`}
-                  className="w-32 h-32 rounded"
-                />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold mb-2">{item.name}</h2>
-                <p className="text-sm text-gray-700 mb-1">
-                  <strong>Tamaño:</strong> {item.selectedSize}
-                </p>
-                <p className="text-sm text-gray-700 mb-1">
-                  <strong>Color:</strong> {colorNameMap[item.selectedColor]}
-                </p>
-                <div className="flex items-center gap-4 mb-2">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      <strong>Estampado pequeño:</strong>
-                    </p>
-                    <Image
-                      src={item.selectedSmallPrint || "/placeholder.png"}
-                      alt={`Estampado pequeño de ${item.name}`}
-                      className="w-16 h-16 object-cover rounded"
-                      width={100}
-                      height={100}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      <strong>Estampado grande:</strong>
-                    </p>
-                    <Image
-                      src={item.selectedLargePrint || "/placeholder.png"}
-                      alt={`Estampado grande de ${item.name}`}
-                      className="w-16 h-16 object-cover rounded"
-                      width={100}
-                      height={100}
-                    />
-                  </div>
+              {item.product?.photos?.[0] && (
+                <div className="flex-shrink-0">
+                  <img
+                    src={item.product.photos[0]}
+                    alt={`Imagen de ${item.name || "producto"}`}
+                    className="w-32 h-32 rounded"
+                  />
                 </div>
-                <p className="text-sm text-gray-700 mb-1">
-                  <strong>Cantidad:</strong> {item.quantity}
-                </p>
-                <p className="text-lg font-bold text-gray-900">
-                  Total: ${item.totalPrice}
-                </p>
+              )}
+              <div className="flex-1">
+                {item.name && (
+                  <h2 className="text-xl font-bold mb-2">{item.name}</h2>
+                )}
+                {item.selectedSize && (
+                  <p className="text-sm text-gray-700 mb-1">
+                    <strong>Tamaño:</strong> {item.selectedSize}
+                  </p>
+                )}
+                {item.selectedColor && colorNameMap[item.selectedColor] && (
+                  <p className="text-sm text-gray-700 mb-1">
+                    <strong>Color:</strong> {colorNameMap[item.selectedColor]}
+                  </p>
+                )}
+                {(item.selectedSmallPrint || item.selectedLargePrint) && (
+                  <div className="flex items-center gap-4 mb-2">
+                    {item.selectedSmallPrint && (
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          <strong>Estampado pequeño:</strong>
+                        </p>
+                        <Image
+                          src={item.selectedSmallPrint}
+                          alt={`Estampado pequeño de ${
+                            item.name || "producto"
+                          }`}
+                          className="w-16 h-16 object-cover rounded"
+                          width={100}
+                          height={100}
+                        />
+                      </div>
+                    )}
+                    {item.selectedLargePrint && (
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          <strong>Estampado grande:</strong>
+                        </p>
+                        <Image
+                          src={item.selectedLargePrint}
+                          alt={`Estampado grande de ${item.name || "producto"}`}
+                          className="w-16 h-16 object-cover rounded"
+                          width={100}
+                          height={100}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+                {item.quantity && (
+                  <p className="text-sm text-gray-700 mb-1">
+                    <strong>Cantidad:</strong> {item.quantity}
+                  </p>
+                )}
+                {item.totalPrice && (
+                  <p className="text-lg font-bold text-gray-900">
+                    Total: ${item.totalPrice}
+                  </p>
+                )}
               </div>
               <div>
                 <button
