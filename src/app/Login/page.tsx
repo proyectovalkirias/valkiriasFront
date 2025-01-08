@@ -30,7 +30,7 @@ const Login: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const response = await fetch("https://valkiriasback.onrender.com/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +61,7 @@ const Login: React.FC = () => {
   const handleGoogleLogin2 = () => {
     const clientID =
       "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
-    const redirectURI = "http://localhost:3001/Logingoogle";
+    const redirectURI = "https://valkiriasfront.onrender.com/Logingoogle";
     const scope = "openid profile email";
     const responseType = "code";
 
@@ -84,7 +84,7 @@ const Login: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/auth/${encodeURIComponent(formData.email)}`,
+        `https://valkiriasback.onrender.com/auth/${encodeURIComponent(formData.email)}`,
         {
           method: "GET",
         }

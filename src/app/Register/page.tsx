@@ -14,7 +14,6 @@ const Register: React.FC = () => {
     confirmPassword: "",
   });
 
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter(); // Inicializa useRouter
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,7 +25,6 @@ const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
 
     const { firstName, lastName, email, password, confirmPassword } = formData;
 
@@ -45,7 +43,7 @@ const Register: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/auth/signup", {
+      const response = await fetch("https://valkiriasback.onrender.com/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

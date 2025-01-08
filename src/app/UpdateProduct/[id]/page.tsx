@@ -8,13 +8,7 @@ import toast from "react-hot-toast"; // Importamos react-hot-toast
 import ProductPreview from "@/components/ProductPreview";
 
 const UpdateProduct: React.FC = () => {
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-    formState: { errors },
-  } = useForm<Product>();
+  const { register, handleSubmit, control, setValue } = useForm<Product>();
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -48,7 +42,9 @@ const UpdateProduct: React.FC = () => {
 
   const fetchProduct = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/products/${id}`);
+      const response = await fetch(
+        `https://valkiriasback.onrender.com/products/${id}`
+      );
       if (!response.ok) {
         throw new Error("Error fetching product");
       }
@@ -234,24 +230,6 @@ const UpdateProduct: React.FC = () => {
   if (!productId) {
     return <div>Cargando producto...</div>;
   }
-
-  const handleCancel = () => {
-    const confirmCancel = window.confirm(
-      "¿Estás seguro de que deseas eliminar el producto y restablecer el formulario?"
-    );
-    if (confirmCancel) {
-      // reset();
-      setPhotos([]);
-      setPreviewImages([]);
-      setSmallPrints([]);
-      setLargePrints([]);
-      setKidsSizes([]);
-      setAdultSizes([]);
-      setPrice([]);
-      setStock(null);
-      setCategory("");
-    }
-  };
 
   return (
     <div className="flex w-full bg-[#7b548b] min-h-screen">

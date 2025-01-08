@@ -10,7 +10,6 @@ const CreateProduct: React.FC = () => {
     register,
     handleSubmit,
     control,
-    formState: {},
     reset,
   } = useForm<Product>();
 
@@ -19,7 +18,7 @@ const CreateProduct: React.FC = () => {
   const [smallPrints, setSmallPrints] = useState<File[]>([]);
   const [largePrints, setLargePrints] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isUniqueSize, setIsUniqueSize] = useState<boolean>(false);
+  const [isUniqueSize] = useState<boolean>(false);
   const [kidsSizes, setKidsSizes] = useState<string[]>([]);
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
@@ -68,7 +67,7 @@ const CreateProduct: React.FC = () => {
       formData.append("largePrint", print);
     });
 
-    fetch("http://localhost:3000/products", {
+    fetch("https://valkiriasback.onrender.com/products", {
       method: "POST",
       body: formData,
     })
@@ -183,10 +182,6 @@ const CreateProduct: React.FC = () => {
   const handleRemoveLargePrint = (index: number) => {
     setLargePrints((prev) => prev.filter((_, i) => i !== index));
     setLargePrintsPreview((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleUniqueSizeChange = () => {
-    setIsUniqueSize(!isUniqueSize);
   };
 
   const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
@@ -344,20 +339,8 @@ const CreateProduct: React.FC = () => {
           </div>
         </div>
 
-        {/* Tamaños */}
+        {/* Tamaños */}  
         <div className="flex space-x-8 mb-4">
-          <div>
-            <label className="block text-sm font-medium">Talle Único:</label>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                value="Unique"
-                onChange={handleUniqueSizeChange}
-                checked={isUniqueSize}
-                className="mr-1"
-              />
-            </div>
-          </div>
           <div>
             <label className="block text-sm font-medium">Talle Niños:</label>
             <div className="flex space-x-2">
@@ -405,15 +388,7 @@ const CreateProduct: React.FC = () => {
               defaultValue={color} // color es ahora un arreglo de strings
               render={({ field }) => (
                 <div className="flex space-x-4">
-                  {[
-                    "#000000",
-                    "#f5f5ef",
-                    "#a6a6a6",
-                    "#d80032",
-                    "#05299e",
-                    "#f7e90f",
-                    "#00913f",
-                  ].map((c) => (
+                  {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
                     <div
                       key={c}
                       onClick={() => {
@@ -463,14 +438,20 @@ const CreateProduct: React.FC = () => {
               <option value="Buzos" className="text-black hover:bg-violet-500">
                 Buzos
               </option>
+              <option value="Gorras" className="text-black hover:bg-violet-500">
+                Gorras
+              </option>
               <option
-                value="Accesorios"
+                value="Gorros de lana"
                 className="text-black hover:bg-violet-500"
               >
-                Accesorios
+                Gorros de Lana
               </option>
-              <option value="Combos" className="text-black hover:bg-violet-500">
-                Combos
+              <option
+                value="Totebags"
+                className="text-black hover:bg-violet-500"
+              >
+                Totebags
               </option>
             </select>
           </div>

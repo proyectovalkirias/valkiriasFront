@@ -232,6 +232,9 @@ const ProductDetail: React.FC = () => {
             className="h-[500px] w-auto mx-auto rounded-xl shadow-md object-contain"
             width={500}
             height={500}
+            className="w-[500px] aspect-square mx-auto rounded-xl shadow-md"
+            width={100}
+            height={100}
           />
           <button
             onClick={() => handlePhotoChange("next")}

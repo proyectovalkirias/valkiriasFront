@@ -91,7 +91,7 @@ const Cart: React.FC = () => {
       }));
 
       const response = await axios.post(
-        "http://localhost:3001/payment/create",
+        "https://valkiriasback.onrender.com/payment/create",
         products
       );
 

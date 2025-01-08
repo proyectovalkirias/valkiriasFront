@@ -19,11 +19,6 @@ const AddressesLocal = () => {
     city: "",
     state: "",
   });
-  const [errors, setErrors] = useState({
-    address: "",
-    city: "",
-    state: "",
-  });
   const [showForm, setShowForm] = useState(false);
 
   // Verifica el tipo de usuario (local o Google) y obtiene datos
@@ -63,7 +58,7 @@ const AddressesLocal = () => {
     if (user?.type === "local" && user.id) {
       try {
         // Eliminar la dirección de la base de datos
-        await axios.put(`http://localhost:3000/users/${user.id}`, {
+        await axios.put(`https://valkiriasback.onrender.com/users/${user.id}`, {
           address: "", city: "", state: ""
         });
 
@@ -97,98 +92,67 @@ const AddressesLocal = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Valida los campos del formulario
-  const validateForm = () => {
-    const formErrors = { ...errors };
-    let isValid = true;
-
-    if (!formData.address) {
-      formErrors.address = "La dirección es obligatoria.";
-      isValid = false;
-    } else {
-      formErrors.address = "";
-    }
-
-    if (!formData.state) {
-      formErrors.state = "La provincia es obligatoria.";
-      isValid = false;
-    } else {
-      formErrors.state = "";
-    }
-
-    if (!formData.city) {
-      formErrors.city = "La ciudad es obligatoria.";
-      isValid = false;
-    } else {
-      formErrors.city = "";
-    }
-
-    setErrors(formErrors);
-    return isValid;
-  };
-
   // Maneja la acción de guardar la dirección
   const handleSaveAddress = async () => {
+    // Validación de campos
     const newErrors = {
       address: formData.address.trim() === "" ? "El campo Dirección es obligatorio" : "",
       city: formData.city.trim() === "" ? "El campo Ciudad es obligatorio" : "",
       state: formData.state.trim() === "" ? "El campo Provincia es obligatorio" : "",
     };
 
-    // Filtrar los errores que no están vacíos
+    // Si hay errores, mostramos el primer error y evitamos continuar
     const errorsArray = Object.values(newErrors).filter((error) => error !== "");
 
-    // Mostrar notificaciones de Toast en lugar de errores en rojo
-    if (errorsArray.length > 1) {
-      toast.error("Todos los campos son obligatorios.");
-    } else if (errorsArray.length === 1) {
-      toast.error(errorsArray[0]);
-    } else {
-      const user = getUserData();
+    if (errorsArray.length > 0) {
+      toast.error(errorsArray[0]); // Mostramos el primer error
+      return;
+    }
 
-      if (user?.type === "local") {
-        const updatedUser = {
-          ...user,
+    const user = getUserData();
+
+    if (user?.type === "local") {
+      const updatedUser = {
+        ...user,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+      };
+
+      try {
+        // Guardar dirección en la base de datos
+        await axios.put(`http://localhost:3000/users/${user.id}`, {
           address: formData.address,
           city: formData.city,
           state: formData.state,
-        };
+        });
 
-        try {
-          // Guardar dirección en la base de datos
-          await axios.put(`http://localhost:3000/users/${user.id}`, {
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-          });
+        // Guardar en el localStorage
+        localStorage.setItem("user", JSON.stringify({ user: updatedUser }));
+        setAddressData(updatedUser);
+        setShowForm(false);
+        toast.success("¡Dirección guardada correctamente!"); // Mensaje de éxito
+      } catch (error) {
+        console.error("Error al guardar dirección:", error);
+        toast.error("Hubo un problema al guardar la dirección. Intenta nuevamente."); // Mensaje de error
+      }
+    } else if (user?.type === "google") {
+      const updatedGoogleUser = {
+        ...user,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+      };
 
-          // Guardar en el localStorage
-          localStorage.setItem("user", JSON.stringify({ user: updatedUser }));
-          setAddressData(updatedUser);
-          setShowForm(false);
-          toast.success("¡Dirección guardada correctamente!"); // Mensaje de éxito
-        } catch (error) {
-          console.error("Error al guardar dirección:", error);
-          toast.error("Hubo un problema al guardar la dirección. Intenta nuevamente."); // Mensaje de error
-        }
-      } else if (user?.type === "google") {
-        const updatedGoogleUser = {
-          ...user,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-        };
-
-        try {
-          // Guardar dirección en el localStorage para usuarios de Google
-          localStorage.setItem("user_info", JSON.stringify(updatedGoogleUser));
-          setAddressData(updatedGoogleUser);
-          setShowForm(false);
-          toast.success("¡Dirección guardada correctamente!"); // Mensaje de éxito
-        } catch (error) {
-          console.error("Error al guardar dirección para Google:", error);
-          toast.error("Hubo un problema al guardar la dirección. Intenta nuevamente."); // Mensaje de error
-        }
+      try {
+        // Guardar dirección en el localStorage para usuarios de Google
+        localStorage.setItem("user_info", JSON.stringify(updatedGoogleUser));
+        setAddressData(updatedGoogleUser);
+        setShowForm(false);
+        toast.success("¡Dirección guardada correctamente!"); // Mensaje de éxito
+      } catch (error) {
+        console.error("Error al guardar dirección para Google:", error);
+        toast.error("Hubo un problema al guardar la dirección. Intenta nuevamente."); // Mensaje de error
       }
     }
   };
@@ -263,7 +227,6 @@ const AddressesLocal = () => {
                 onChange={handleInputChange}
                 className="w-full p-2 border-b-2 border-purple-500 bg-transparent outline-none text-purple-900"
               />
-              {errors.address && <p className="text-red-500 text-sm">{errors.address}</p>}
               <input
                 type="text"
                 name="state"
@@ -272,7 +235,6 @@ const AddressesLocal = () => {
                 onChange={handleInputChange}
                 className="w-full p-2 border-b-2 border-purple-500 bg-transparent outline-none text-purple-900"
               />
-              {errors.state && <p className="text-red-500 text-sm">{errors.state}</p>}
               <input
                 type="text"
                 name="city"
@@ -281,7 +243,6 @@ const AddressesLocal = () => {
                 onChange={handleInputChange}
                 className="w-full p-2 border-b-2 border-purple-500 bg-transparent outline-none text-purple-900"
               />
-              {errors.city && <p className="text-red-500 text-sm">{errors.city}</p>}
             </div>
             <button
               onClick={handleSaveAddress}

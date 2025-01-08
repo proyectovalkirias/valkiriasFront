@@ -113,6 +113,10 @@ const Sidebar: React.FC = () => {
         if (response.ok) {
           toast.success("Sesión cerrada correctamente en Google");
         } else {
+          console.error(
+            "Error al revocar el token de Google:",
+            response.statusText
+          );
           toast.error("No se pudo cerrar sesión en Google correctamente");
         }
       }
@@ -122,10 +126,8 @@ const Sidebar: React.FC = () => {
       localStorage.removeItem("user_info");
       localStorage.removeItem("access_token");
 
-      setUser(null); // Limpiar estado del usuario
-
-      // Mostrar alerta de cierre de sesión
-      toast.success("Sesión cerrada correctamente");
+      // Limpiar estado del usuario
+      setUser(null);
 
       // Redirigir al login
       handleNavigation("/Login");
