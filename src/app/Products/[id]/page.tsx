@@ -80,23 +80,6 @@ const ProductDetail: React.FC = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        async function getProducts(): Promise<Product[]> {
-          try {
-            const res = await fetch(`${API_URL || LOCAL_URL}products`, {
-
-              cache: "no-cache",
-              next: { revalidate: 1500 },
-            });
-            if (!res.ok) {
-              throw new Error(`Failed to fetch products: ${res.statusText}`);
-            }
-            return (await res.json()) as Product[];
-          } catch (error) {
-            throw new Error(
-              `Error fetching products: ${(error as Error).message}`
-            );
-          }
-        }
         async function getProductById(id: string): Promise<Product> {
           try {
             const response = await fetch(
