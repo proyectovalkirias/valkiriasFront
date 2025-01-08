@@ -83,6 +83,7 @@ const ProductDetail: React.FC = () => {
         async function getProducts(): Promise<Product[]> {
           try {
             const res = await fetch(`${API_URL || LOCAL_URL}products`, {
+
               cache: "no-cache",
               next: { revalidate: 1500 },
             });
