@@ -29,7 +29,35 @@ const HomeSection7 = () => {
           <li>Asesoramiento personalizado para cada una de tus consultas.</li>
           <li>Apoyamos los pagos sin contacto y el pago en efectivo.</li>
         </ul>
-        <div className="sm:mb-16"></div>
+        <div className="flex justify-between items-center">
+          {/* Columna izquierda */}
+          <div className="flex flex-col items-start text-left space-y-2 gap-2 ">
+            <p className="text-black text-lg">Contacto:</p>
+            <p className="text-black text-lg">+54 9 11 3313-2418</p>
+            <p className="text-lg">
+              <a
+                href="mailto:valkirias.personalizados@gmail.com"
+                className="text-black hover:underline"
+                aria-label="Enviar un correo a Valkirias"
+              >
+                valkirias.personalizados@gmail.com
+              </a>
+            </p>
+            <p className="text-lg text-black">Buenos Aires, Argentina</p>
+          </div>
+
+          {/* Columna derecha */}
+          <div className=" ">
+            <Image
+              src="/images/qrvalkiria.jpg"
+              alt="QR Code Valkirias"
+              width={100}
+              height={100}
+              className="shadow-md ml-4"
+              priority
+            />
+          </div>
+        </div>
       </div>
     </section>
   );

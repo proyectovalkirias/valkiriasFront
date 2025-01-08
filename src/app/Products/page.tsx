@@ -22,7 +22,9 @@ const colorNameMap: Record<string, string> = {
   "#00913f": "Verde Oliva",
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+const LOCAL_URL = process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -43,7 +45,7 @@ const Products: React.FC = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/products`, {
+        const res = await fetch(`${API_URL || LOCAL_URL}products`, {
           cache: "no-cache",
         });
         if (!res.ok) {

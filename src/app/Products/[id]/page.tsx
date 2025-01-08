@@ -67,20 +67,23 @@ const ProductDetail: React.FC = () => {
   const [remainingStock, setRemainingStock] = useState<number>(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
 
-
   useEffect(() => {
     if (!productId) {
       setError("El ID del producto no es válido.");
       setLoading(false);
       return;
     }
-
+    const API_URL =
+      process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+    const LOCAL_URL =
+      process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
     const fetchProduct = async () => {
       try {
         setLoading(true);
         async function getProducts(): Promise<Product[]> {
           try {
-            const res = await fetch(`http://localhost:3000/products`, {
+            const res = await fetch(`${API_URL || LOCAL_URL}products`, {
+
               cache: "no-cache",
               next: { revalidate: 1500 },
             });
@@ -96,14 +99,18 @@ const ProductDetail: React.FC = () => {
         }
         async function getProductById(id: string): Promise<Product> {
           try {
-            const products: Product[] = await getProducts();
-            const productFiltered = products.find(
-              (product) => product.id.toString() === id
+            const response = await fetch(
+              `${API_URL || LOCAL_URL}products/${id}`
             );
-            if (!productFiltered) throw new Error("Product not found");
-            return productFiltered;
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const product: Product = await response.json();
+            return product;
           } catch (error) {
-            throw new Error(`Error obtaining the product: ${error}`);
+            throw new Error(
+              `Error obtaining the product: ${(error as Error).message}`
+            );
           }
         }
         const fetchedProduct = await getProductById(productId);

@@ -291,7 +291,7 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {user && localStorage.getItem("user") && (
+      {user && (
         <>
           {user.isAdmin && (
             <Link href="/Admin">
@@ -319,7 +319,9 @@ const Sidebar: React.FC = () => {
             />
             {isOpen && (
               <div className="flex flex-col">
-                <span className="font-medium">{user.firstname} {user.lastname}</span>
+                <span className="font-medium">
+                  {user.firstname} {user.lastname}
+                </span>
                 <span className="text-sm">{user.email}</span>
               </div>
             )}

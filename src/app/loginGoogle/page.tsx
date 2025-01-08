@@ -9,7 +9,7 @@ interface UserInfo {
   email: string;
 }
 
-const Landingoogle: React.FC = () => {
+const Logingoogle: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
@@ -128,4 +128,4 @@ console.log("TOKEN_URL:", process.env.TOKEN_URL);
   );
 };
 
-export default Landingoogle;
+export default Logingoogle;

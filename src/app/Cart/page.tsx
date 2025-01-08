@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 import Image from "next/image";
-import { toast } from "react-hot-toast";
 
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -20,6 +19,10 @@ const Cart: React.FC = () => {
     "#00ffff": "Cian",
     "#a6a6a6": "Gris",
     "#f5f5ef": "Marfil",
+    "#d80032": "Violeta",
+    "#05299e": "Azul Marino",
+    "#f7e90f": "Amarillo",
+    "#00913f": "Verde Oliva",
   };
 
   useEffect(() => {
@@ -28,8 +31,6 @@ const Cart: React.FC = () => {
     setCartItems(storedCart);
   }, []);
 
-
-  
   const handleRemoveItem = (id: string, index: number) => {
     Swal.fire({
       title: "¿Eliminar producto?",
@@ -42,10 +43,13 @@ const Cart: React.FC = () => {
       cancelButtonText: "Cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
-        const updatedCart = cartItems.filter((_, i) => i !== index);
+        const updatedCart = cartItems.filter((_, i) => i !== index); // Usamos el índice para eliminar solo el seleccionado
+        console.log("Índice a eliminar:", index);
+        console.log("Carrito antes de eliminar:", cartItems);
+        console.log("Carrito después de eliminar:", updatedCart);
         setCartItems(updatedCart);
         localStorage.setItem("cart", JSON.stringify(updatedCart));
-        toast.success("Producto eliminado del carrito.");
+        Swal.fire("Eliminado", "El producto ha sido eliminado.", "success");
       }
     });
   };
@@ -64,7 +68,7 @@ const Cart: React.FC = () => {
       if (result.isConfirmed) {
         setCartItems([]);
         localStorage.removeItem("cart");
-        toast.success("Carrito vaciado correctamente.");
+        Swal.fire("Carrito vacío", "Se ha vaciado el carrito.", "success");
       }
     });
   };
@@ -86,17 +90,19 @@ const Cart: React.FC = () => {
         quantity: item.quantity,
       }));
 
-      const response = await axios.post("https://valkiriasback.onrender.com/payment/create", products);
+      const response = await axios.post(
+        "https://valkiriasback.onrender.com/payment/create",
+        products
+      );
 
       if (response.data && response.data.url) {
-        toast.success("Redirigiendo al proveedor de pago...");
         window.location.href = response.data.url;
       } else {
-        throw new Error("No se pudo obtener la URL de pago.");
+        Swal.fire("Error", "No se pudo obtener la URL de pago", "error");
       }
     } catch (error) {
       console.error("Error al crear la preferencia de pago:", error);
-      toast.error("Hubo un problema al procesar tu compra.");
+      Swal.fire("Error", "Hubo un problema al procesar tu compra", "error");
     } finally {
       Swal.close();
     }
@@ -140,53 +146,73 @@ const Cart: React.FC = () => {
               key={item.id || `cart-item-${index}`}
               className="p-4 bg-white rounded-lg shadow-md flex flex-col md:flex-row items-center md:items-start gap-6"
             >
-              <div className="flex-shrink-0">
-                <img
-                  src={item.product?.photos?.[0] || "/placeholder.png"}
-                  alt={`Imagen de ${item.name}`}
-                  className="w-32 h-32 rounded"
-                />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold mb-2">{item.name}</h2>
-                <p className="text-sm text-gray-700 mb-1">
-                  <strong>Tamaño:</strong> {item.selectedSize}
-                </p>
-                <p className="text-sm text-gray-700 mb-1">
-                  <strong>Color:</strong> {colorNameMap[item.selectedColor]}
-                </p>
-                <div className="flex items-center gap-4 mb-2">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      <strong>Estampado pequeño:</strong>
-                    </p>
-                    <Image
-                      src={item.selectedSmallPrint}
-                      alt={`Estampado pequeño de ${item.name}`}
-                      className="w-16 h-16 object-cover rounded"
-                      width={100} 
-                      height={100} 
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      <strong>Estampado grande:</strong>
-                    </p>
-                    <Image
-                      src={item.selectedLargePrint}
-                      alt={`Estampado grande de ${item.name}`}
-                      className="w-16 h-16 object-cover rounded"
-                      width={100} 
-                      height={100} 
-                    />
-                  </div>
+              {item.product?.photos?.[0] && (
+                <div className="flex-shrink-0">
+                  <img
+                    src={item.product.photos[0]}
+                    alt={`Imagen de ${item.name || "producto"}`}
+                    className="w-32 h-32 rounded"
+                  />
                 </div>
-                <p className="text-sm text-gray-700 mb-1">
-                  <strong>Cantidad:</strong> {item.quantity}
-                </p>
-                <p className="text-lg font-bold text-gray-900">
-                  Total: ${item.totalPrice}
-                </p>
+              )}
+              <div className="flex-1">
+                {item.name && (
+                  <h2 className="text-xl font-bold mb-2">{item.name}</h2>
+                )}
+                {item.selectedSize && (
+                  <p className="text-sm text-gray-700 mb-1">
+                    <strong>Tamaño:</strong> {item.selectedSize}
+                  </p>
+                )}
+                {item.selectedColor && colorNameMap[item.selectedColor] && (
+                  <p className="text-sm text-gray-700 mb-1">
+                    <strong>Color:</strong> {colorNameMap[item.selectedColor]}
+                  </p>
+                )}
+                {(item.selectedSmallPrint || item.selectedLargePrint) && (
+                  <div className="flex items-center gap-4 mb-2">
+                    {item.selectedSmallPrint && (
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          <strong>Estampado pequeño:</strong>
+                        </p>
+                        <Image
+                          src={item.selectedSmallPrint}
+                          alt={`Estampado pequeño de ${
+                            item.name || "producto"
+                          }`}
+                          className="w-16 h-16 object-cover rounded"
+                          width={100}
+                          height={100}
+                        />
+                      </div>
+                    )}
+                    {item.selectedLargePrint && (
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          <strong>Estampado grande:</strong>
+                        </p>
+                        <Image
+                          src={item.selectedLargePrint}
+                          alt={`Estampado grande de ${item.name || "producto"}`}
+                          className="w-16 h-16 object-cover rounded"
+                          width={100}
+                          height={100}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+                {item.quantity && (
+                  <p className="text-sm text-gray-700 mb-1">
+                    <strong>Cantidad:</strong> {item.quantity}
+                  </p>
+                )}
+                {item.totalPrice && (
+                  <p className="text-lg font-bold text-gray-900">
+                    Total: ${item.totalPrice}
+                  </p>
+                )}
               </div>
               <div>
                 <button
