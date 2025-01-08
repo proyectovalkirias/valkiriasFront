@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { Toaster } from "react-hot-toast"; // Importar Toaster
+import { Toaster } from "react-hot-toast";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import SidebarMini from "@/components/SidebarMini";
@@ -21,7 +23,13 @@ export default function RootLayout({
         <div className="hidden md:block">
           <Sidebar />
         </div>
+
+        {/* Contenedor global para Toastify */}
+        <ToastContainer position="top-center" autoClose={3000} />
+
+        {/* Contenedor global para Hot Toast */}
         <Toaster />
+
         {/* Contenido principal */}
         <main className="flex-1 overflow-auto">{children}</main>
 

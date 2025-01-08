@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaUsers, FaChartBar, FaHome } from "react-icons/fa";
+import { FaUsers, FaChartBar, FaHome, FaInbox } from "react-icons/fa";
 import axios from "axios";
 import Link from "next/link";
 import ProductList from "@/components/ProductList";
 import { User } from "@/interfaces/User";
+import { toast } from "react-hot-toast"; // Importa toast
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
@@ -36,6 +37,7 @@ const Admin = () => {
       setFilteredUsers(response.data);
     } catch (error) {
       console.error("Error fetching users:", error);
+      toast.error("Error al obtener los usuarios"); // Notificación de error
     }
   };
 
@@ -46,8 +48,14 @@ const Admin = () => {
         : `http://localhost:3000/users/${id}/deactivate`;
       await axios.put(url);
       fetchUsers();
+      toast.success(
+        activate
+          ? "Usuario activado con éxito"
+          : "Usuario desactivado con éxito"
+      ); // Notificación de éxito
     } catch (error) {
       console.error("Error updating user status:", error);
+      toast.error("Error al actualizar el estado del usuario"); // Notificación de error
     }
   };
 
@@ -57,9 +65,9 @@ const Admin = () => {
         return (
           <div className=" bg-white min-h-screen p-6">
             {/* Enlace para crear productos */}
-            <div className="w-full text-center">
+            <div className=" ">
               <Link href="/CreateProduct" aria-label="Crear Productos">
-                <button className="text-3xl font-bold text-gray-800 hover:text-purple-200  transition">
+                <button className=" text-3xl bg-valkyrie-purple text-white py-2 px-4 ml-6 mt-6 rounded-lg hover:bg-creativity-purple">
                   Crear Productos
                 </button>
               </Link>
@@ -68,6 +76,17 @@ const Admin = () => {
             {/* Lista de productos */}
             <div className="w-full mt-6">
               <ProductList />
+            </div>
+          </div>
+        );
+      case "inbox":
+        return (
+          <div className="bg-white min-h-screen p-6">
+            {/* Enlace para mensajes de contacto */}
+            <div className="bg-white min-h-screen p-6">
+              <h1 className="text-3xl font-bold text-black text-center">
+                Mensajes
+              </h1>
             </div>
           </div>
         );
@@ -144,7 +163,7 @@ const Admin = () => {
                       </td>
                       <td className="border border-gray-300 p-3 text-black flex space-x-2">
                         <button
-                          className="bg-green-500 text-white px-3 py-1 rounded-lg shadow hover:bg-green-600 transition"
+                          className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg hover:bg-creativity-purple"
                           onClick={() => toggleUserStatus(user.id, true)}
                         >
                           Activar
@@ -191,7 +210,7 @@ const Admin = () => {
 
   return (
     <div className="flex flex-col h-screen ">
-      <header className="bg-purple-300 text-white flex justify-between items-center p-4 border-b-2 border-white ">
+      <header className="bg-valkyrie-purple text-white flex justify-between items-center p-4 border-b-2 border-white ">
         <div className="text-xl font-bold">Panel de Administración</div>
         <nav className="flex space-x-4">
           <button
@@ -220,6 +239,15 @@ const Admin = () => {
           >
             <FaChartBar className="mr-2" />
             Reportes
+          </button>
+          <button
+            className={`flex items-center cursor-pointer ${
+              activeTab === "inbox" ? "border-b-2 border-white" : ""
+            }`}
+            onClick={() => setActiveTab("inbox")}
+          >
+            <FaInbox className="mr-2 " />
+            Mensajes
           </button>
         </nav>
       </header>

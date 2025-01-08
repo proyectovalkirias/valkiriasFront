@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast"; // Importar toast
 
 const DniPhoneGoogle: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -63,7 +64,7 @@ const DniPhoneGoogle: React.FC = () => {
 
     try {
       saveToLocalStorage(formData);
-      alert("¡DNI y Teléfono registrados correctamente!");
+      toast.success("¡DNI y Teléfono registrados correctamente!"); // Notificación de éxito
       setFormData({ dni: "", phone: "" });
 
       // Verificar que el componente esté montado antes de intentar redirigir
@@ -72,7 +73,7 @@ const DniPhoneGoogle: React.FC = () => {
       }
     } catch (error) {
       console.error("Error al guardar los datos:", error);
-      alert("Hubo un problema al guardar los datos. Intenta nuevamente.");
+      toast.error("Hubo un problema al guardar los datos. Intenta nuevamente."); // Notificación de error
     }
   };
 

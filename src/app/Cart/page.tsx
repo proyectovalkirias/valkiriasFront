@@ -82,14 +82,6 @@ const Cart: React.FC = () => {
       },
     });
 
-    //   setTimeout(() => {
-    //     Swal.close();
-    //     Swal.fire("¡Compra exitosa!", "Gracias por tu compra.", "success");
-    //     setCartItems([]);
-    //     localStorage.removeItem("cart");
-    //   }, 2000); // Simulación de tiempo de procesamiento
-    // };
-
     try {
       const products = cartItems.map((item) => ({
         id: item.id,
@@ -175,7 +167,7 @@ const Cart: React.FC = () => {
                       <strong>Estampado pequeño:</strong>
                     </p>
                     <Image
-                      src={item.selectedSmallPrint}
+                      src={item.selectedSmallPrint || "/placeholder.png"}
                       alt={`Estampado pequeño de ${item.name}`}
                       className="w-16 h-16 object-cover rounded"
                       width={100}
@@ -187,7 +179,7 @@ const Cart: React.FC = () => {
                       <strong>Estampado grande:</strong>
                     </p>
                     <Image
-                      src={item.selectedLargePrint}
+                      src={item.selectedLargePrint || "/placeholder.png"}
                       alt={`Estampado grande de ${item.name}`}
                       className="w-16 h-16 object-cover rounded"
                       width={100}
