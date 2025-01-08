@@ -17,7 +17,7 @@ const GoogleAuth = () => {
       if (!code) return;
 
       try {
-        const res = await axios.post("https://valkiriasfront.onrender.com/google/redirect", { code });
+        const res = await axios.post("https://valkiriasback.onrender.com/google/redirect", { code });
         const { token } = res.data;
 
         localStorage.setItem("token", token);
