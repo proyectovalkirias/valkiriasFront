@@ -2,14 +2,14 @@
 import { useForm, Controller } from "react-hook-form";
 import { useState } from "react";
 import { Product } from "@/interfaces/Product";
-import {ProductPreview} from "./PreviewPorduct/page";
+import { ProductPreview } from "@/components/ProductPreview";
+import { toast } from "react-hot-toast";
 
 const CreateProduct: React.FC = () => {
   const {
     register,
     handleSubmit,
     control,
-    formState: { errors },
     reset,
   } = useForm<Product>();
 
@@ -18,7 +18,7 @@ const CreateProduct: React.FC = () => {
   const [smallPrints, setSmallPrints] = useState<File[]>([]);
   const [largePrints, setLargePrints] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isUniqueSize, setIsUniqueSize] = useState<boolean>(false);
+  const [isUniqueSize] = useState<boolean>(false);
   const [kidsSizes, setKidsSizes] = useState<string[]>([]);
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
@@ -36,24 +36,24 @@ const CreateProduct: React.FC = () => {
 
   const onSubmit = (data: Product) => {
     setLoading(true);
-
+  
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
     formData.append("prices", JSON.stringify(sizePriceMapping));
-    console.log(sizePriceMapping, "prices")
+    console.log(sizePriceMapping, "prices");
     formData.append("stock", data.stock.toString());
-    formData.append("color", data.color.join(","));  // Convierte el array de colores a una cadena separada por comas
+    formData.append("color", data.color.join(",")); // Convierte el array de colores a una cadena separada por comas
 
     formData.append("category", category);
-
+  
     const allSizes = [...kidsSizes, ...adultSizes];
     if (isUniqueSize) {
       allSizes.push("Talle Único");
     }
-    formData.append("size", allSizes.join(","));  // Convierte el array de tamaños a una cadena separada por comas
+    formData.append("size", allSizes.join(",")); // Convierte el array de tamaños a una cadena separada por comas
 
-    console.log("sizes", allSizes)
+    console.log("sizes", allSizes);
 
     photos.forEach((photo) => {
       formData.append("photos", photo);
@@ -67,7 +67,7 @@ const CreateProduct: React.FC = () => {
       formData.append("largePrint", print);
     });
 
-    fetch("http://localhost:3000/products", {
+    fetch("https://valkiriasback.onrender.com/products", {
       method: "POST",
       body: formData,
     })
@@ -78,11 +78,10 @@ const CreateProduct: React.FC = () => {
         return response.json();
       })
       .then((data) => {
-        console.log("Producto creado exitosamente:", data);
+        toast.success("Producto creado exitosamente", data);
         setLoading(false);
-        setIsModalVisible(true); // Mostrar el modal de éxito
-
-        // Restablecer los estados solo después de que el modal se haya mostrado
+        setIsModalVisible(true);
+  
         setTimeout(() => {
           reset();
           setSmallPrintsPreview([]);
@@ -99,14 +98,15 @@ const CreateProduct: React.FC = () => {
           setStock(null);
           setCategory("");
           setColor([]);
-          setIsModalVisible(false); // Cerrar el modal después de un tiempo
-        }, 3000); // Puedes ajustar el tiempo de espera según sea necesario
+          setIsModalVisible(false);
+        }, 3000);
       })
       .catch((error) => {
         console.error("Error al crear el producto:", error);
+        toast.error("Error al crear el producto. Por favor, intente nuevamente.");
         setLoading(false);
       });
-  };
+  };  
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -139,8 +139,10 @@ const CreateProduct: React.FC = () => {
         ...prevPreviews,
         ...newPhotos.map((file) => URL.createObjectURL(file)),
       ]);
+      toast.success(`${newPhotos.length} imagen(es) añadida(s).`);
     }
   };
+  
 
   const handlePrintChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -168,6 +170,7 @@ const CreateProduct: React.FC = () => {
     setPreviewImages((prevPreviews) =>
       prevPreviews.filter((_, i) => i !== index)
     );
+    toast("Imagen eliminada.", { icon: "🗑️" });
   };
 
   const handleRemoveSmallPrint = (index: number) => {
@@ -178,10 +181,6 @@ const CreateProduct: React.FC = () => {
   const handleRemoveLargePrint = (index: number) => {
     setLargePrints((prev) => prev.filter((_, i) => i !== index));
     setLargePrintsPreview((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleUniqueSizeChange = () => {
-    setIsUniqueSize(!isUniqueSize);
   };
 
   const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
@@ -216,6 +215,7 @@ const CreateProduct: React.FC = () => {
       "¿Estás seguro de que deseas eliminar el producto y restablecer el formulario?"
     );
     if (confirmCancel) {
+      toast("Producto eliminado y formulario reiniciado.", { icon: "🗑️" });
       reset();
       setPhotos([]);
       setPreviewImages([]);
@@ -228,6 +228,7 @@ const CreateProduct: React.FC = () => {
       setCategory("");
     }
   };
+  
 
   return (
     <div className="flex w-full bg-[#7b548b] min-h-screen">
@@ -304,6 +305,23 @@ const CreateProduct: React.FC = () => {
                 />
               </div>
             ))}
+
+            {isUniqueSize && (
+              <div className="flex items-center space-x-2 mt-2">
+                <span>Talle Único</span>
+                <input
+                  type="number"
+                  placeholder="Precio para Talle Único"
+                  onChange={(e) =>
+                    handleSizePriceChange(
+                      "Talle Único",
+                      parseFloat(e.target.value) || 0
+                    )
+                  }
+                  className="border p-2"
+                />
+              </div>
+            )}
           </div>
 
           <div className="w-1/3">
@@ -321,20 +339,8 @@ const CreateProduct: React.FC = () => {
           </div>
         </div>
 
-        {/* Tamaños */}
+        {/* Tamaños */}  
         <div className="flex space-x-8 mb-4">
-          <div>
-            <label className="block text-sm font-medium">Talle Único:</label>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                value="Unique"
-                onChange={handleUniqueSizeChange}
-                checked={isUniqueSize}
-                className="mr-1"
-              />
-            </div>
-          </div>
           <div>
             <label className="block text-sm font-medium">Talle Niños:</label>
             <div className="flex space-x-2">
@@ -382,15 +388,7 @@ const CreateProduct: React.FC = () => {
               defaultValue={color} // color es ahora un arreglo de strings
               render={({ field }) => (
                 <div className="flex space-x-4">
-                  {[
-                    "#000000",
-                    "#f5f5ef",
-                    "#a6a6a6",
-                    "#d80032",
-                    "#05299e",
-                    "#f7e90f",
-                    "#00913f",
-                  ].map((c) => (
+                  {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
                     <div
                       key={c}
                       onClick={() => {
@@ -440,14 +438,20 @@ const CreateProduct: React.FC = () => {
               <option value="Buzos" className="text-black hover:bg-violet-500">
                 Buzos
               </option>
+              <option value="Gorras" className="text-black hover:bg-violet-500">
+                Gorras
+              </option>
               <option
-                value="Accesorios"
+                value="Gorros de lana"
                 className="text-black hover:bg-violet-500"
               >
-                Accesorios
+                Gorros de Lana
               </option>
-              <option value="Combos" className="text-black hover:bg-violet-500">
-                Combos
+              <option
+                value="Totebags"
+                className="text-black hover:bg-violet-500"
+              >
+                Totebags
               </option>
             </select>
           </div>

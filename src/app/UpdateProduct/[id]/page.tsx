@@ -3,7 +3,8 @@ import { useForm, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
-import Swal from "sweetalert2";
+import { ProductPreview } from "@/components/ProductPreview";
+import toast from "react-hot-toast"; // Importamos react-hot-toast
 
 const UpdateProduct: React.FC = () => {
   const {
@@ -11,10 +12,28 @@ const UpdateProduct: React.FC = () => {
     handleSubmit,
     control,
     setValue,
-    formState: { errors },
   } = useForm<Product>();
+
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [smallPrints, setSmallPrints] = useState<File[]>([]);
+  const [largePrints, setLargePrints] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
-  const [product, setProduct] = useState<Product | null>(null);
+  const [isUniqueSize, setIsUniqueSize] = useState<boolean>(false);
+  const [kidsSizes, setKidsSizes] = useState<string[]>([]);
+  const [adultSizes, setAdultSizes] = useState<string[]>([]);
+  const [productName, setProductName] = useState("");
+  const [productDescription, setProductDescription] = useState("");
+  const [, setPrice] = useState<string[]>([]);
+  const [stock, setStock] = useState<number | null>(null);
+  const [sizePriceMapping, setSizePriceMapping] = useState<
+    { size: string; price: number }[]
+  >([]);
+  const [color, setColor] = useState<string[]>([]);
+  const [category, setCategory] = useState<string>("");
+  const [smallPrintsPreview, setSmallPrintsPreview] = useState<string[]>([]);
+  const [largePrintsPreview, setLargePrintsPreview] = useState<string[]>([]);
+
   const router = useRouter();
   const params = useParams();
   const productId = Array.isArray(params?.id) ? params.id[0] : params.id;
@@ -27,263 +46,489 @@ const UpdateProduct: React.FC = () => {
 
   const fetchProduct = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/products/${id}`);
+      const response = await fetch(`https://valkiriasback.onrender.com/products/${id}`);
       if (!response.ok) {
         throw new Error("Error fetching product");
       }
       const data = await response.json();
-      setProduct(data);
       prefillForm(data);
     } catch (error) {
       console.error("Error fetching product:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Error fetching product",
-      });
+      toast.error("Error al obtener el producto");
     }
   };
 
   const prefillForm = (productData: Product) => {
     setValue("name", productData.name);
     setValue("description", productData.description);
-    setValue("prices", productData.prices);
     setValue("stock", productData.stock);
-    setValue("color", productData.color);
     setValue("category", productData.category);
-    setValue("photos", productData.photos);
-    setValue("smallPrint", productData.smallPrint);
-    setValue("largePrint", productData.largePrint);
-    setValue("isAvailable", productData.isAvailable);
-    setValue("size", productData.size);
+    setValue("color", productData.color);
+    setValue("sizes", productData.sizes);
+    setProductName(productData.name);
+    setProductDescription(productData.description);
+    setStock(productData.stock);
+    setCategory(productData.category);
+    setColor(productData.color);
+    setPreviewImages(productData.photos);
+    setSmallPrintsPreview(productData.smallPrint);
+    setLargePrintsPreview(productData.largePrint);
   };
 
   const onSubmit = async (data: Product) => {
     setLoading(true);
 
     try {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("description", data.description);
+      formData.append("prices", JSON.stringify(sizePriceMapping));
+      formData.append("stock", data.stock.toString());
+      formData.append("color", data.color.join(","));
+      formData.append("category", category);
+
+      const allSizes = [...kidsSizes, ...adultSizes];
+      if (isUniqueSize) {
+        allSizes.push("Talle Único");
+      }
+      formData.append("size", allSizes.join(","));
+
+      photos.forEach((photo) => {
+        formData.append("photos", photo);
+      });
+
+      smallPrints.forEach((print) => {
+        formData.append("smallPrint", print);
+      });
+
+      largePrints.forEach((print) => {
+        formData.append("largePrint", print);
+      });
+
       const response = await fetch(
         `http://localhost:3000/products/update/${productId}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
+          body: formData,
         }
       );
 
       if (!response.ok) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Error updating product",
-        });
+        toast.error("Error al actualizar el producto");
         throw new Error("Error updating product");
       }
 
-      Swal.fire({
-        icon: "success",
-        title: "Producto actualizado",
-        text: "El producto ha sido actualizado exitosamente",
-      });
+      toast.success("Producto actualizado exitosamente");
       router.push("/Admin");
     } catch (error) {
       console.error("Error updating product:", error);
+      toast.error("Error al actualizar el producto");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!product) {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    switch (name) {
+      case "name":
+        setProductName(value);
+        break;
+      case "description":
+        setProductDescription(value);
+        break;
+      case "prices":
+        setPrice([value]);
+        break;
+      case "stock":
+        setStock(value ? parseInt(value) : null);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newPhotos = Array.from(files);
+      setPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
+      setPreviewImages((prevPreviews) => [
+        ...prevPreviews,
+        ...newPhotos.map((file) => URL.createObjectURL(file)),
+      ]);
+    }
+  };
+
+  const handlePrintChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: "small" | "large"
+  ) => {
+    const files = event.target.files;
+    if (files) {
+      const newPrints = Array.from(files);
+      const newPrintsPreviews = newPrints.map((file) =>
+        URL.createObjectURL(file)
+      );
+
+      if (type === "small") {
+        setSmallPrints((prev) => [...prev, ...newPrints]);
+        setSmallPrintsPreview((prev) => [...prev, ...newPrintsPreviews]);
+      } else {
+        setLargePrints((prev) => [...prev, ...newPrints]);
+        setLargePrintsPreview((prev) => [...prev, ...newPrintsPreviews]);
+      }
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setPhotos((prevPhotos) => prevPhotos.filter((_, i) => i !== index));
+    setPreviewImages((prevPreviews) =>
+      prevPreviews.filter((_, i) => i !== index)
+    );
+  };
+
+  const handleRemoveSmallPrint = (index: number) => {
+    setSmallPrints((prev) => prev.filter((_, i) => i !== index));
+    setSmallPrintsPreview((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveLargePrint = (index: number) => {
+    setLargePrints((prev) => prev.filter((_, i) => i !== index));
+    setLargePrintsPreview((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUniqueSizeChange = () => {
+    setIsUniqueSize(!isUniqueSize);
+  };
+
+  const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
+    const updateSizes = type === "kids" ? setKidsSizes : setAdultSizes;
+
+    updateSizes((prevSizes) =>
+      prevSizes.includes(size as string)
+        ? prevSizes.filter((s) => s !== size)
+        : [...prevSizes, size as string]
+    );
+  };
+
+  const handleSizePriceChange = (size: string, price: number) => {
+    setSizePriceMapping((prevMapping) => {
+      const existingEntryIndex = prevMapping.findIndex(
+        (entry) => entry.size === size
+      );
+      if (existingEntryIndex !== -1) {
+        const updatedMapping = [...prevMapping];
+        updatedMapping[existingEntryIndex].price = price;
+        return updatedMapping;
+      } else {
+        return [...prevMapping, { size, price }];
+      }
+    });
+  };
+
+  if (!productId) {
     return <div>Cargando producto...</div>;
   }
 
   return (
-    <div className="flex flex-col items-center p-6 bg-[#7b548b] min-h-screen">
-      <h1 className="text-2xl font-bold mb-6 text-white">Modificar Producto</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-lg">
+    <div className="flex w-full bg-[#7b548b] min-h-screen">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col p-4 w-1/2 text-white"
+      >
+        <h2 className="mb-6 text-3xl font-bold text-center">
+          Modificar Producto
+        </h2>
+
         <div className="mb-4">
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium mb-2 text-white"
-          >
-            Nombre del Producto
+          <label htmlFor="name" className="block text-sm font-medium">
+            Nombre:
           </label>
           <input
             id="name"
-            {...register("name", { required: "Este campo es obligatorio" })}
-            className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            placeholder="Nombre"
+            {...register("name", { required: true })}
+            value={productName}
+            onChange={handleChange}
+            placeholder="Nombre del producto"
+            className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
           />
-          {errors.name && (
-            <p className="text-red-500 text-sm">{errors.name.message}</p>
-          )}
         </div>
+
         <div className="mb-4">
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium mb-2 text-white"
-          >
-            Descripción
+          <label htmlFor="description" className="block text-sm font-medium">
+            Descripción:
           </label>
           <textarea
             id="description"
-            {...register("description", {
-              required: "Este campo es obligatorio",
-            })}
-            className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            placeholder="Descripción"
+            {...register("description", { required: true })}
+            value={productDescription}
+            onChange={handleChange}
+            placeholder="Descripción del producto"
+            className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
           />
-          {errors.description && (
-            <p className="text-red-500 text-sm">{errors.description.message}</p>
-          )}
         </div>
-        <div className="mb-4">
-          <label
-            htmlFor="prices"
-            className="block text-sm font-medium mb-2 text-white"
-          >
-            Precio
+
+        <div className="flex justify-items-stretch space-x-4 mb-4 text-black">
+          <div>
+            <h3>Tallas y Precios:</h3>
+            {[...kidsSizes, ...adultSizes].map((size, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <span>{size}</span>
+                <input
+                  type="number"
+                  placeholder={`Precio para ${size}`}
+                  onChange={(e) =>
+                    handleSizePriceChange(size, parseFloat(e.target.value) || 0)
+                  }
+                  className="border p-2"
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="w-1/3">
+            <label htmlFor="stock" className="block text-sm font-medium">
+              Stock:
+            </label>
+            <input
+              id="stock"
+              type="number"
+              {...register("stock", { required: true })}
+              value={stock || ""}
+              onChange={handleChange}
+              placeholder="Stock"
+              className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex space-x-8 mb-4">
+          <div>
+            <label className="block text-sm font-medium">Talle Único:</label>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                value="Unique"
+                onChange={handleUniqueSizeChange}
+                checked={isUniqueSize}
+                className="mr-1"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Talle Niños:</label>
+            <div className="flex space-x-2">
+              {[4, 6, 8, 10, 12, 14, 16].map((size) => (
+                <label key={size} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value={size}
+                    onChange={() => handleSizeChange(size.toString(), "kids")}
+                    checked={kidsSizes.includes(size.toString())}
+                    className="mr-1"
+                  />
+                  {size}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Talle Adultos:</label>
+            <div className="flex space-x-2">
+              {["S", "M", "L", "XL", "XXL"].map((size) => (
+                <label key={size} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value={size}
+                    onChange={() => handleSizeChange(size, "adults")}
+                    checked={adultSizes.includes(size)}
+                    className="mr-1"
+                  />
+                  {size}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-4 flex items-start gap-8">
+          <div>
+            <label className="block text-sm font-medium mb-2">Colores:</label>
+            <Controller
+              name="color"
+              control={control}
+              defaultValue={color}
+              render={({ field }) => (
+                <div className="flex space-x-4">
+                  {[
+                    "#000000",
+                    "#f5f5ef",
+                    "#a6a6a6",
+                    "#d80032",
+                    "#05299e",
+                    "#f7e90f",
+                    "#00913f",
+                  ].map((c) => (
+                    <div
+                      key={c}
+                      onClick={() => {
+                        const newColorArray = color.includes(c)
+                          ? color.filter((selectedColor) => selectedColor !== c)
+                          : [...color, c];
+                        field.onChange(newColorArray);
+                        setColor(newColorArray);
+                      }}
+                      style={{ backgroundColor: c }}
+                      className={`w-6 h-6 rounded-full cursor-pointer border-2 ${
+                        color.includes(c)
+                          ? "border-white"
+                          : "border-transparent"
+                      }`}
+                    ></div>
+                  ))}
+                </div>
+              )}
+            />
+          </div>
+
+          <div className="w-1/2">
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium mb-2"
+            >
+              Categoría:
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none focus:ring-2 focus:ring-violet-500"
+            >
+              <option value="" className="text-black">
+                Seleccione una categoría
+              </option>
+              <option
+                value="Remeras"
+                className="text-black hover:bg-violet-500"
+              >
+                Remeras
+              </option>
+              <option value="Buzos" className="text-black hover:bg-violet-500">
+                Buzos
+              </option>
+              <option
+                value="Accesorios"
+                className="text-black hover:bg-violet-500"
+              >
+                Accesorios
+              </option>
+              <option value="Combos" className="text-black hover:bg-violet-500">
+                Combos
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label htmlFor="photos" className="block text-sm font-medium">
+            Agregar imágenes:
           </label>
-          <input
-            id="prices"
-            type="text"
-            {...register("prices", { required: "Este campo es obligatorio" })}
-            className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            placeholder="Precio"
-          />
-          {errors.prices && (
-            <p className="text-red-500 text-sm">{errors.prices.message}</p>
-          )}
+          <div className="relative">
+            <input
+              type="file"
+              id="photos"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => document.getElementById("photos")?.click()}
+              className="w-full bg-purple-dark text-white font-medium py-2 px-4 rounded-md shadow-md"
+            >
+              Cargar imágenes
+            </button>
+          </div>
         </div>
-        <div className="mb-4">
-          <label
-            htmlFor="stock"
-            className="block text-sm font-medium mb-2 text-white"
+        {/* Cargar Estampas */}
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="smallPrint" className="block text-sm font-medium">
+              Cargar estampas pequeñas:
+            </label>
+            <div className="relative">
+              <input
+                type="file"
+                id="smallPrint"
+                multiple
+                onChange={(e) => handlePrintChange(e, "small")}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => document.getElementById("smallPrint")?.click()}
+                className="w-full bg-purple-dark text-white font-medium py-2 px-4 rounded-md shadow-md"
+              >
+                Cargar estampas pequeñas
+              </button>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="largePrint" className="block text-sm font-medium">
+              Cargar estampas grandes:
+            </label>
+            <div className="relative">
+              <input
+                type="file"
+                id="largePrint"
+                multiple
+                onChange={(e) => handlePrintChange(e, "large")}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => document.getElementById("largePrint")?.click()}
+                className="w-full bg-purple-dark text-white font-medium py-2 px-4 rounded-md shadow-md"
+              >
+                Cargar estampas grandes
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Botones de Acción */}
+        <div className="flex justify-center items-center gap-4 mt-6">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-2/3 bg-creativity-purple text-white  font-medium py-2 px-4 rounded-md"
           >
-            Stock
-          </label>
-          <input
-            id="stock"
-            type="number"
-            {...register("stock", { required: "Este campo es obligatorio" })}
-            className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            placeholder="Stock"
-          />
-          {errors.stock && (
-            <p className="text-red-500 text-sm">{errors.stock.message}</p>
-          )}
+            {loading ? "Cargando..." : "Actualizar Producto"}
+          </button>
         </div>
-        <div className="mb-4">
-          <label
-            htmlFor="category"
-            className="block text-sm font-medium mb-2 text-white"
-          >
-            Categoría
-          </label>
-          <input
-            id="category"
-            {...register("category", { required: "Este campo es obligatorio" })}
-            className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            placeholder="Categoría"
-          />
-          {errors.category && (
-            <p className="text-red-500 text-sm">{errors.category.message}</p>
-          )}
-        </div>
-        <div className="mb-4">
-          <label
-            htmlFor="size"
-            className="block text-sm font-medium mb-2 text-white"
-          >
-            Tamaños
-          </label>
-          <input
-            id="size"
-            {...register("size")}
-            className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            placeholder="Tamaños (separados por comas)"
-          />
-        </div>
-        <div className="mb-4">
-          <label
-            htmlFor="color"
-            className="block text-sm font-medium mb-2 text-white"
-          >
-            Colores
-          </label>
-          <input
-            id="color"
-            {...register("color")}
-            className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            placeholder="Colores (separados por comas)"
-          />
-        </div>
-        <div className="mb-4">
-          <label
-            htmlFor="photos"
-            className="block text-sm font-medium mb-2 text-white"
-          >
-            Fotos
-          </label>
-          <input
-            id="photos"
-            {...register("photos")}
-            className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            placeholder="URLs de fotos (separadas por comas)"
-          />
-        </div>
-        <div className="mb-4">
-          <label
-            htmlFor="smallPrint"
-            className="block text-sm font-medium mb-2 text-white"
-          >
-            Estampa pequeña
-          </label>
-          <input
-            id="smallPrint"
-            {...register("smallPrint")}
-            className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            placeholder="URLs de pequeño impreso (separadas por comas)"
-          />
-        </div>
-        <div className="mb-4">
-          <label
-            htmlFor="largePrint"
-            className="block text-sm font-medium mb-2 text-white"
-          >
-            Estampa grande
-          </label>
-          <input
-            id="largePrint"
-            {...register("largePrint")}
-            className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            placeholder="URLs de grande impreso (separadas por comas)"
-          />
-        </div>
-        <div className="mb-4">
-          <label
-            htmlFor="isAvailable"
-            className="block text-sm font-medium mb-2 text-white"
-          >
-            Disponible
-          </label>
-          <input
-            type="checkbox"
-            id="isAvailable"
-            {...register("isAvailable")}
-            className="mb-4"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-purple-300 text-white font-bold py-2 px-4 rounded mt-4 hover:bg-purple-400"
-        >
-          {loading ? "Actualizando..." : "Actualizar Producto"}
-        </button>
       </form>
+
+      <ProductPreview
+        productName={productName}
+        productDescription={productDescription}
+        stock={stock}
+        category={category}
+        color={color}
+        isUniqueSize={isUniqueSize}
+        kidsSizes={kidsSizes}
+        adultSizes={adultSizes}
+        previewImages={previewImages}
+        onRemoveImage={handleRemoveImage}
+        smallPrintsPreview={smallPrintsPreview}
+        largePrintsPreview={largePrintsPreview}
+        onRemoveSmallPrint={handleRemoveSmallPrint}
+        onRemoveLargePrint={handleRemoveLargePrint}
+      />
     </div>
   );
 };

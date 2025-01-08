@@ -1,45 +1,37 @@
-"use client"
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import axios from 'axios';
+"use client";
+import { useRouter } from "next/navigation"; 
+import { useEffect } from "react";
+import axios from "axios";
 
 const GoogleAuth = () => {
   const router = useRouter();
 
   useEffect(() => {
     const fetchGoogleAuth = async () => {
+      // Verifica si estamos en el cliente antes de acceder a router.query o localStorage
+      if (typeof window === "undefined") return;
 
-        const { code } = router.query;
-    if (!code) return;
-    
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+
+      if (!code) return;
+
       try {
-        // const { code } = router.query;
-        // if(!code) throw new Error('Authorization code is missing');
-
-        const res = await axios.post(
-          'http://localhost:3000/google/redirect', { code }
-        );
-        
+        const res = await axios.post("https://valkiriasback.onrender.com/google/redirect", { code });
         const { token } = res.data;
-        // Aquí guardas el token JWT en el almacenamiento local o en cookies
-        localStorage.setItem('token', token);
 
-        console.log('Token recibido:', token);
-        
-        
-        // Redirigir a la página principal o dashboard
-        console.log('Redirigiendo a /dashboard...');
-        router.push('/dashboard');
+        localStorage.setItem("token", token);
+        console.log("Token recibido:", token);
+
+        router.push("/Dashboard");
       } catch (error) {
-        console.error('Error during Google authentication', error);
-        router.push('/Login')
+        console.error("Error during Google authentication", error);
+        router.push("/Login");
       }
     };
 
-    if(router.query.code){  
-      fetchGoogleAuth();
-    }
-  }, [router.query.code]);
+    fetchGoogleAuth();
+  }, [router]);
 
   return <p>Authenticating...</p>;
 };

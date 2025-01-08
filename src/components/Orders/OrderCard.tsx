@@ -1,4 +1,5 @@
 import { IUserOrder } from "@/interfaces/index";
+import Image from "next/image";
 import Link from "next/link";  // Usamos `Link` de Next.js para la redirección
 
 interface IOrderCardProps {
@@ -46,11 +47,13 @@ const OrderCard: React.FC<IOrderCardProps> = ({ order }) => {
               <div className="flex gap-4 overflow-x-auto sm:overflow-visible sm:flex-wrap sm:gap-6 md:gap-8">
                 {product.photos && product.photos.length > 0 ? (
                   product.photos.map((photo, idx) => (
-                    <img
+                    <Image
                       key={idx}
                       src={photo}
                       alt={product.name || "Product Image"}
                       className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-cover rounded-md"
+                      width={150}
+                      height={150}
                     />
                   ))
                 ) : (
@@ -124,10 +127,12 @@ const OrderCard: React.FC<IOrderCardProps> = ({ order }) => {
           onClick={handleOrderStatus} 
           className="bg-purple-300 text-white py-2 px-4 rounded-lg hover:bg-purple-200 transition-colors duration-300"
           >
-          <img 
+          <Image 
             src="/images/order-tracking.png" 
             alt="Estado de la compra" 
             className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10"
+            width={150}
+            height={150}
           />
         </button>
       </div>

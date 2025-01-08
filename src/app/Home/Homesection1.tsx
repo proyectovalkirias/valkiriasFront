@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 
 const HomeSection1: React.FC = () => {
@@ -10,10 +11,12 @@ const HomeSection1: React.FC = () => {
       >
         <div className="p-6 rounded-lg">
           <div className="absolute top-10 left-10 px-4">
-            <img
+            <Image
               src="/images/valkiriaslogo.jpg"
               alt="Logo de Valkirias"
-              className="h-20 w-auto object-contain"
+              className="object-contain"
+              width={300} 
+              height={300} 
             />
             <p className="text-lg sm:text-xl md:text-2xl text-creativity-purple mt-2">
               Tu creatividad en tus prendas

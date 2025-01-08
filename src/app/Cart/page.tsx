@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { CartItem } from "../../interfaces/Product";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import Image from "next/image";
+import { toast } from "react-hot-toast";
 
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -27,6 +28,8 @@ const Cart: React.FC = () => {
     setCartItems(storedCart);
   }, []);
 
+
+  
   const handleRemoveItem = (id: string, index: number) => {
     Swal.fire({
       title: "¿Eliminar producto?",
@@ -39,13 +42,10 @@ const Cart: React.FC = () => {
       cancelButtonText: "Cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
-        const updatedCart = cartItems.filter((_, i) => i !== index); // Usamos el índice para eliminar solo el seleccionado
-        console.log("Índice a eliminar:", index);
-        console.log("Carrito antes de eliminar:", cartItems);
-        console.log("Carrito después de eliminar:", updatedCart);
+        const updatedCart = cartItems.filter((_, i) => i !== index);
         setCartItems(updatedCart);
         localStorage.setItem("cart", JSON.stringify(updatedCart));
-        Swal.fire("Eliminado", "El producto ha sido eliminado.", "success");
+        toast.success("Producto eliminado del carrito.");
       }
     });
   };
@@ -64,7 +64,7 @@ const Cart: React.FC = () => {
       if (result.isConfirmed) {
         setCartItems([]);
         localStorage.removeItem("cart");
-        Swal.fire("Carrito vacío", "Se ha vaciado el carrito.", "success");
+        toast.success("Carrito vaciado correctamente.");
       }
     });
   };
@@ -78,39 +78,29 @@ const Cart: React.FC = () => {
       },
     });
 
-  //   setTimeout(() => {
-  //     Swal.close();
-  //     Swal.fire("¡Compra exitosa!", "Gracias por tu compra.", "success");
-  //     setCartItems([]);
-  //     localStorage.removeItem("cart");
-  //   }, 2000); // Simulación de tiempo de procesamiento
-  // };
+    try {
+      const products = cartItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.totalPrice,
+        quantity: item.quantity,
+      }));
 
+      const response = await axios.post("https://valkiriasback.onrender.com/payment/create", products);
 
-  try {
-
-    const products = cartItems.map(item => ({
-      id: item.id,
-      name: item.name,
-      price: item.totalPrice, 
-      quantity: item.quantity,
-    }));
-
-    const response = await axios.post('http://localhost:3001/payment/create', products);
-
-    if (response.data && response.data.url) {
-
-      window.location.href = response.data.url;
-    } else {
-      Swal.fire("Error", "No se pudo obtener la URL de pago", "error");
+      if (response.data && response.data.url) {
+        toast.success("Redirigiendo al proveedor de pago...");
+        window.location.href = response.data.url;
+      } else {
+        throw new Error("No se pudo obtener la URL de pago.");
+      }
+    } catch (error) {
+      console.error("Error al crear la preferencia de pago:", error);
+      toast.error("Hubo un problema al procesar tu compra.");
+    } finally {
+      Swal.close();
     }
-  } catch (error) {
-    console.error("Error al crear la preferencia de pago:", error);
-    Swal.fire("Error", "Hubo un problema al procesar tu compra", "error");
-  } finally {
-    Swal.close();
-  }
-};
+  };
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.totalPrice, 0);
 
@@ -170,20 +160,24 @@ const Cart: React.FC = () => {
                     <p className="text-sm text-gray-700">
                       <strong>Estampado pequeño:</strong>
                     </p>
-                    <img
+                    <Image
                       src={item.selectedSmallPrint}
                       alt={`Estampado pequeño de ${item.name}`}
                       className="w-16 h-16 object-cover rounded"
+                      width={100} 
+                      height={100} 
                     />
                   </div>
                   <div>
                     <p className="text-sm text-gray-700">
                       <strong>Estampado grande:</strong>
                     </p>
-                    <img
+                    <Image
                       src={item.selectedLargePrint}
                       alt={`Estampado grande de ${item.name}`}
                       className="w-16 h-16 object-cover rounded"
+                      width={100} 
+                      height={100} 
                     />
                   </div>
                 </div>

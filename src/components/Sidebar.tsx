@@ -9,13 +9,16 @@ import { FiUser, FiUsers } from "react-icons/fi";
 import { HiChevronDown } from "react-icons/hi";
 import { FaShoppingCart } from "react-icons/fa";
 import Link from "next/link";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify"; // Asegúrate de tener esto importado
+import { FaCog } from "react-icons/fa";
 
+// Define la función getUserData
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
     const storedGoogleUser = localStorage.getItem("user_info");
 
+    // Si hay un usuario local
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
@@ -23,27 +26,32 @@ const getUserData = () => {
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
-        isGoogleUser: false,
+        isAdmin: parsedUser.user.isAdmin || false,
+        isGoogleUser: false, // Asegura que esté definido como booleano
       };
-    } else if (storedGoogleUser) {
+    }
+    // Si hay un usuario de Google
+    else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
       return {
         firstname: googleUser.given_name || "",
         lastname: googleUser.family_name || "",
         email: googleUser.email || "",
         photoUrl: googleUser.picture || "/images/Avatar.png",
-        isGoogleUser: true,
+        isGoogleUser: true, // Asegura que esté definido como booleano
         dni: googleUser.dni || null,
         phone: googleUser.phone || null,
       };
     }
 
+    // Si no hay datos, devuelve un objeto vacío por defecto
     return {
       firstname: "",
       lastname: "",
       email: "",
       photoUrl: "/images/Avatar.png",
-    }; // Objeto por defecto
+      isGoogleUser: false, // Asegura que esté definido como booleano
+    };
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
     return {
@@ -51,10 +59,12 @@ const getUserData = () => {
       lastname: "",
       email: "",
       photoUrl: "/images/Avatar.png",
+      isGoogleUser: false, // Asegura que esté definido como booleano
     }; // Objeto por defecto
   }
 };
 
+// Componente Sidebar
 const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
@@ -67,14 +77,16 @@ const Sidebar: React.FC = () => {
     isGoogleUser: boolean;
     dni?: string | null;
     phone?: string | null;
+    isAdmin?: boolean;
   } | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const userData = getUserData();
-    if (userData) setUser(userData);
+    setUser(userData); // Establecer datos del usuario
   }, []);
 
+  // Función para manejar la navegación
   const handleNavigation = (path: string) => {
     router.push(path);
   };
@@ -84,11 +96,11 @@ const Sidebar: React.FC = () => {
     setIsProfileAccordionOpen(false);
   };
 
+  // Función de cierre de sesión
   const handleLogout = async () => {
     const accessToken = localStorage.getItem("access_token");
 
     try {
-      // Revocar el token de Google si existe
       if (accessToken) {
         const response = await fetch("https://oauth2.googleapis.com/revoke", {
           method: "POST",
@@ -212,7 +224,6 @@ const Sidebar: React.FC = () => {
 
               {isProfileAccordionOpen && (
                 <ul className="ml-8">
-                  {/* Oculta Configuración si el usuario se registró con Google */}
                   {!localStorage.getItem("user_info") && (
                     <li
                       className="py-1 hover:bg-gray-700 cursor-pointer"
@@ -221,7 +232,6 @@ const Sidebar: React.FC = () => {
                       Configuración
                     </li>
                   )}
-                  {/* Botón "Agregar Información" solo para usuarios de Google */}
                   {user.isGoogleUser && (!user.dni || !user.phone) && (
                     <li
                       className="py-1 hover:bg-gray-700 cursor-pointer"
@@ -283,6 +293,14 @@ const Sidebar: React.FC = () => {
 
       {user && localStorage.getItem("user") && (
         <>
+          {user.isAdmin && (
+            <Link href="/Admin">
+              <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
+                <FaCog size={24} color="white" />
+                {isOpen && <span>Administrador</span>}
+              </div>
+            </Link>
+          )}
           <Link href="/Cart">
             <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
               <FaShoppingCart size={24} />
@@ -297,15 +315,12 @@ const Sidebar: React.FC = () => {
               style={{
                 width: isOpen ? "48px" : "32px",
                 height: isOpen ? "48px" : "32px",
-                objectFit: "cover",
               }}
             />
             {isOpen && (
-              <div className="text-sm">
-                <p className="font-semibold">
-                  {user.firstname} {user.lastname}
-                </p>
-                <p className="text-gray-300 text-xs">{user.email}</p>
+              <div className="flex flex-col">
+                <span className="font-medium">{user.firstname} {user.lastname}</span>
+                <span className="text-sm">{user.email}</span>
               </div>
             )}
           </div>

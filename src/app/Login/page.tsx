@@ -3,14 +3,13 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/dist/client/link";
+import { toast } from "react-hot-toast"; // Importa el hook de react-hot-toast
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -21,18 +20,17 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
+    toast.dismiss(); // Descartar cualquier notificación pendiente
 
     const { email, password } = formData;
 
     if (!email || !password) {
-      setError("Todos los campos son obligatorios.");
+      toast.error("Todos los campos son obligatorios.");
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const response = await fetch("https://valkiriasback.onrender.com/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,54 +40,51 @@ const Login: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        setError(errorData.message || "Error al iniciar sesión.");
+        toast.error(errorData.message || "Error al iniciar sesión.");
         return;
       }
 
       const data = await response.json();
-      setSuccess("Inicio de sesión exitoso.");
+      toast.success("Inicio de sesión exitoso.");
       console.log("Datos del usuario:", data);
 
       // Guardar datos del usuario en el localStorage
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
-
       window.location.href = "/"; // Redirige al dashboard en el cliente
     } catch (err) {
-      setError("Hubo un problema al conectar con el servidor.");
+      toast.error("Hubo un problema al conectar con el servidor.");
       console.error(err);
     }
   };
 
-
   const handleGoogleLogin2 = () => {
     const clientID =
       "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
-    const redirectURI = "http://localhost:3001/Logingoogle";
+    const redirectURI = "https://valkiriasfront.onrender.com/Logingoogle";
     const scope = "openid profile email";
     const responseType = "code";
 
     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-  `client_id=${clientID}` +
-  `&redirect_uri=${encodeURIComponent(redirectURI)}` +
-  `&response_type=${responseType}` +
-  `&scope=${encodeURIComponent(scope)}`;
+      `client_id=${clientID}` +
+      `&redirect_uri=${encodeURIComponent(redirectURI)}` +
+      `&response_type=${responseType}` +
+      `&scope=${encodeURIComponent(scope)}`;
 
     window.location.href = googleAuthUrl;
   };
 
   const handleForgotPassword = async () => {
-    setError(null);
-    setSuccess(null);
+    toast.dismiss(); // Descartar cualquier notificación pendiente
 
     if (!formData.email) {
-      setError("Por favor, ingresa tu correo electrónico.");
+      toast.error("Por favor, ingresa tu correo electrónico.");
       return;
     }
 
     try {
       const response = await fetch(
-        `http://localhost:3000/auth/${encodeURIComponent(formData.email)}`,
+        `https://valkiriasback.onrender.com/auth/${encodeURIComponent(formData.email)}`,
         {
           method: "GET",
         }
@@ -97,13 +92,13 @@ const Login: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        setError(errorData.message || "Error al recuperar la contraseña.");
+        toast.error(errorData.message || "Error al recuperar la contraseña.");
         return;
       }
 
-      setSuccess("Se envió un enlace de recuperación a tu correo.");
+      toast.success("Se envió un enlace de recuperación a tu correo.");
     } catch (err) {
-      setError("Hubo un problema al conectar con el servidor.");
+      toast.error("Hubo un problema al conectar con el servidor.");
       console.error(err);
     }
   };
@@ -155,9 +150,7 @@ const Login: React.FC = () => {
           </form>
 
           <button
-
             onClick={handleGoogleLogin2}
-
             className="mb-4 rounded-md bg-white px-4 py-2 w-full"
           >
             <div className="flex items-center justify-center space-x-2">
@@ -171,17 +164,12 @@ const Login: React.FC = () => {
             </div>
           </button>
 
-
-
           <button
             onClick={handleForgotPassword}
             className="mt-4 text-sm text-white hover:underline"
           >
             ¿Olvidaste la contraseña?
           </button>
-
-          {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
-          {success && <p className="mt-4 text-sm text-green-500">{success}</p>}
 
           <p className="mt-4 text-sm text-white">
             ¿No tienes cuenta?{" "}

@@ -3,6 +3,7 @@
 import OrderCard from "@/components/Orders/OrderCard";
 import { getOrders } from "@/helpers/order";
 import { IUserOrder } from "@/interfaces/index";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const Orders: React.FC = () => {
@@ -50,10 +51,12 @@ const Orders: React.FC = () => {
         <div className="flex-grow grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {userOrders.length === 0 ? (
             <div className="col-span-full text-center text-gray-300">
-              <img
+              <Image
                 src="/images/EmptyBox.png"
                 alt="Empty orders illustration"
                 className="w-60 h-60 mx-auto mb-6 object-contain sm:w-96 sm:h-96"
+                width={200} 
+                height={200} 
               />
               <p className="text-lg ">Historial de compras vacio.</p>
             </div>

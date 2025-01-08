@@ -1,5 +1,6 @@
 "use client";
 
+
 import React, { useEffect, useState } from "react";
 
 // Función para obtener los datos de usuario desde localStorage o desde la API
@@ -11,7 +12,7 @@ const getUserData = () => {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
-        id: parsedUser.user.id,  // Agregar ID del usuario
+        id: parsedUser.user.id, // Agregar ID del usuario
         firstname: parsedUser.user.firstname || "",
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
@@ -41,7 +42,7 @@ const getUserData = () => {
 // Función para obtener los detalles adicionales desde el back-end
 const fetchUserDetails = async (id: string) => {
   try {
-    const response = await fetch(`http://localhost:3000/users/${id}`);
+    const response = await fetch(`https://valkiriasback.onrender.com/users/${id}`);
     if (!response.ok) {
       throw new Error("Error al obtener los detalles del usuario");
     }
@@ -80,7 +81,7 @@ const Dashboard: React.FC = () => {
         email: userData.email,
         photoUrl: userData.photoUrl,
         dni: userData.dni,
-        phone: userData.phone
+        phone: userData.phone,
       });
 
       // Si el usuario está logueado localmente, traer detalles adicionales
@@ -108,30 +109,40 @@ const Dashboard: React.FC = () => {
       </h1>
 
       {/* Foto de perfil */}
+
       <img
         src={user.photoUrl}
         alt="Foto de perfil"
         className="w-24 h-24 sm:w-32 sm:h-32 mb-6 rounded-full border-4 border-white object-cover"
-      />
+        width={100}
+        height={100}
+      ></img>
 
       <div className="w-full max-w-md p-6">
-        <h2 className="text-xl font-bold mb-4 text-center underline">Info personal:</h2>
+        <h2 className="text-xl font-bold mb-4 text-center underline">
+          Info personal:
+        </h2>
 
         <div className="space-y-4 text-center">
           <p className="text-lg">
-            <span className="font-semibold">Nombre:</span> {user.firstname || "No disponible"}
+            <span className="font-semibold">Nombre:</span>{" "}
+            {user.firstname || "No disponible"}
           </p>
           <p className="text-lg">
-            <span className="font-semibold">Apellido:</span> {user.lastname || "No disponible"}
+            <span className="font-semibold">Apellido:</span>{" "}
+            {user.lastname || "No disponible"}
           </p>
           <p className="text-lg">
-            <span className="font-semibold">Email:</span> {user.email || "No disponible"}
+            <span className="font-semibold">Email:</span>{" "}
+            {user.email || "No disponible"}
           </p>
           <p className="text-lg">
-            <span className="font-semibold">DNI:</span> {user.dni || "No disponible"}
+            <span className="font-semibold">DNI:</span>{" "}
+            {user.dni || "No disponible"}
           </p>
           <p className="text-lg">
-            <span className="font-semibold">Teléfono:</span> {user.phone || "No disponible"}
+            <span className="font-semibold">Teléfono:</span>{" "}
+            {user.phone || "No disponible"}
           </p>
         </div>
       </div>

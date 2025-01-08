@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import AccountFormDniPhone from "./AccountFormDniPhone";
+import Image from "next/image";
+import { toast } from "react-hot-toast";
 
 // FUNCIÓN PARA OBTENER LOS DATOS DEL USUARIO DESDE EL BACKEND
 const fetchUserDataFromBackend = async (userId: string) => {
@@ -10,6 +12,7 @@ const fetchUserDataFromBackend = async (userId: string) => {
     console.log("Fetched user data from backend:", response.data);
     return response.data;
   } catch (error) {
+    toast.error("Error al obtener los datos del usuario desde el backend.");
     console.error("Error fetching user data from backend:", error);
     return null;
   }
@@ -35,39 +38,45 @@ const AccountForm: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-      const storedUserInfo = JSON.parse(localStorage.getItem("user_info") || "{}");
+      try {
+        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const storedUserInfo = JSON.parse(localStorage.getItem("user_info") || "{}");
 
-      if (storedUserInfo?.email) {
-        setFormData({
-          email: storedUserInfo.email || "",
-          firstname: storedUserInfo.given_name || "",
-          lastname: storedUserInfo.family_name || "",
-          phone: storedUserInfo.phone || "",
-          dni: storedUserInfo.dni || "",
-        });
-
-        const googleUserData = await fetchUserDataFromBackend(storedUserInfo.email);
-        if (!googleUserData?.dni || !googleUserData?.phone) {
-          setIsDniPhoneMissing(true);
-        }
-      } else if (storedUser?.user) {
-        const userId = storedUser.user.id;
-        setUserId(userId);
-
-        const userData = await fetchUserDataFromBackend(userId);
-        if (userData) {
+        if (storedUserInfo?.email) {
           setFormData({
-            email: userData.email || "",
-            firstname: userData.firstname || "",
-            lastname: userData.lastname || "",
-            phone: userData.phone || "",
-            dni: userData.dni || "",
+            email: storedUserInfo.email || "",
+            firstname: storedUserInfo.given_name || "",
+            lastname: storedUserInfo.family_name || "",
+            phone: storedUserInfo.phone || "",
+            dni: storedUserInfo.dni || "",
           });
-          setIsDniPhoneMissing(!userData.dni || !userData.phone);
+
+          const googleUserData = await fetchUserDataFromBackend(storedUserInfo.email);
+          if (!googleUserData?.dni || !googleUserData?.phone) {
+            setIsDniPhoneMissing(true);
+          }
+        } else if (storedUser?.user) {
+          const userId = storedUser.user.id;
+          setUserId(userId);
+
+          const userData = await fetchUserDataFromBackend(userId);
+          if (userData) {
+            setFormData({
+              email: userData.email || "",
+              firstname: userData.firstname || "",
+              lastname: userData.lastname || "",
+              phone: userData.phone || "",
+              dni: userData.dni || "",
+            });
+            setIsDniPhoneMissing(!userData.dni || !userData.phone);
+          }
+        } else {
+          toast.error("No se encontró información del usuario en localStorage.");
+          console.warn("No user data found in localStorage.");
         }
-      } else {
-        console.warn("No user data found in localStorage.");
+      } catch (error) {
+        toast.error("Error al cargar los datos del usuario.");
+        console.error("Error fetching user data:", error);
       }
     };
 
@@ -99,16 +108,16 @@ const AccountForm: React.FC = () => {
       };
 
       const response = await axios.put(
-        `http://localhost:3000/users/${userId}`,
+        `https://valkiriasback.onrender.com/users/${userId}`,
         updatedUserData
       );
 
       if (response.status === 200) {
-        alert("¡Datos actualizados correctamente!");
+        toast.success("¡Datos actualizados correctamente!");
       }
     } catch (error) {
+      toast.error("Hubo un problema, intente nuevamente.");
       console.error("Error al procesar la solicitud:", error);
-      alert("Hubo un problema, intente nuevamente.");
     }
   };
 
@@ -123,15 +132,23 @@ const AccountForm: React.FC = () => {
       ...prevData,
       [field]: "",
     }));
+    toast(
+      `Ahora puedes editar el campo ${field}.`,
+      {
+        duration: 6000,
+      }
+    );
   };
 
   return (
     <div className="flex flex-col md:flex-row h-screen items-center justify-center bg-[#7b548b] p-6">
       <div className="w-full md:w-1/3 flex justify-center mb-8 md:mb-0">
-        <img
+        <Image
           src="/images/Gear1.png"
           alt="Imagen ajustes"
           className="w-full h-auto max-w-[200px] sm:max-w-[250px] md:max-w-[300px]"
+          width={150}
+          height={150}
         />
       </div>
       <div className="w-full max-w-lg rounded-lg bg-[#7b548b] p-6 sm:p-8 md:p-10">
@@ -142,7 +159,10 @@ const AccountForm: React.FC = () => {
           {isDniPhoneMissing && userId ? (
             <AccountFormDniPhone
               userId={userId}
-              onSuccess={() => setIsDniPhoneMissing(false)}
+              onSuccess={() => {
+                setIsDniPhoneMissing(false);
+                toast.success("¡Datos de DNI y Teléfono completados correctamente!");
+              }}
             />
           ) : (
             <form className="flex flex-col" onSubmit={handleSubmit}>
