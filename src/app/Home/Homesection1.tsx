@@ -10,15 +10,15 @@ const HomeSection1: React.FC = () => {
         style={{ backgroundImage: "url('/images/valkiriashirt.jpg')" }}
       >
         <div className="p-6 rounded-lg">
-          <div className="absolute top-10 left-10 px-4">
+          <div className="absolute top-9 left-10 px-4">
             <Image
               src="/images/valkiriaslogo.jpg"
               alt="Logo de Valkirias"
               className="object-contain"
-              width={300} 
-              height={300} 
+              width={300}
+              height={300}
             />
-            <p className="text-lg sm:text-xl md:text-2xl text-creativity-purple mt-2">
+            <p className="text-lg sm:text-xl md:text-2xl text-creativity-purple ">
               Tu creatividad en tus prendas
             </p>
           </div>
