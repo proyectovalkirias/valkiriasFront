@@ -7,6 +7,7 @@ const GoogleAuth = () => {
   const router = useRouter();
 
   useEffect(() => {
+    if (!router.isReady) return;
     const fetchGoogleAuth = async () => {
       const { code } = router.query;
 
@@ -38,7 +39,7 @@ const GoogleAuth = () => {
     if (router.query.code) {
       fetchGoogleAuth();
     }
-  }, [router.query.code]); // Dependencia solo en router.query.code
+  }, [router.isReady, router.query.code]); // Dependencia solo en router.query.code
 
   return <p>Authenticating...</p>;
 };
