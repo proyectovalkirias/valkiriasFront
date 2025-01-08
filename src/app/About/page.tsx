@@ -29,15 +29,9 @@ const AboutPage: React.FC = () => {
 
       {/* About Section */}
       <div className="flex flex-col md:flex-row h-auto md:h-2/5">
-        {/* Rotated Text */}
-        {/* <div className="bg-pink-200 p-4 flex items-center justify-center md:w-1/4">
-          <p className="text-black text-xl md:text-3xl lg:text-3xl font-bold tracking-wider transform md:-rotate-90 text-center">
-            SOBRE NOSOTROS
-          </p>
-        </div> */}
          <div className="bg-valkyrie-purple p-4 flex items-center justify-center md:w-1/4">
           <Image
-            src="/images/valki.png"
+            src="https://res.cloudinary.com/dwuxvipza/image/upload/v1736369135/Valki_yqz720.png"
             alt="Valki"
             className=" object-contain"
             width={200} 
