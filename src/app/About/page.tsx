@@ -37,7 +37,7 @@ const AboutPage: React.FC = () => {
         </div> */}
         <div className="bg-valkyrie-purple p-4 flex items-center justify-center md:w-1/4">
           <Image
-            src="/images/valki.png"
+            src="https://res.cloudinary.com/dwuxvipza/image/upload/v1736369135/Valki_yqz720.png"
             alt="Valki"
             className=" object-contain"
             width={200}

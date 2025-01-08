@@ -79,7 +79,7 @@ const ProductDetail: React.FC = () => {
         setLoading(true);
         async function getProducts(): Promise<Product[]> {
           try {
-            const res = await fetch(`http://localhost:3000/products`, {
+            const res = await fetch(`https://valkiriasback.onrender.com/products`, {
               cache: "no-cache",
               next: { revalidate: 1500 },
             });
