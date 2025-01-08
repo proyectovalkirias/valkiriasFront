@@ -16,7 +16,6 @@ const getUserData = () => {
     const storedUser = localStorage.getItem("user");
     const storedGoogleUser = localStorage.getItem("user_info");
 
-
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
@@ -84,11 +83,10 @@ const Sidebar: React.FC = () => {
     setIsOpen(!isOpen);
     setIsProfileAccordionOpen(false);
   };
-  
 
   const handleLogout = async () => {
     const accessToken = localStorage.getItem("access_token");
-  
+
     try {
       // Revocar el token de Google si existe
       if (accessToken) {
@@ -99,23 +97,26 @@ const Sidebar: React.FC = () => {
           },
           body: `token=${accessToken}`,
         });
-  
+
         if (response.ok) {
           toast.success("Sesión cerrada correctamente en Google");
         } else {
-          console.error("Error al revocar el token de Google:", response.statusText);
+          console.error(
+            "Error al revocar el token de Google:",
+            response.statusText
+          );
           toast.error("No se pudo cerrar sesión en Google correctamente");
         }
       }
-  
+
       // Limpiar datos locales
       localStorage.removeItem("user");
       localStorage.removeItem("user_info");
       localStorage.removeItem("access_token");
-  
+
       // Limpiar estado del usuario
       setUser(null);
-  
+
       // Redirigir al login
       handleNavigation("/Login");
     } catch (error) {
@@ -123,7 +124,7 @@ const Sidebar: React.FC = () => {
       toast.error("Ocurrió un error al cerrar sesión");
     }
   };
-  
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -196,7 +197,9 @@ const Sidebar: React.FC = () => {
                     <span>Mi Perfil</span>
                     <HiChevronDown
                       size={20}
-                      className={`transition-transform duration-300 ${isProfileAccordionOpen ? "transform rotate-180" : ""}`}
+                      className={`transition-transform duration-300 ${
+                        isProfileAccordionOpen ? "transform rotate-180" : ""
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleProfileAccordion();
@@ -278,7 +281,7 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {user && (
+      {user && localStorage.getItem("user") && (
         <>
           <Link href="/Cart">
             <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
