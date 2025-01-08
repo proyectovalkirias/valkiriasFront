@@ -15,7 +15,7 @@
     "formik": "^2.4.6",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
-    "next": "^15.0.3",
+    "next": "^15.1.4",
     "next-cloudinary": "^6.16.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
