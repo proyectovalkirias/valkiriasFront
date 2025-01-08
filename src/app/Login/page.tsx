@@ -66,10 +66,10 @@ const Login: React.FC = () => {
     const responseType = "code";
 
     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${clientID}` +
-      `&redirect_uri=${encodeURIComponent(redirectURI)}` +
-      `&response_type=${responseType}` +
-      `&scope=${encodeURIComponent(scope)}`;
+  `client_id=${clientID}` +
+  `&redirect_uri=${encodeURIComponent(redirectURI)}` +
+  `&response_type=${responseType}` +
+  `&scope=${encodeURIComponent(scope)}`;
 
     window.location.href = googleAuthUrl;
   };
