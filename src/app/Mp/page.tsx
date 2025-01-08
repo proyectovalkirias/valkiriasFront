@@ -9,7 +9,7 @@ export default function CheckoutMp() {
     setIsLoading(true); // Mostrar indicador de carga
 
     try {
-      const response = await fetch("http://localhost:3000/payment/create", {
+      const response = await fetch("https://valkiriasback.onrender.com/payment/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

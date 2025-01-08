@@ -3,16 +3,12 @@ import { useForm, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
-import { ProductPreview } from "@/components/ProductPreview";
+
 import toast from "react-hot-toast"; // Importamos react-hot-toast
+import ProductPreview from "@/components/ProductPreview";
 
 const UpdateProduct: React.FC = () => {
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-  } = useForm<Product>();
+  const { register, handleSubmit, control, setValue } = useForm<Product>();
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -46,7 +42,9 @@ const UpdateProduct: React.FC = () => {
 
   const fetchProduct = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/products/${id}`);
+      const response = await fetch(
+        `https://valkiriasback.onrender.com/products/${id}`
+      );
       if (!response.ok) {
         throw new Error("Error fetching product");
       }

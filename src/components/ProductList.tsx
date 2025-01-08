@@ -16,7 +16,7 @@ const ProductList: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:3000/products");
+      const response = await fetch("https://valkiriasback.onrender.com/products");
       if (!response.ok) {
         throw new Error("Error al obtener los productos");
       }
@@ -121,9 +121,7 @@ const ProductList: React.FC = () => {
                 {product.name}
               </td>
               <td className="border border-gray-300 p-2 text-gray-800">
-
                 {product.prices[0]?.price}
-
               </td>
               <td className="border border-gray-300 p-2 text-gray-800">
                 {product.stock}
@@ -131,7 +129,7 @@ const ProductList: React.FC = () => {
               <td className="border border-gray-300 p-2">
                 <button
                   onClick={() => handleEdit(product.id)}
-                  className="bg-blue-500 text-white py-1 px-2 rounded mr-2 hover:bg-blue-600"
+                  className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded hover:bg-creativity-purple"
                 >
                   Editar
                 </button>

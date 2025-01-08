@@ -37,7 +37,9 @@ export const ProductPreview: React.FC<{
       <h2 className="mb-6 text-2xl font-bold text-center">Vista Previa</h2>
 
       {/* Nombre del producto */}
-      <h3 className="text-lg font-semibold text-center">{productName || "Nombre del producto"}</h3>
+      <h3 className="text-lg font-semibold text-center">
+        {productName || "Nombre del producto"}
+      </h3>
 
       {/* Descripción */}
       <p className="text-sm text-center">
@@ -71,9 +73,7 @@ export const ProductPreview: React.FC<{
       </div>
 
       <div className="mt-4">
-        <h4 className="font-medium mb-2 text-center">
-          Tamaños seleccionados:
-        </h4>
+        <h4 className="font-medium mb-2 text-center">Tamaños seleccionados:</h4>
         <div className="flex gap-4">
           <p className="text-sm">
             Único: {isUniqueSize ? "Talle único" : "Ninguno"}
@@ -160,3 +160,5 @@ export const ProductPreview: React.FC<{
     </div>
   );
 };
+
+export default ProductPreview;

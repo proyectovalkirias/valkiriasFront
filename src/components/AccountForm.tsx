@@ -108,7 +108,7 @@ const AccountForm: React.FC = () => {
       };
 
       const response = await axios.put(
-        `http://localhost:3000/users/${userId}`,
+        `https://valkiriasback.onrender.com/users/${userId}`,
         updatedUserData
       );
 

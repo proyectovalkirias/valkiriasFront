@@ -41,7 +41,7 @@ const AccountFormDniPhone: React.FC<AccountFormDniPhoneProps> = ({ userId, onSuc
 
   const fetchUserData = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/users/${userId}`);
+      const response = await axios.get(`https://valkiriasback.onrender.com/users/${userId}`);
       if (response.status === 200) {
         setFormData({
           dni: response.data.dni?.toString() || "",

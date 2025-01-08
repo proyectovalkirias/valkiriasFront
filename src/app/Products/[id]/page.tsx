@@ -67,7 +67,6 @@ const ProductDetail: React.FC = () => {
   const [remainingStock, setRemainingStock] = useState<number>(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
 
-
   useEffect(() => {
     if (!productId) {
       setError("El ID del producto no es válido.");
@@ -230,6 +229,9 @@ const ProductDetail: React.FC = () => {
           <Image
             src={mainImage}
             alt={product.name}
+            className="h-[500px] w-auto mx-auto rounded-xl shadow-md object-contain"
+            width={500}
+            height={500}
             className="w-[500px] aspect-square mx-auto rounded-xl shadow-md"
             width={100}
             height={100}

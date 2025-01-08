@@ -36,7 +36,7 @@ const CreateProduct: React.FC = () => {
 
   const onSubmit = (data: Product) => {
     setLoading(true);
-  
+
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("description", data.description);
@@ -46,7 +46,7 @@ const CreateProduct: React.FC = () => {
     formData.append("color", data.color.join(",")); // Convierte el array de colores a una cadena separada por comas
 
     formData.append("category", category);
-  
+
     const allSizes = [...kidsSizes, ...adultSizes];
     if (isUniqueSize) {
       allSizes.push("Talle Único");
@@ -67,7 +67,7 @@ const CreateProduct: React.FC = () => {
       formData.append("largePrint", print);
     });
 
-    fetch("http://localhost:3000/products", {
+    fetch("https://valkiriasback.onrender.com/products", {
       method: "POST",
       body: formData,
     })
@@ -81,7 +81,7 @@ const CreateProduct: React.FC = () => {
         toast.success("Producto creado exitosamente", data);
         setLoading(false);
         setIsModalVisible(true);
-  
+
         setTimeout(() => {
           reset();
           setSmallPrintsPreview([]);
@@ -103,10 +103,12 @@ const CreateProduct: React.FC = () => {
       })
       .catch((error) => {
         console.error("Error al crear el producto:", error);
-        toast.error("Error al crear el producto. Por favor, intente nuevamente.");
+        toast.error(
+          "Error al crear el producto. Por favor, intente nuevamente."
+        );
         setLoading(false);
       });
-  };  
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -142,7 +144,6 @@ const CreateProduct: React.FC = () => {
       toast.success(`${newPhotos.length} imagen(es) añadida(s).`);
     }
   };
-  
 
   const handlePrintChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -228,7 +229,6 @@ const CreateProduct: React.FC = () => {
       setCategory("");
     }
   };
-  
 
   return (
     <div className="flex w-full bg-[#7b548b] min-h-screen">
