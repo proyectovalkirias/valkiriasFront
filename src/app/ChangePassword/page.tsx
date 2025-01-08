@@ -42,7 +42,7 @@ const ChangePassword: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/auth/change-password?email=${encodeURIComponent(
+        `https://valkiriasback.onrender.com/auth/change-password?email=${encodeURIComponent(
           email
         )}`,
         {

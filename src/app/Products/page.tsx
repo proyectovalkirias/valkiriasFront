@@ -22,7 +22,7 @@ const colorNameMap: Record<string, string> = {
   "#00913f": "Verde Oliva",
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || `http://localhost:3000`;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);

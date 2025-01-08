@@ -42,7 +42,7 @@ const getUserData = () => {
 // Función para obtener los detalles adicionales desde el back-end
 const fetchUserDetails = async (id: string) => {
   try {
-    const response = await fetch(`http://localhost:3000/users/${id}`);
+    const response = await fetch(`https://valkiriasback.onrender.com/users/${id}`);
     if (!response.ok) {
       throw new Error("Error al obtener los detalles del usuario");
     }

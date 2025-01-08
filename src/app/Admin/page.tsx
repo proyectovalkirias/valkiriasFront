@@ -33,7 +33,7 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get<User[]>("http://localhost:3000/users");
+      const response = await axios.get<User[]>("https://valkiriasback.onrender.com/users");
       setUsers(response.data);
       setFilteredUsers(response.data);
     } catch (error) {
@@ -45,8 +45,8 @@ const Admin = () => {
   const toggleUserStatus = async (id: number, activate: boolean) => {
     try {
       const url = activate
-        ? `http://localhost:3000/users/${id}/activate`
-        : `http://localhost:3000/users/${id}/deactivate`;
+        ? `https://valkiriasback.onrender.com/users/${id}/activate`
+        : `https://valkiriasback.onrender.com/users/${id}/deactivate`;
       await axios.put(url);
       fetchUsers();
       toast.success(activate ? "Usuario activado con éxito" : "Usuario desactivado con éxito"); // Notificación de éxito

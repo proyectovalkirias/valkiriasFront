@@ -86,7 +86,7 @@ const Cart: React.FC = () => {
         quantity: item.quantity,
       }));
 
-      const response = await axios.post("http://localhost:3001/payment/create", products);
+      const response = await axios.post("https://valkiriasback.onrender.com/payment/create", products);
 
       if (response.data && response.data.url) {
         toast.success("Redirigiendo al proveedor de pago...");
