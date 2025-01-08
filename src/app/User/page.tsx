@@ -5,6 +5,10 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 
 const UserPanel: React.FC = () => {
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+  const LOCAL_URL =
+    process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
   const [activeTab, setActiveTab] = useState<string>("profile");
   const [user, setUser] = useState<{
     id?: string;
@@ -72,8 +76,8 @@ const UserPanel: React.FC = () => {
   // Obtener detalles adicionales del usuario desde la API
   const fetchUserDetails = async (id: string) => {
     try {
-      const response = await axios.get(`http://localhost:3000/users/${id}`);
-      return response.data; // Incluye dni, phone y otros detalles adicionales
+      const response = await axios.get(`${API_URL || LOCAL_URL}users/${id}`);
+      return response.data;
     } catch (error) {
       console.error("Error al obtener los detalles del usuario:", error);
       return null;
@@ -83,7 +87,7 @@ const UserPanel: React.FC = () => {
   // Obtener órdenes desde la API
   const fetchOrders = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/order/orders");
+      const response = await axios.get(`${API_URL || LOCAL_URL}order/orders`);
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
@@ -193,15 +197,16 @@ const UserPanel: React.FC = () => {
     if (!newValue) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/users/${user.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [key]: newValue }),
-      });
+      const response = await axios.put(
+        `${API_URL || LOCAL_URL}users/${user.id}`,
+        { [key]: newValue },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUser(updatedUser);
+      if (response.status === 200) {
+        setUser(response.data);
         alert(`${key} actualizado correctamente.`);
       } else {
         throw new Error("No se pudo actualizar el dato.");

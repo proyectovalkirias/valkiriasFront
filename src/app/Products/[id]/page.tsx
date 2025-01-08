@@ -73,13 +73,17 @@ const ProductDetail: React.FC = () => {
       setLoading(false);
       return;
     }
-
+    const API_URL =
+      process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+    const LOCAL_URL =
+      process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
     const fetchProduct = async () => {
       try {
         setLoading(true);
         async function getProducts(): Promise<Product[]> {
           try {
-            const res = await fetch(`https://valkiriasback.onrender.com/products`, {
+            const res = await fetch(`${API_URL || LOCAL_URL}products`, {
+
               cache: "no-cache",
               next: { revalidate: 1500 },
             });
@@ -95,14 +99,18 @@ const ProductDetail: React.FC = () => {
         }
         async function getProductById(id: string): Promise<Product> {
           try {
-            const products: Product[] = await getProducts();
-            const productFiltered = products.find(
-              (product) => product.id.toString() === id
+            const response = await fetch(
+              `${API_URL || LOCAL_URL}products/${id}`
             );
-            if (!productFiltered) throw new Error("Product not found");
-            return productFiltered;
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const product: Product = await response.json();
+            return product;
           } catch (error) {
-            throw new Error(`Error obtaining the product: ${error}`);
+            throw new Error(
+              `Error obtaining the product: ${(error as Error).message}`
+            );
           }
         }
         const fetchedProduct = await getProductById(productId);
@@ -229,9 +237,6 @@ const ProductDetail: React.FC = () => {
           <Image
             src={mainImage}
             alt={product.name}
-            className="h-[500px] w-auto mx-auto rounded-xl shadow-md object-contain"
-            width={500}
-            height={500}
             className="w-[500px] aspect-square mx-auto rounded-xl shadow-md"
             width={100}
             height={100}
