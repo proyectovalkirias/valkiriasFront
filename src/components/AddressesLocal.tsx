@@ -58,7 +58,7 @@ const AddressesLocal = () => {
     if (user?.type === "local" && user.id) {
       try {
         // Eliminar la dirección de la base de datos
-        await axios.put(`http://localhost:3000/users/${user.id}`, {
+        await axios.put(`https://valkiriasback.onrender.com/users/${user.id}`, {
           address: "", city: "", state: ""
         });
 

@@ -46,7 +46,7 @@ const UpdateProduct: React.FC = () => {
 
   const fetchProduct = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/products/${id}`);
+      const response = await fetch(`https://valkiriasback.onrender.com/products/${id}`);
       if (!response.ok) {
         throw new Error("Error fetching product");
       }

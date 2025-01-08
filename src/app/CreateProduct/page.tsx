@@ -67,7 +67,7 @@ const CreateProduct: React.FC = () => {
       formData.append("largePrint", print);
     });
 
-    fetch("http://localhost:3000/products", {
+    fetch("https://valkiriasback.onrender.com/products", {
       method: "POST",
       body: formData,
     })
