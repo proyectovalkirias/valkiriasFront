@@ -13,6 +13,8 @@ const Landingoogle: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
 
+    console.log("code:" + code);
+
     if (code) {
       exchangeCodeForToken(code);
     }
@@ -38,6 +40,7 @@ const Landingoogle: React.FC = () => {
       });
 
       const data = await response.json();
+      console.log("Data fetch Token URL:" + data);
 
       if (data.access_token) {
         localStorage.setItem("access_token", data.access_token);
@@ -59,8 +62,12 @@ const Landingoogle: React.FC = () => {
         },
       });
 
+      console.log("Response FetchuserInfo" + response);
+
       const userInfo: UserInfo = await response.json();
       localStorage.setItem("user_info", JSON.stringify(userInfo));
+
+      console.log("UserInfo: " + userInfo);
       showToast(userInfo);
     } catch (error) {
       console.error("Error fetching user info:", error);
