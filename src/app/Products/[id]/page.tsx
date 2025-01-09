@@ -83,7 +83,6 @@ const ProductDetail: React.FC = () => {
         async function getProducts(): Promise<Product[]> {
           try {
             const res = await fetch(`${API_URL || LOCAL_URL}products`, {
-
               cache: "no-cache",
               next: { revalidate: 1500 },
             });
@@ -100,7 +99,7 @@ const ProductDetail: React.FC = () => {
         async function getProductById(id: string): Promise<Product> {
           try {
             const response = await fetch(
-              `${API_URL || LOCAL_URL}products/${id}`
+              `${API_URL || LOCAL_URL}/products/${id}`
             );
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);

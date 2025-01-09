@@ -31,10 +31,10 @@ const HomeSection7 = () => {
         </ul>
         <div className="flex justify-between items-center">
           {/* Columna izquierda */}
-          <div className="flex flex-col items-start text-left space-y-2 gap-2 ">
-            <p className="text-black text-lg">Contacto:</p>
-            <p className="text-black text-lg">+54 9 11 3313-2418</p>
-            <p className="text-lg">
+          <div className="flex flex-col items-start text-left gap-2 ">
+            <p className="text-black text-md">Contacto:</p>
+            <p className="text-black text-md">+54 9 11 3313-2418</p>
+            <p className="text-md">
               <a
                 href="mailto:valkirias.personalizados@gmail.com"
                 className="text-black hover:underline"
@@ -43,7 +43,7 @@ const HomeSection7 = () => {
                 valkirias.personalizados@gmail.com
               </a>
             </p>
-            <p className="text-lg text-black">Buenos Aires, Argentina</p>
+            <p className="text-md text-black">Buenos Aires, Argentina</p>
           </div>
 
           {/* Columna derecha */}
@@ -51,8 +51,8 @@ const HomeSection7 = () => {
             <Image
               src="/images/qrvalkiria.jpg"
               alt="QR Code Valkirias"
-              width={100}
-              height={100}
+              width={200}
+              height={200}
               className="shadow-md ml-4"
               priority
             />
