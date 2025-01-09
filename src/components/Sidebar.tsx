@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
 import { CiLogin } from "react-icons/ci";
 import { useRouter } from "next/navigation";
 import { FiUser, FiUsers } from "react-icons/fi";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaShoppingCart, FaCog } from "react-icons/fa";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { FaCog } from "react-icons/fa";
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+const LOCAL_URL = process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
 
 const getUserData = () => {
   try {
@@ -19,6 +22,7 @@ const getUserData = () => {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
+        id: parsedUser.user.id,
         firstname: parsedUser.user.firstname || "",
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
@@ -39,22 +43,10 @@ const getUserData = () => {
       };
     }
 
-    return {
-      firstname: "",
-      lastname: "",
-      email: "",
-      photoUrl: "/images/Avatar.png",
-      isGoogleUser: false,
-    };
+    return null;
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
-    return {
-      firstname: "",
-      lastname: "",
-      email: "",
-      photoUrl: "/images/Avatar.png",
-      isGoogleUser: false,
-    };
+    return null;
   }
 };
 
@@ -62,6 +54,7 @@ const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
   const [user, setUser] = useState<{
+    id?: string;
     firstname: string;
     lastname: string;
     email: string;
@@ -72,27 +65,21 @@ const Sidebar: React.FC = () => {
     isAdmin?: boolean;
   } | null>(null);
   const [isLoggedOut, setIsLoggedOut] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const userData = getUserData();
-    setUser(null);
-  }, [isLoggedOut]);
+  const handleNavigation = useCallback(
+    (path: string) => {
+      router.push(path);
+    },
+    [router]
+  );
 
-  const handleNavigation = (path: string) => {
-    router.push(path);
-  };
+  const toggleSidebar = useCallback(() => {
+    setIsOpen((prevState) => !prevState);
+  }, []);
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleLogout = async () => {
-    const confirmation = window.confirm(
-      "¿Estás seguro de que deseas cerrar sesión?"
-    );
-    if (!confirmation) return;
-
+  const handleLogout = useCallback(async () => {
     try {
       const accessToken = localStorage.getItem("access_token");
 
@@ -115,7 +102,7 @@ const Sidebar: React.FC = () => {
           toast.error("No se pudo cerrar sesión en Google correctamente");
         }
       }
-
+      setIsModalOpen(false);
       localStorage.clear();
       setUser(null);
       setIsLoggedOut(true);
@@ -124,7 +111,12 @@ const Sidebar: React.FC = () => {
       console.error("Error durante el logout:", error);
       toast.error("Ocurrió un error al cerrar sesión");
     }
-  };
+  }, [handleNavigation]);
+
+  useEffect(() => {
+    const userData = getUserData();
+    setUser(userData);
+  }, [isLoggedOut]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -152,6 +144,7 @@ const Sidebar: React.FC = () => {
       <div
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={toggleSidebar}
+        aria-label="Toggle Sidebar"
       >
         <img
           src={isOpen ? "/images/valkiriaslogo.jpg" : "/images/LogCircular.jpg"}
@@ -166,6 +159,7 @@ const Sidebar: React.FC = () => {
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/")}
+            aria-label="Inicio"
           >
             <TbHomeHeart size={24} />
             {isOpen && <span>Inicio</span>}
@@ -174,6 +168,7 @@ const Sidebar: React.FC = () => {
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/Products")}
+            aria-label="Productos"
           >
             <IoShirtOutline size={24} />
             {isOpen && <span>Productos</span>}
@@ -182,6 +177,7 @@ const Sidebar: React.FC = () => {
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/About")}
+            aria-label="Sobre Nosotros"
           >
             <FiUsers size={24} />
             {isOpen && <span>Sobre Nosotros</span>}
@@ -192,13 +188,15 @@ const Sidebar: React.FC = () => {
               <li
                 className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
                 onClick={() => handleNavigation("/User")}
+                aria-label="Mi Perfil"
               >
                 <FiUser size={24} />
                 {isOpen && <span>Mi perfil</span>}
               </li>
               <li
                 className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-                onClick={handleLogout}
+                onClick={() => setIsModalOpen(true)}
+                aria-label="Cerrar Sesión"
               >
                 <CiLogin size={24} />
                 {isOpen && <span>Cerrar Sesión</span>}
@@ -208,6 +206,7 @@ const Sidebar: React.FC = () => {
             <li
               className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
               onClick={() => handleNavigation("/Login")}
+              aria-label="Iniciar Sesión"
             >
               <CiLogin size={24} />
               {isOpen && <span>Iniciar Sesión</span>}
@@ -219,14 +218,14 @@ const Sidebar: React.FC = () => {
       {user && !isLoggedOut && (
         <>
           {user.isAdmin && (
-            <Link href="/Admin">
+            <Link href="/Admin" aria-label="Administrador">
               <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
-                <FaCog size={24} color="white" />
+                <FaCog size={24} />
                 {isOpen && <span>Administrador</span>}
               </div>
             </Link>
           )}
-          <Link href="/Cart">
+          <Link href="/Cart" aria-label="Mi Carrito">
             <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
               <FaShoppingCart size={24} />
               {isOpen && <span>Mi carrito</span>}
@@ -252,6 +251,33 @@ const Sidebar: React.FC = () => {
             )}
           </div>
         </>
+      )}
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg text-gray-800 font-bold mb-4">
+              Cerrar Sesión
+            </h2>
+            <p className="mb-4 text-gray-600">
+              ¿Estás seguro de que deseas cerrar sesión?
+            </p>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

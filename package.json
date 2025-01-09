@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
+    "apexcharts": "^4.3.0",
     "axios": "^1.7.8",
     "dotenv": "^16.4.7",
     "formik": "^2.4.6",
