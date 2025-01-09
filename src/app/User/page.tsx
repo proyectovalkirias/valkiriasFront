@@ -17,7 +17,7 @@ const UserPanel: React.FC = () => {
     firstname: string;
     lastname: string;
     email: string;
-    photoUrl: string;
+    photo: string;
     dni?: number;
     phone?: string;
     address?: string;
@@ -27,7 +27,7 @@ const UserPanel: React.FC = () => {
     firstname: "",
     lastname: "",
     email: "",
-    photoUrl: "/images/Avatar.png",
+    photo: "/images/Avatar.png",
     dni: 0,
     phone: "",
     address: "",
@@ -53,7 +53,7 @@ const UserPanel: React.FC = () => {
           firstname: parsedUser.user.firstname || "",
           lastname: parsedUser.user.lastname || "",
           email: parsedUser.user.email || "",
-          photoUrl: parsedUser.user.photo || "/images/Avatar.png",
+          photo: parsedUser.user.photo || "/images/Avatar.png",
           isGoogleUser: false,
         };
       } else if (storedGoogleUser) {
@@ -62,7 +62,7 @@ const UserPanel: React.FC = () => {
           firstname: googleUser.given_name || "",
           lastname: googleUser.family_name || "",
           email: googleUser.email || "",
-          photoUrl: googleUser.picture || "/images/Avatar.png",
+          photo: googleUser.picture || "/images/Avatar.png",
           dni: googleUser.dni || 0,
           phone: googleUser.phone || "",
           isGoogleUser: true,
@@ -89,7 +89,9 @@ const UserPanel: React.FC = () => {
   // Obtener órdenes desde la API
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(`${API_URL || LOCAL_URL}/order/orders`);
+      const response = await axios.get(
+        `${API_URL || LOCAL_URL}/order/user/${user.id}`
+      );
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
@@ -118,7 +120,7 @@ const UserPanel: React.FC = () => {
             firstname: userData.firstname,
             lastname: userData.lastname,
             email: userData.email,
-            photoUrl: userData.photoUrl,
+            photo: userData.photo,
             dni: userData.dni,
             phone: userData.phone,
           });
@@ -155,15 +157,15 @@ const UserPanel: React.FC = () => {
   }, [activeTab]);
   type UserField =
     | "id"
-    | "Foto"
-    | "Nombre"
-    | "Apellido"
-    | "Email"
-    | "Telefono"
-    | "Dni"
-    | "Direccion"
-    | "Provincia"
-    | "Ciudad";
+    | "photo"
+    | "firstname"
+    | "lastname"
+    | "email"
+    | "phone"
+    | "dni"
+    | "address"
+    | "city"
+    | "state";
   const userFields: {
     label: string;
     value: string | number;
@@ -172,28 +174,28 @@ const UserPanel: React.FC = () => {
     {
       label: "Nombre",
       value: `${user.firstname || "N/A"} `,
-      key: "Nombre",
+      key: "firstname",
     },
-    { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "Apellido" },
-    { label: "Email", value: user.email || "N/A", key: "Email" },
-    { label: "Teléfono", value: user.phone || "N/A", key: "Telefono" },
-    { label: "DNI", value: user.dni || "N/A", key: "Dni" },
-    { label: "Dirección", value: user.address || "N/A", key: "Direccion" },
-    { label: "Ciudad", value: user.city || "N/A", key: "Provincia" },
-    { label: "Estado", value: user.state || "N/A", key: "Ciudad" },
-    { label: "Foto", value: user.photoUrl || "N/A", key: "Foto" },
+    { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "lastname" },
+    { label: "Email", value: user.email || "N/A", key: "email" },
+    { label: "Teléfono", value: user.phone || "N/A", key: "phone" },
+    { label: "DNI", value: user.dni || "N/A", key: "dni" },
+    { label: "Dirección", value: user.address || "N/A", key: "address" },
+    { label: "Ciudad", value: user.city || "N/A", key: "city" },
+    { label: "Estado", value: user.state || "N/A", key: "state" },
+    { label: "Foto", value: user.photo || "N/A", key: "photo" },
   ];
   function isUserField(key: string): key is UserField {
     return [
-      "Nombre",
-      "Apellido",
-      "Email",
-      "Telefono",
-      "Dni",
-      "Direccion",
-      "Provincia",
-      "Ciudad",
-      "Foto",
+      "firstname",
+      "lastname",
+      "email",
+      "phone",
+      "dni",
+      "address",
+      "city",
+      "state",
+      "photo",
     ].includes(key);
   }
 
@@ -203,7 +205,7 @@ const UserPanel: React.FC = () => {
       toast.error(`Campo inválido: ${key}`);
       return;
     }
-    if (key === "Email") {
+    if (key === "email") {
       toast.error("El correo no se puede editar.");
       return;
     }
@@ -214,7 +216,7 @@ const UserPanel: React.FC = () => {
     let formattedValue: string | number = newValue;
 
     // Validar si el campo requiere un número, como "dni"
-    if (key === "Dni") {
+    if (key === "dni") {
       const parsedNumber = Number(newValue);
       if (isNaN(parsedNumber)) {
         toast.error(`${key} debe ser un número válido.`);
@@ -243,29 +245,6 @@ const UserPanel: React.FC = () => {
       toast.error("Hubo un problema al actualizar el dato.");
     }
   }
-  const handleDeleteOrder = async (orderId: string) => {
-    const confirmation = window.confirm(
-      "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
-    );
-    if (confirmation) {
-      try {
-        // Realiza la solicitud DELETE al backend
-        await axios.delete(`${API_URL || LOCAL_URL}/order/${orderId}`);
-
-        // Actualiza el estado eliminando la orden
-        setData((prevData) => ({
-          ...prevData,
-          orders: prevData.orders.filter((order) => order.id !== orderId),
-        }));
-        toast.success("Orden eliminada con éxito.");
-      } catch (error) {
-        console.error("Error eliminando la orden:", error);
-        toast.error(
-          "Hubo un problema al eliminar la orden. Inténtalo nuevamente."
-        );
-      }
-    }
-  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -280,7 +259,7 @@ const UserPanel: React.FC = () => {
                 {/* Foto de perfil */}
                 <div className="w-32 h-32 rounded-full overflow-hidden shadow-lg">
                   <img
-                    src={user.photoUrl || "/images/Avatar.png"}
+                    src={user.photo || "/images/Avatar.png"}
                     alt={`${user.firstname} ${user.lastname}`}
                     className="w-full h-full object-cover"
                   />
@@ -296,7 +275,7 @@ const UserPanel: React.FC = () => {
                       <p className="text-lg text-gray-600">
                         <strong>{item.label}:</strong> {item.value}
                       </p>
-                      {item.key !== "Email" && (
+                      {item.key !== "email" && (
                         <button
                           onClick={() => handleEdit(item.key)}
                           className="ml-2 text-blue-500 hover:text-blue-700"
