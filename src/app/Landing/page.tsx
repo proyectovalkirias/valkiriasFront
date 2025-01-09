@@ -5,9 +5,10 @@ import axios from 'axios';
 
 const GoogleAuth = () => {
   const router = useRouter();
+  const isClient = typeof window !== 'undefined';
 
   useEffect(() => {
-    if (!router.isReady) return;
+    if (!router.isReady || !isClient) return;
     const fetchGoogleAuth = async () => {
       const { code } = router.query;
 
@@ -39,7 +40,7 @@ const GoogleAuth = () => {
     if (router.query.code) {
       fetchGoogleAuth();
     }
-  }, [router.isReady, router.query.code]); // Dependencia solo en router.query.code
+  }, [router.isReady, router.query.code, isClient]); // Dependencia solo en router.query.code
 
   return <p>Authenticating...</p>;
 };
