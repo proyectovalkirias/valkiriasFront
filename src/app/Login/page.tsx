@@ -41,7 +41,6 @@ const Login: React.FC = () => {
         },
         body: JSON.stringify({ email, password }),
       });
-      console.log(email, password);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -66,7 +65,7 @@ const Login: React.FC = () => {
   const handleGoogleLogin2 = () => {
     const clientID =
       "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
-    const redirectURI = "https://valkiriasfront.onrender.com/Logingoogle";
+    const redirectURI = "https://valkiriasfront.onrender.com/loginGoogle";
     const scope = "openid profile email";
     const responseType = "code";
 
