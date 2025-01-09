@@ -11,6 +11,7 @@ const UserPanel: React.FC = () => {
     process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
   const LOCAL_URL =
     process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
+
   const [activeTab, setActiveTab] = useState<string>("profile");
   const [user, setUser] = useState<{
     id?: string;
@@ -38,7 +39,17 @@ const UserPanel: React.FC = () => {
     orders: [],
     purchases: [],
   });
-  const [, setLoading] = useState<boolean>(true);
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [modalField, setModalField] = useState<{
+    key: string;
+    label: string;
+    value: string | number;
+  } | null>(null);
+
+  
+
 
   // Obtener datos del usuario desde el almacenamiento local
   const getUserData = () => {
@@ -102,10 +113,11 @@ const UserPanel: React.FC = () => {
   // Obtener compras desde la API
   const fetchPurchases = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/purchases");
+      const response = await axios.get(
+        `${API_URL || LOCAL_URL}/purchase/user/${user.id}`
+      );
       setData((prev) => ({ ...prev, purchases: response.data }));
     } catch (error) {
-      console.error("Error al obtener las compras:", error);
       toast.error("Error al obtener las compras.");
     }
   };
@@ -153,29 +165,14 @@ const UserPanel: React.FC = () => {
   // Cargar órdenes o compras según la pestaña activa
   useEffect(() => {
     if (activeTab === "orders") fetchOrders();
-    if (activeTab === "purchases") fetchPurchases();
+    // if (activeTab === "purchases") fetchPurchases();
   }, [activeTab]);
-  type UserField =
-    | "id"
-    | "photo"
-    | "firstname"
-    | "lastname"
-    | "email"
-    | "phone"
-    | "dni"
-    | "address"
-    | "city"
-    | "state";
   const userFields: {
     label: string;
     value: string | number;
-    key: UserField;
+    key: string;
   }[] = [
-    {
-      label: "Nombre",
-      value: `${user.firstname || "N/A"} `,
-      key: "firstname",
-    },
+    { label: "Nombre", value: `${user.firstname || "N/A"} `, key: "firstname" },
     { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "lastname" },
     { label: "Email", value: user.email || "N/A", key: "email" },
     { label: "Teléfono", value: user.phone || "N/A", key: "phone" },
@@ -185,58 +182,30 @@ const UserPanel: React.FC = () => {
     { label: "Estado", value: user.state || "N/A", key: "state" },
     { label: "Foto", value: user.photo || "N/A", key: "photo" },
   ];
-  function isUserField(key: string): key is UserField {
-    return [
-      "firstname",
-      "lastname",
-      "email",
-      "phone",
-      "dni",
-      "address",
-      "city",
-      "state",
-      "photo",
-    ].includes(key);
-  }
 
-  async function handleEdit(key: string): Promise<void> {
-    if (!isUserField(key)) {
-      console.error(`Campo inválido: ${key}`);
-      toast.error(`Campo inválido: ${key}`);
-      return;
-    }
-    if (key === "email") {
-      toast.error("El correo no se puede editar.");
-      return;
-    }
-    const newValue = prompt(`Ingrese el nuevo valor para ${key}:`);
-    if (!newValue) return;
+  const handleEdit = (field: {
+    key: string;
+    label: string;
+    value: string | number;
+  }) => {
+    setModalField(field);
+    setIsModalOpen(true);
+  };
 
-    // Intentar convertir a número si es necesario
-    let formattedValue: string | number = newValue;
-
-    // Validar si el campo requiere un número, como "dni"
-    if (key === "dni") {
-      const parsedNumber = Number(newValue);
-      if (isNaN(parsedNumber)) {
-        toast.error(`${key} debe ser un número válido.`);
-        return;
-      }
-      formattedValue = parsedNumber;
-    }
+  const handleSave = async () => {
+    if (!modalField) return;
 
     try {
       const response = await axios.put(
         `${API_URL || LOCAL_URL}/users/${user.id}`,
-        { [key]: formattedValue },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        { [modalField.key]: modalField.value },
+        { headers: { "Content-Type": "application/json" } }
       );
 
       if (response.status === 200) {
         setUser(response.data);
-        toast.success(`${key} actualizado correctamente.`);
+        toast.success(`${modalField.label} actualizado correctamente.`);
+        setIsModalOpen(false);
       } else {
         throw new Error("No se pudo actualizar el dato.");
       }
@@ -244,7 +213,7 @@ const UserPanel: React.FC = () => {
       console.error(error);
       toast.error("Hubo un problema al actualizar el dato.");
     }
-  }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -256,7 +225,6 @@ const UserPanel: React.FC = () => {
             </h1>
             {user ? (
               <div className="p-6 bg-gray-100 rounded-lg shadow-md flex flex-col items-center space-y-4">
-                {/* Foto de perfil */}
                 <div className="w-32 h-32 rounded-full overflow-hidden shadow-lg">
                   <img
                     src={user.photo || "/images/Avatar.png"}
@@ -264,8 +232,6 @@ const UserPanel: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 </div>
-
-                {/* Información del usuario */}
                 <div className="text-center space-y-2">
                   {userFields.map((item) => (
                     <div
@@ -277,7 +243,7 @@ const UserPanel: React.FC = () => {
                       </p>
                       {item.key !== "email" && (
                         <button
-                          onClick={() => handleEdit(item.key)}
+                          onClick={() => handleEdit(item)}
                           className="ml-2 text-blue-500 hover:text-blue-700"
                         >
                           <svg
@@ -497,8 +463,8 @@ const UserPanel: React.FC = () => {
   };
 
   return (
-    <div className=" flex flex-col h-screen">
-      <header className="bg-valkyrie-purple  text-white flex justify-between items-center p-4 border-b-2 border-white">
+    <div className="flex flex-col h-screen">
+      <header className="bg-valkyrie-purple text-white flex justify-between items-center p-4 border-b-2 border-white">
         <div className="text-xl font-bold">Panel de Usuario</div>
         <nav className="flex space-x-4">
           <button
@@ -540,6 +506,40 @@ const UserPanel: React.FC = () => {
         </nav>
       </header>
       <main className="flex-1 bg-[#7b548b]">{renderContent()}</main>
+
+      {isModalOpen && modalField && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
+              Editar {modalField.label}
+            </h2>
+            <input
+              type="text"
+              value={modalField.value}
+              onChange={(e) =>
+                setModalField(
+                  (prev) => prev && { ...prev, value: e.target.value }
+                )
+              }
+              className="w-full p-2 border text-gray-800 rounded-md"
+            />
+            <div className="flex justify-end mt-4 space-x-2">
+              <button
+                onClick={handleSave}
+                className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className=" bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
