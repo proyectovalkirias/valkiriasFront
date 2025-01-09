@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { FaUser, FaShoppingCart, FaReceipt, FaTruck } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import Order from "@/interfaces/Order";
+import Purchase from "@/interfaces/Purchase";
 
 const UserPanel: React.FC = () => {
   const API_URL =
@@ -33,10 +35,11 @@ const UserPanel: React.FC = () => {
     city: "",
     state: "",
   });
-  const [data, setData] = useState<{ orders: any[]; purchases: any[] }>({
+  const [data, setData] = useState<{ orders: Order[]; purchases: Purchase[] }>({
     orders: [],
     purchases: [],
   });
+
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalField, setModalField] = useState<{
@@ -44,6 +47,9 @@ const UserPanel: React.FC = () => {
     label: string;
     value: string | number;
   } | null>(null);
+
+  
+
 
   // Obtener datos del usuario desde el almacenamiento local
   const getUserData = () => {
