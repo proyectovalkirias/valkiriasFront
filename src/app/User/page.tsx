@@ -240,37 +240,39 @@ const UserPanel: React.FC = () => {
 
                 {/* Información del usuario */}
                 <div className="text-center space-y-2">
-                  {userFields.map((item) => (
-                    <div
-                      key={item.key}
-                      className="flex items-center justify-center"
-                    >
-                      <p className="text-lg text-gray-600">
-                        <strong>{item.label}:</strong> {item.value}
-                      </p>
-                      <button
-                        onClick={() => handleEdit(item.key)}
-                        className="ml-2 text-blue-500 hover:text-blue-700"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-5 h-5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+  {userFields.map((item) => (
+    <div
+      key={item.key}
+      className="flex items-center justify-center"
+    >
+      <p className="text-lg text-gray-600">
+        <strong>{item.label}:</strong> {item.value}
+      </p>
+      {item.key !== "email" && ( // Ocultar el botón de edición si el campo es email
+        <button
+          onClick={() => handleEdit(item.key)}
+          className="ml-2 text-blue-500 hover:text-blue-700"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-5 h-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
+            />
+          </svg>
+        </button>
+      )}
+    </div>
+  ))}
+</div>
+</div>
             ) : (
               <p className="text-gray-600 text-center">
                 Cargando información...

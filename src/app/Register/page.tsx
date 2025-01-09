@@ -23,6 +23,11 @@ const Register: React.FC = () => {
     });
   };
 
+  const validatePassword = (password: string) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,15}$/; // Al menos 1 minúscula, 1 mayúscula, 8-15 caracteres
+    return passwordRegex.test(password);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -32,6 +37,23 @@ const Register: React.FC = () => {
       toast.error("Todos los campos son obligatorios.", {
         duration: 3000,
       });
+      return;
+    }
+
+    if (!email.includes("@")) {
+      toast.error("El email debe contener '@'.", {
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      toast.error(
+        "La contraseña debe tener entre 8 y 15 caracteres, al menos una mayúscula y una minúscula.",
+        {
+          duration: 3000,
+        }
+      );
       return;
     }
 
@@ -153,8 +175,11 @@ const Register: React.FC = () => {
               placeholder="Contraseña"
               value={formData.password}
               onChange={handleChange}
-              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none"
             />
+            <p className="text-xs text-gray-300">
+              Debe contener entre 8 y 15 caracteres, una mayúscula y una minúscula.
+            </p>
             <input
               type="password"
               name="confirmPassword"

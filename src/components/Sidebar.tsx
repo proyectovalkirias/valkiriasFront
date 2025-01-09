@@ -201,65 +201,15 @@ const Sidebar: React.FC = () => {
             <li>
               <div
                 className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-                onClick={() => handleNavigation("/Dashboard")}
+                onClick={() => handleNavigation("/User")}
               >
                 <FiUser size={24} />
                 {isOpen && (
                   <>
                     <span>Mi Perfil</span>
-                    <HiChevronDown
-                      size={20}
-                      className={`transition-transform duration-300 ${
-                        isProfileAccordionOpen ? "transform rotate-180" : ""
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleProfileAccordion();
-                      }}
-                      style={{ marginLeft: "auto" }}
-                    />
                   </>
                 )}
               </div>
-
-              {isProfileAccordionOpen && (
-                <ul className="ml-8">
-                  {!localStorage.getItem("user_info") && (
-                    <li
-                      className="py-1 hover:bg-gray-700 cursor-pointer"
-                      onClick={() => handleNavigation("/ProfileConfiguration")}
-                    >
-                      Configuración
-                    </li>
-                  )}
-                  {user.isGoogleUser && (!user.dni || !user.phone) && (
-                    <li
-                      className="py-1 hover:bg-gray-700 cursor-pointer"
-                      onClick={() => handleNavigation("/GoogleDniPhone")}
-                    >
-                      Agregar información
-                    </li>
-                  )}
-                  <li
-                    className="py-1 hover:bg-gray-700 cursor-pointer"
-                    onClick={() => handleNavigation("/Addresses")}
-                  >
-                    Direcciones
-                  </li>
-                  <li
-                    className="py-1 hover:bg-gray-700 cursor-pointer"
-                    onClick={() => handleNavigation("/Orders")}
-                  >
-                    Mis Compras
-                  </li>
-                  <li
-                    className="py-1 hover:bg-gray-700 cursor-pointer"
-                    onClick={() => handleNavigation("/ChangePassword")}
-                  >
-                    Cambiar Contraseña
-                  </li>
-                </ul>
-              )}
             </li>
           )}
 
