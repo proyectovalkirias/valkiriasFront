@@ -165,7 +165,7 @@ const UserPanel: React.FC = () => {
   const userFields: { label: string; value: string; key: UserField }[] = [
     {
       label: "Nombre",
-      value: `${user.firstname || "N/A"} ${user.lastname || "N/A"}`,
+      value: `${user.firstname || "N/A"}`,
       key: "firstname",
     },
     { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "lastname" },

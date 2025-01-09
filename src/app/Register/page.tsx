@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation"; // Importa useRouter
 import { toast } from "react-hot-toast"; // Importa react-hot-toast
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // Importa los íconos
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -14,7 +15,14 @@ const Register: React.FC = () => {
     confirmPassword: "",
   });
 
-  const router = useRouter(); // Inicializa useRouter
+  const [showPassword, setShowPassword] = useState(false); // Estado para contraseña
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Estado para confirmar contraseña
+
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const toggleConfirmPasswordVisibility = () =>
+    setShowConfirmPassword(!showConfirmPassword);
+
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -65,19 +73,22 @@ const Register: React.FC = () => {
     }
 
     try {
-      const response = await fetch("https://valkiriasback.onrender.com/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          firstname: firstName,
-          lastname: lastName,
-          email: email,
-          password: password,
-          confirmPassword: password,
-        }),
-      });
+      const response = await fetch(
+        "https://valkiriasback.onrender.com/auth/signup",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            firstname: firstName,
+            lastname: lastName,
+            email: email,
+            password: password,
+            confirmPassword: password,
+          }),
+        }
+      );
 
       const contentType = response.headers.get("Content-Type");
 
@@ -96,14 +107,17 @@ const Register: React.FC = () => {
         return;
       }
 
-      toast.success("Registro exitoso. Redirigiendo a la página de inicio de sesión...", {
-        duration: 3000,
-      });
+      toast.success(
+        "Registro exitoso. Redirigiendo a la página de inicio de sesión...",
+        {
+          duration: 3000,
+        }
+      );
 
       // Redirigir al usuario a la página de login
       setTimeout(() => {
         router.push("/Login");
-      }, 2000); // Da 2 segundos para mostrar el mensaje de éxito
+      }, 2000);
 
       // Limpiar el formulario
       setFormData({
@@ -169,26 +183,52 @@ const Register: React.FC = () => {
               onChange={handleChange}
               className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none"
             />
-            <input
-              type="password"
-              name="password"
-              placeholder="Contraseña"
-              value={formData.password}
-              onChange={handleChange}
-              className="mb-2 border-b-2 border-white bg-transparent p-2 text-white outline-none"
-            />
-            <p className="text-xs text-gray-300">
-              Debe contener entre 8 y 15 caracteres, una mayúscula y una minúscula.
+            <div className="relative mb-2">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Contraseña"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-2 top-3"
+              >
+                {showPassword ? (
+                  <FaEye className="text-purple-900" />
+                ) : (
+                  <FaEyeSlash className="text-purple-900" />
+                )}
+              </button>
+            </div>
+            <p className="text-xs text-gray-300 mb-2">
+              Debe contener entre 8 y 15 caracteres, una mayúscula y una
+              minúscula.
             </p>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Repetir contraseña"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className="mb-6 border-b-2 border-white bg-transparent p-2 text-white outline-none"
-            />
-
+            <div className="relative mb-6">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Repetir contraseña"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              />
+              <button
+                type="button"
+                onClick={toggleConfirmPasswordVisibility}
+                className="absolute right-2 top-3"
+              >
+                {showConfirmPassword ? (
+                  <FaEye className="text-purple-900" />
+                ) : (
+                  <FaEyeSlash className="text-purple-900" />
+                )}
+              </button>
+            </div>
             <button
               type="submit"
               className="rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
@@ -196,7 +236,6 @@ const Register: React.FC = () => {
               Registrarse
             </button>
           </form>
-
           <p className="mt-4 text-sm text-white">
             ¿Ya tienes cuenta?{" "}
             <Link
