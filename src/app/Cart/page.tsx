@@ -217,7 +217,7 @@ const Cart: React.FC = () => {
               <div>
                 <button
                   onClick={() => handleRemoveItem(item.id, index)}
-                  className="flex items-center gap-2 bg-purple-300 text-white py-2 px-4 rounded hover:bg-purple-400"
+                  className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg  hover:bg-creativity-purple"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -242,13 +242,13 @@ const Cart: React.FC = () => {
           <div className="flex gap-4 mt-4">
             <button
               onClick={handleClearCart}
-              className="bg-purple-300 text-white py-2 px-4 rounded hover:bg-purple-400"
+              className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg  hover:bg-creativity-purple"
             >
               Vaciar Carrito
             </button>
             <button
               onClick={handlePurchase}
-              className="bg-purple-300 text-white py-2 px-4 rounded hover:bg-purple-400"
+              className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg  hover:bg-creativity-purple"
             >
               Realizar Compra
             </button>

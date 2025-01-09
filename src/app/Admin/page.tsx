@@ -6,6 +6,7 @@ import Link from "next/link";
 import ProductList from "@/components/ProductList";
 import { User } from "@/interfaces/User";
 import { toast } from "react-hot-toast"; // Importa toast
+import Reports from "@/components/Reports";
 
 const Admin = () => {
   const API_URL =
@@ -71,7 +72,7 @@ const Admin = () => {
             {/* Enlace para crear productos */}
             <div className=" ">
               <Link href="/CreateProduct" aria-label="Crear Productos">
-                <button className=" text-xl bg-valkyrie-purple text-white py-2 px-4 ml-6 mt-6 rounded-full hover:bg-creativity-purple">
+                <button className=" text-xl bg-valkyrie-purple text-white py-2 px-4 ml-6 mt-6 rounded-lg hover:bg-creativity-purple">
                   Crear Productos
                 </button>
               </Link>
@@ -181,8 +182,8 @@ const Admin = () => {
                       </td>
                       <td className="border border-gray-300 p-3 text-black">
                         <span
-                          className={`px-2 py-1 rounded-full text-white text-sm ${
-                            user.active ? "bg-green-200" : "bg-red-200"
+                          className={`px-2 py-1 rounded-full text-black text-sm ${
+                            user.active ? "bg-gray-200" : "bg-gray-200"
                           }`}
                         >
                           {user.active ? "Activo" : "Inactivo"}
@@ -201,10 +202,7 @@ const Admin = () => {
       case "reports":
         return (
           <div className="bg-white min-h-screen p-6">
-            <h1 className="text-3xl font-bold text-black text-center">
-              Reportes
-            </h1>
-            <p className="mt-4 text-black">Estos son los reportes...</p>
+            <Reports />
           </div>
         );
       default:

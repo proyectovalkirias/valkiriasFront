@@ -132,13 +132,13 @@ const ProductList: React.FC = () => {
               <td className="border border-gray-300 p-2">
                 <button
                   onClick={() => handleEdit(product.id)}
-                  className="bg-custom-orange text-white py-1 px-2 mr-2 rounded-full hover:bg-orange-400"
+                  className="bg-custom-orange text-white py-1 px-2 mr-2 rounded-lg hover:bg-orange-400"
                 >
                   Editar
                 </button>
                 <button
                   onClick={() => handleDelete(product.id)}
-                  className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-full  hover:bg-creativity-purple"
+                  className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg  hover:bg-creativity-purple"
                 >
                   Eliminar
                 </button>

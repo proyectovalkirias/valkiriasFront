@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
 import { CiLogin } from "react-icons/ci";
 import { useRouter } from "next/navigation";
 import { FiUser, FiUsers } from "react-icons/fi";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaShoppingCart, FaCog } from "react-icons/fa";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { FaCog } from "react-icons/fa";
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+const LOCAL_URL = process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
 
 const getUserData = () => {
   try {
@@ -19,6 +22,7 @@ const getUserData = () => {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
+        id: parsedUser.user.id,
         firstname: parsedUser.user.firstname || "",
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
@@ -39,22 +43,10 @@ const getUserData = () => {
       };
     }
 
-    return {
-      firstname: "",
-      lastname: "",
-      email: "",
-      photoUrl: "/images/Avatar.png",
-      isGoogleUser: false,
-    };
+    return null;
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
-    return {
-      firstname: "",
-      lastname: "",
-      email: "",
-      photoUrl: "/images/Avatar.png",
-      isGoogleUser: false,
-    };
+    return null;
   }
 };
 
@@ -62,6 +54,7 @@ const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
   const [user, setUser] = useState<{
+    id?: string;
     firstname: string;
     lastname: string;
     email: string;
@@ -74,20 +67,18 @@ const Sidebar: React.FC = () => {
   const [isLoggedOut, setIsLoggedOut] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const userData = getUserData();
-    setUser(null);
-  }, [isLoggedOut]);
+  const handleNavigation = useCallback(
+    (path: string) => {
+      router.push(path);
+    },
+    [router]
+  );
 
-  const handleNavigation = (path: string) => {
-    router.push(path);
-  };
+  const toggleSidebar = useCallback(() => {
+    setIsOpen((prevState) => !prevState);
+  }, []);
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     const confirmation = window.confirm(
       "¿Estás seguro de que deseas cerrar sesión?"
     );
@@ -124,7 +115,12 @@ const Sidebar: React.FC = () => {
       console.error("Error durante el logout:", error);
       toast.error("Ocurrió un error al cerrar sesión");
     }
-  };
+  }, [handleNavigation]);
+
+  useEffect(() => {
+    const userData = getUserData();
+    setUser(userData);
+  }, [isLoggedOut]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -152,6 +148,7 @@ const Sidebar: React.FC = () => {
       <div
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={toggleSidebar}
+        aria-label="Toggle Sidebar"
       >
         <img
           src={isOpen ? "/images/valkiriaslogo.jpg" : "/images/LogCircular.jpg"}
@@ -166,6 +163,7 @@ const Sidebar: React.FC = () => {
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/")}
+            aria-label="Inicio"
           >
             <TbHomeHeart size={24} />
             {isOpen && <span>Inicio</span>}
@@ -174,6 +172,7 @@ const Sidebar: React.FC = () => {
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/Products")}
+            aria-label="Productos"
           >
             <IoShirtOutline size={24} />
             {isOpen && <span>Productos</span>}
@@ -182,6 +181,7 @@ const Sidebar: React.FC = () => {
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/About")}
+            aria-label="Sobre Nosotros"
           >
             <FiUsers size={24} />
             {isOpen && <span>Sobre Nosotros</span>}
@@ -192,6 +192,7 @@ const Sidebar: React.FC = () => {
               <li
                 className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
                 onClick={() => handleNavigation("/User")}
+                aria-label="Mi Perfil"
               >
                 <FiUser size={24} />
                 {isOpen && <span>Mi perfil</span>}
@@ -199,6 +200,7 @@ const Sidebar: React.FC = () => {
               <li
                 className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
                 onClick={handleLogout}
+                aria-label="Cerrar Sesión"
               >
                 <CiLogin size={24} />
                 {isOpen && <span>Cerrar Sesión</span>}
@@ -208,6 +210,7 @@ const Sidebar: React.FC = () => {
             <li
               className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
               onClick={() => handleNavigation("/Login")}
+              aria-label="Iniciar Sesión"
             >
               <CiLogin size={24} />
               {isOpen && <span>Iniciar Sesión</span>}
@@ -219,14 +222,14 @@ const Sidebar: React.FC = () => {
       {user && !isLoggedOut && (
         <>
           {user.isAdmin && (
-            <Link href="/Admin">
+            <Link href="/Admin" aria-label="Administrador">
               <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
-                <FaCog size={24} color="white" />
+                <FaCog size={24} />
                 {isOpen && <span>Administrador</span>}
               </div>
             </Link>
           )}
-          <Link href="/Cart">
+          <Link href="/Cart" aria-label="Mi Carrito">
             <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
               <FaShoppingCart size={24} />
               {isOpen && <span>Mi carrito</span>}
