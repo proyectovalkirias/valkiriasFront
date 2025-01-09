@@ -18,7 +18,7 @@ const UserPanel: React.FC = () => {
     lastname: string;
     email: string;
     photoUrl: string;
-    dni?: string;
+    dni?: number;
     phone?: string;
     address?: string;
     city?: string;
@@ -28,7 +28,7 @@ const UserPanel: React.FC = () => {
     lastname: "",
     email: "",
     photoUrl: "/images/Avatar.png",
-    dni: "",
+    dni: 0,
     phone: "",
     address: "",
     city: "",
@@ -63,7 +63,7 @@ const UserPanel: React.FC = () => {
           lastname: googleUser.family_name || "",
           email: googleUser.email || "",
           photoUrl: googleUser.picture || "/images/Avatar.png",
-          dni: googleUser.dni || "",
+          dni: googleUser.dni || 0,
           phone: googleUser.phone || "",
           isGoogleUser: true,
         };
@@ -78,7 +78,7 @@ const UserPanel: React.FC = () => {
   // Obtener detalles adicionales del usuario desde la API
   const fetchUserDetails = async (id: string) => {
     try {
-      const response = await axios.get(`${API_URL || LOCAL_URL}users/${id}`);
+      const response = await axios.get(`${API_URL || LOCAL_URL}/users/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error al obtener los detalles del usuario:", error);
@@ -89,7 +89,7 @@ const UserPanel: React.FC = () => {
   // Obtener órdenes desde la API
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(`${API_URL || LOCAL_URL}order/orders`);
+      const response = await axios.get(`${API_URL || LOCAL_URL}/order/orders`);
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
@@ -154,54 +154,79 @@ const UserPanel: React.FC = () => {
     if (activeTab === "purchases") fetchPurchases();
   }, [activeTab]);
   type UserField =
-    | "firstname"
-    | "lastname"
-    | "email"
-    | "phone"
-    | "dni"
-    | "address"
-    | "city"
-    | "state";
-  const userFields: { label: string; value: string; key: UserField }[] = [
+    | "id"
+    | "Foto"
+    | "Nombre"
+    | "Apellido"
+    | "Email"
+    | "Telefono"
+    | "Dni"
+    | "Direccion"
+    | "Provincia"
+    | "Ciudad";
+  const userFields: {
+    label: string;
+    value: string | number;
+    key: UserField;
+  }[] = [
     {
       label: "Nombre",
-      value: `${user.firstname || "N/A"}`,
-      key: "firstname",
+      value: `${user.firstname || "N/A"} `,
+      key: "Nombre",
     },
-    { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "lastname" },
-    { label: "Email", value: user.email || "N/A", key: "email" },
-    { label: "Teléfono", value: user.phone || "N/A", key: "phone" },
-    { label: "DNI", value: user.dni || "N/A", key: "dni" },
-    { label: "Dirección", value: user.address || "N/A", key: "address" },
-    { label: "Ciudad", value: user.city || "N/A", key: "city" },
-    { label: "Estado", value: user.state || "N/A", key: "state" },
+    { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "Apellido" },
+    { label: "Email", value: user.email || "N/A", key: "Email" },
+    { label: "Teléfono", value: user.phone || "N/A", key: "Telefono" },
+    { label: "DNI", value: user.dni || "N/A", key: "Dni" },
+    { label: "Dirección", value: user.address || "N/A", key: "Direccion" },
+    { label: "Ciudad", value: user.city || "N/A", key: "Provincia" },
+    { label: "Estado", value: user.state || "N/A", key: "Ciudad" },
+    { label: "Foto", value: user.photoUrl || "N/A", key: "Foto" },
   ];
   function isUserField(key: string): key is UserField {
     return [
-      "firstname",
-      "lastname",
-      "email",
-      "phone",
-      "dni",
-      "address",
-      "city",
-      "state",
+      "Nombre",
+      "Apellido",
+      "Email",
+      "Telefono",
+      "Dni",
+      "Direccion",
+      "Provincia",
+      "Ciudad",
+      "Foto",
     ].includes(key);
   }
 
   async function handleEdit(key: string): Promise<void> {
     if (!isUserField(key)) {
       console.error(`Campo inválido: ${key}`);
+      toast.error(`Campo inválido: ${key}`);
       return;
     }
-
+    if (key === "Email") {
+      toast.error("El correo no se puede editar.");
+      return;
+    }
     const newValue = prompt(`Ingrese el nuevo valor para ${key}:`);
     if (!newValue) return;
 
+    // Intentar convertir a número si es necesario
+    let formattedValue: string | number = newValue;
+
+    // Validar si el campo requiere un número, como "dni"
+    if (key === "Dni") {
+      const parsedNumber = Number(newValue);
+      if (isNaN(parsedNumber)) {
+        toast.error(`${key} debe ser un número válido.`);
+        return;
+      }
+      formattedValue = parsedNumber;
+    }
+
     try {
       const response = await axios.put(
-        `${API_URL || LOCAL_URL}users/${user.id}`,
-        { [key]: newValue },
+        `${API_URL || LOCAL_URL}/users/${user.id}`,
+        { [key]: formattedValue },
         {
           headers: { "Content-Type": "application/json" },
         }
@@ -209,15 +234,38 @@ const UserPanel: React.FC = () => {
 
       if (response.status === 200) {
         setUser(response.data);
-        alert(`${key} actualizado correctamente.`);
+        toast.success(`${key} actualizado correctamente.`);
       } else {
         throw new Error("No se pudo actualizar el dato.");
       }
     } catch (error) {
       console.error(error);
-      alert("Hubo un problema al actualizar el dato.");
+      toast.error("Hubo un problema al actualizar el dato.");
     }
   }
+  const handleDeleteOrder = async (orderId: string) => {
+    const confirmation = window.confirm(
+      "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
+    );
+    if (confirmation) {
+      try {
+        // Realiza la solicitud DELETE al backend
+        await axios.delete(`${API_URL || LOCAL_URL}/order/${orderId}`);
+
+        // Actualiza el estado eliminando la orden
+        setData((prevData) => ({
+          ...prevData,
+          orders: prevData.orders.filter((order) => order.id !== orderId),
+        }));
+        toast.success("Orden eliminada con éxito.");
+      } catch (error) {
+        console.error("Error eliminando la orden:", error);
+        toast.error(
+          "Hubo un problema al eliminar la orden. Inténtalo nuevamente."
+        );
+      }
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -240,39 +288,39 @@ const UserPanel: React.FC = () => {
 
                 {/* Información del usuario */}
                 <div className="text-center space-y-2">
-  {userFields.map((item) => (
-    <div
-      key={item.key}
-      className="flex items-center justify-center"
-    >
-      <p className="text-lg text-gray-600">
-        <strong>{item.label}:</strong> {item.value}
-      </p>
-      {item.key !== "email" && ( // Ocultar el botón de edición si el campo es email
-        <button
-          onClick={() => handleEdit(item.key)}
-          className="ml-2 text-blue-500 hover:text-blue-700"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
-            />
-          </svg>
-        </button>
-      )}
-    </div>
-  ))}
-</div>
-</div>
+                  {userFields.map((item) => (
+                    <div
+                      key={item.key}
+                      className="flex items-center justify-center"
+                    >
+                      <p className="text-lg text-gray-600">
+                        <strong>{item.label}:</strong> {item.value}
+                      </p>
+                      {item.key !== "Email" && (
+                        <button
+                          onClick={() => handleEdit(item.key)}
+                          className="ml-2 text-blue-500 hover:text-blue-700"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1}
+                            stroke="purple"
+                            className="w-3 h-3"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : (
               <p className="text-gray-600 text-center">
                 Cargando información...
@@ -280,7 +328,6 @@ const UserPanel: React.FC = () => {
             )}
           </div>
         );
-
       case "traking":
         return (
           <div className="bg-white min-h-screen p-6">
@@ -373,6 +420,29 @@ const UserPanel: React.FC = () => {
         );
       case "orders":
         fetchOrders();
+        const handleDeleteOrder = async (orderId: string) => {
+          const confirmation = window.confirm(
+            "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
+          );
+          if (confirmation) {
+            try {
+              // Realiza la solicitud DELETE al backend
+              await axios.delete(`${API_URL || LOCAL_URL}/order/${orderId}`);
+
+              // Actualiza el estado eliminando la orden
+              setData((prevData) => ({
+                ...prevData,
+                orders: prevData.orders.filter((order) => order.id !== orderId),
+              }));
+              toast.success("Orden eliminada con éxito.");
+            } catch (error) {
+              console.error("Error eliminando la orden:", error);
+              toast.error(
+                "Hubo un problema al eliminar la orden. Inténtalo nuevamente."
+              );
+            }
+          }
+        };
         return (
           <div className="bg-white min-h-screen p-6">
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
@@ -383,18 +453,26 @@ const UserPanel: React.FC = () => {
                 data.orders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 bg-gray-100 rounded-lg shadow-md"
+                    className="p-4 bg-gray-100 rounded-lg shadow-md flex justify-between items-center"
                   >
-                    <p className="text-lg text-gray-800">
-                      <strong>ID:</strong> {order.id}
-                    </p>
-                    <p className="text-lg text-gray-800">
-                      <strong>Fecha:</strong>{" "}
-                      {new Date(order.date).toLocaleDateString()}
-                    </p>
-                    <p className="text-lg text-gray-800">
-                      <strong>Total:</strong> ${order.total}
-                    </p>
+                    <div>
+                      <p className="text-lg text-gray-800">
+                        <strong>ID:</strong> {order.id}
+                      </p>
+                      <p className="text-lg text-gray-800">
+                        <strong>Fecha:</strong>{" "}
+                        {new Date(order.date).toLocaleDateString()}
+                      </p>
+                      <p className="text-lg text-gray-800">
+                        <strong>Total:</strong> ${order.total}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteOrder(order.id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600"
+                    >
+                      Eliminar
+                    </button>
                   </div>
                 ))
               ) : (

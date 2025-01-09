@@ -12,6 +12,10 @@ const Login: React.FC = () => {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+  const LOCAL_URL =
+    process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -36,16 +40,13 @@ const Login: React.FC = () => {
     }
 
     try {
-      const response = await fetch(
-        "https://valkiriasback.onrender.com/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await fetch(`${API_URL || LOCAL_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -73,7 +74,8 @@ const Login: React.FC = () => {
     const scope = "openid profile email";
     const responseType = "code";
 
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+    const googleAuthUrl =
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
       `client_id=${clientID}` +
       `&redirect_uri=${encodeURIComponent(redirectURI)}` +
       `&response_type=${responseType}` +
@@ -92,9 +94,7 @@ const Login: React.FC = () => {
 
     try {
       const response = await fetch(
-        `https://valkiriasback.onrender.com/auth/${encodeURIComponent(
-          formData.email
-        )}`,
+        `${API_URL || LOCAL_URL}/auth/${encodeURIComponent(formData.email)}`,
         {
           method: "GET",
         }
@@ -160,7 +160,7 @@ const Login: React.FC = () => {
                 {showPassword ? 
                 <FaEye className="text-purple-900" /> :
                 <FaEyeSlash className="text-purple-900" />}
-                
+
               </button>
             </div>
             <button

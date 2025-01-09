@@ -33,6 +33,10 @@ const UpdateProduct: React.FC = () => {
   const router = useRouter();
   const params = useParams();
   const productId = Array.isArray(params?.id) ? params.id[0] : params.id;
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+  const LOCAL_URL =
+    process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
 
   useEffect(() => {
     if (productId) {
@@ -42,9 +46,7 @@ const UpdateProduct: React.FC = () => {
 
   const fetchProduct = async (id: string) => {
     try {
-      const response = await fetch(
-        `https://valkiriasback.onrender.com/products/${id}`
-      );
+      const response = await fetch(`${API_URL || LOCAL_URL}/products/${id}`);
       if (!response.ok) {
         throw new Error("Error fetching product");
       }
@@ -104,7 +106,7 @@ const UpdateProduct: React.FC = () => {
       });
 
       const response = await fetch(
-        `http://localhost:3000/products/update/${productId}`,
+        `${API_URL || LOCAL_URL}/products/update/${productId}`,
         {
           method: "PUT",
           body: formData,
