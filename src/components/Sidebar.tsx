@@ -65,6 +65,7 @@ const Sidebar: React.FC = () => {
     isAdmin?: boolean;
   } | null>(null);
   const [isLoggedOut, setIsLoggedOut] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   const handleNavigation = useCallback(
@@ -79,11 +80,6 @@ const Sidebar: React.FC = () => {
   }, []);
 
   const handleLogout = useCallback(async () => {
-    const confirmation = window.confirm(
-      "¿Estás seguro de que deseas cerrar sesión?"
-    );
-    if (!confirmation) return;
-
     try {
       const accessToken = localStorage.getItem("access_token");
 
@@ -106,7 +102,7 @@ const Sidebar: React.FC = () => {
           toast.error("No se pudo cerrar sesión en Google correctamente");
         }
       }
-
+      setIsModalOpen(false);
       localStorage.clear();
       setUser(null);
       setIsLoggedOut(true);
@@ -199,7 +195,7 @@ const Sidebar: React.FC = () => {
               </li>
               <li
                 className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-                onClick={handleLogout}
+                onClick={() => setIsModalOpen(true)}
                 aria-label="Cerrar Sesión"
               >
                 <CiLogin size={24} />
@@ -255,6 +251,33 @@ const Sidebar: React.FC = () => {
             )}
           </div>
         </>
+      )}
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg text-gray-800 font-bold mb-4">
+              Cerrar Sesión
+            </h2>
+            <p className="mb-4 text-gray-600">
+              ¿Estás seguro de que deseas cerrar sesión?
+            </p>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

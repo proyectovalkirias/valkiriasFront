@@ -10,7 +10,7 @@ const Reports: React.FC = () => {
       {
         id: "barChart",
         options: {
-          chart: { type: "bar", height: 350 },
+          chart: { type: "bar", height: 400 },
           series: [{ name: "Ventas", data: [50, 70, 40, 90, 80, 120] }],
           xaxis: {
             categories: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"],
@@ -22,7 +22,24 @@ const Reports: React.FC = () => {
       {
         id: "lineChart",
         options: {
-          chart: { type: "line", height: 350 },
+          chart: {
+            type: "line",
+            height: 400,
+            toolbar: {
+              show: true, // Mostrar o esconder el toolbar
+              offsetX: 25, // Desplazamiento horizontal
+              offsetY: -18, // Desplazamiento vertical
+              tools: {
+                download: true, // Habilitar/Deshabilitar descarga
+                selection: true, // Habilitar/Deshabilitar selección
+                zoom: true, // Habilitar/Deshabilitar zoom
+                zoomin: true, // Habilitar/Deshabilitar acercar
+                zoomout: true, // Habilitar/Deshabilitar alejar
+                pan: true, // Habilitar/Deshabilitar paneo
+                reset: true, // Habilitar/Deshabilitar resetear
+              },
+            },
+          },
           series: [
             { name: "Usuarios Activos", data: [100, 200, 150, 300, 250, 400] },
           ],
@@ -36,59 +53,30 @@ const Reports: React.FC = () => {
       {
         id: "areaChart",
         options: {
-          chart: { type: "area", height: 350 },
+          chart: {
+            type: "area",
+            height: 400,
+            toolbar: {
+              show: true, // Mostrar o esconder el toolbar
+              offsetX: 25, // Desplazamiento horizontal
+              offsetY: -18, // Desplazamiento vertical
+              tools: {
+                download: true, // Habilitar/Deshabilitar descarga
+                selection: true, // Habilitar/Deshabilitar selección
+                zoom: true, // Habilitar/Deshabilitar zoom
+                zoomin: true, // Habilitar/Deshabilitar acercar
+                zoomout: true, // Habilitar/Deshabilitar alejar
+                pan: true, // Habilitar/Deshabilitar paneo
+                reset: true, // Habilitar/Deshabilitar resetear
+              },
+            },
+          },
           series: [{ name: "Ingresos", data: [200, 400, 300, 600, 500, 800] }],
           xaxis: {
             categories: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"],
           },
           colors: ["#007BFF"],
           title: { text: "Ingresos Totales", align: "center" },
-        },
-      },
-      {
-        id: "pieChart",
-        options: {
-          chart: { type: "pie", height: 350 },
-          series: [30, 25, 20, 15, 10],
-          labels: ["Electrónica", "Ropa", "Alimentos", "Juguetes", "Otros"],
-          colors: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
-          title: {
-            text: "Distribución de Ventas por Categoría",
-            align: "center",
-          },
-        },
-      },
-      {
-        id: "radialChart",
-        options: {
-          chart: { type: "radialBar", height: 350 },
-          series: [85],
-          labels: ["Meta de Ventas"],
-          colors: ["#00E396"],
-          title: { text: "Progreso de Meta de Ventas", align: "center" },
-        },
-      },
-      {
-        id: "heatmapChart",
-        options: {
-          chart: { type: "heatmap", height: 350 },
-          series: [
-            {
-              name: "Producto A",
-              data: [10, 20, 30, 40, 50, 60],
-            },
-            {
-              name: "Producto B",
-              data: [20, 30, 40, 50, 60, 70],
-            },
-            {
-              name: "Producto C",
-              data: [30, 40, 50, 60, 70, 80],
-            },
-          ],
-          xaxis: { categories: ["Ene", "Feb", "Mar", "Abr", "May", "Jun"] },
-          colors: ["#008FFB"],
-          title: { text: "Heatmap de Ventas por Producto", align: "center" },
         },
       },
     ];
@@ -117,27 +105,15 @@ const Reports: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           id="barChart"
-          className="bg-white shadow-md rounded p-4 min-h-[400px]"
+          className="bg-white shadow-md rounded p-4 min-h-[500px]"
         ></div>
         <div
           id="lineChart"
-          className="bg-white shadow-md rounded p-4 min-h-[400px]"
+          className="bg-white shadow-md rounded p-4 min-h-[500px]"
         ></div>
         <div
           id="areaChart"
-          className="bg-white shadow-md rounded p-4 min-h-[400px]"
-        ></div>
-        <div
-          id="pieChart"
-          className="bg-white shadow-md rounded p-4 min-h-[400px]"
-        ></div>
-        <div
-          id="radialChart"
-          className="bg-white shadow-md rounded p-4 min-h-[400px]"
-        ></div>
-        <div
-          id="heatmapChart"
-          className="bg-white shadow-md rounded p-4 min-h-[400px]"
+          className="bg-white shadow-md rounded p-4 min-h-[500px]"
         ></div>
       </div>
     </div>
