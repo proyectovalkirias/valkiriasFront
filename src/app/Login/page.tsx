@@ -3,13 +3,15 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/dist/client/link";
-import { toast } from "react-hot-toast"; // Importa el hook de react-hot-toast
+import { toast } from "react-hot-toast";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
   const API_URL =
     process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
   const LOCAL_URL =
@@ -22,9 +24,13 @@ const Login: React.FC = () => {
     });
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast.dismiss(); // Descartar cualquier notificación pendiente
+    toast.dismiss();
 
     const { email, password } = formData;
 
@@ -52,10 +58,9 @@ const Login: React.FC = () => {
       toast.success("Inicio de sesión exitoso.");
       console.log("Datos del usuario:", data);
 
-      // Guardar datos del usuario en el localStorage
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
-      window.location.href = "/"; // Redirige al dashboard en el cliente
+      window.location.href = "/"; // Redirige al dashboard
     } catch (err) {
       toast.error("Hubo un problema al conectar con el servidor.");
       console.error(err);
@@ -76,12 +81,11 @@ const Login: React.FC = () => {
       `&response_type=${responseType}` +
       `&scope=${encodeURIComponent(scope)}`;
 
-
     window.location.href = googleAuthUrl;
   };
 
   const handleForgotPassword = async () => {
-    toast.dismiss(); // Descartar cualquier notificación pendiente
+    toast.dismiss();
 
     if (!formData.email) {
       toast.error("Por favor, ingresa tu correo electrónico.");
@@ -139,14 +143,26 @@ const Login: React.FC = () => {
               onChange={handleChange}
               className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none"
             />
-            <input
-              type="password"
-              name="password"
-              placeholder="Contraseña"
-              value={formData.password}
-              onChange={handleChange}
-              className="mb-6 border-b-2 border-white bg-transparent p-2 text-white outline-none"
-            />
+            <div className="relative mb-6">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Contraseña"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-2 top-3 text-white"
+              >
+                {showPassword ? 
+                <FaEye className="text-purple-900" /> :
+                <FaEyeSlash className="text-purple-900" />}
+
+              </button>
+            </div>
             <button
               type="submit"
               className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
