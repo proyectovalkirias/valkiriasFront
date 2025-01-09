@@ -10,6 +10,10 @@ const Login: React.FC = () => {
     email: "",
     password: "",
   });
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+  const LOCAL_URL =
+    process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -30,7 +34,7 @@ const Login: React.FC = () => {
     }
 
     try {
-      const response = await fetch("https://valkiriasback.onrender.com/auth/login", {
+      const response = await fetch(`${API_URL || LOCAL_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -65,11 +69,13 @@ const Login: React.FC = () => {
     const scope = "openid profile email";
     const responseType = "code";
 
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-  `client_id=${clientID}` +
-  `&redirect_uri=${encodeURIComponent(redirectURI)}` +
-  `&response_type=${responseType}` +
-  `&scope=${encodeURIComponent(scope)}`;
+    const googleAuthUrl =
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${clientID}` +
+      `&redirect_uri=${encodeURIComponent(redirectURI)}` +
+      `&response_type=${responseType}` +
+      `&scope=${encodeURIComponent(scope)}`;
+
 
     window.location.href = googleAuthUrl;
   };
@@ -84,7 +90,7 @@ const Login: React.FC = () => {
 
     try {
       const response = await fetch(
-        `https://valkiriasback.onrender.com/auth/${encodeURIComponent(formData.email)}`,
+        `${API_URL || LOCAL_URL}/auth/${encodeURIComponent(formData.email)}`,
         {
           method: "GET",
         }
