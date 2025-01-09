@@ -76,6 +76,7 @@ const Login: React.FC = () => {
       `&response_type=${responseType}` +
       `&scope=${encodeURIComponent(scope)}`;
 
+
     window.location.href = googleAuthUrl;
   };
 
