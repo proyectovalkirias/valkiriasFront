@@ -169,19 +169,19 @@ const UserPanel: React.FC = () => {
     value: string | number;
     key: UserField;
   }[] = [
+    { label: "Email", value: user.email || "N/A", key: "Email" },
     {
       label: "Nombre",
       value: `${user.firstname || "N/A"} `,
       key: "Nombre",
     },
     { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "Apellido" },
-    { label: "Email", value: user.email || "N/A", key: "Email" },
     { label: "Teléfono", value: user.phone || "N/A", key: "Telefono" },
     { label: "DNI", value: user.dni || "N/A", key: "Dni" },
     { label: "Dirección", value: user.address || "N/A", key: "Direccion" },
     { label: "Ciudad", value: user.city || "N/A", key: "Provincia" },
     { label: "Estado", value: user.state || "N/A", key: "Ciudad" },
-    { label: "Foto", value: user.photoUrl || "N/A", key: "Foto" },
+    // { label: "Foto", value: user.photoUrl || "N/A", key: "Foto" },
   ];
   function isUserField(key: string): key is UserField {
     return [
@@ -207,6 +207,7 @@ const UserPanel: React.FC = () => {
       toast.error("El correo no se puede editar.");
       return;
     }
+    
     const newValue = prompt(`Ingrese el nuevo valor para ${key}:`);
     if (!newValue) return;
 
@@ -271,63 +272,87 @@ const UserPanel: React.FC = () => {
     switch (activeTab) {
       case "profile":
         return (
-          <div className="bg-white min-h-screen p-6">
-            <h1 className="text-3xl font-bold text-black mb-6 text-center">
-              Mi Perfil
-            </h1>
-            {user ? (
-              <div className="p-6 bg-gray-100 rounded-lg shadow-md flex flex-col items-center space-y-4">
-                {/* Foto de perfil */}
-                <div className="w-32 h-32 rounded-full overflow-hidden shadow-lg">
-                  <img
-                    src={user.photoUrl || "/images/Avatar.png"}
-                    alt={`${user.firstname} ${user.lastname}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                {/* Información del usuario */}
-                <div className="text-center space-y-2">
-                  {userFields.map((item) => (
-                    <div
-                      key={item.key}
-                      className="flex items-center justify-center"
-                    >
-                      <p className="text-lg text-gray-600">
-                        <strong>{item.label}:</strong> {item.value}
-                      </p>
-                      {item.key !== "Email" && (
-                        <button
-                          onClick={() => handleEdit(item.key)}
-                          className="ml-2 text-blue-500 hover:text-blue-700"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1}
-                            stroke="purple"
-                            className="w-3 h-3"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
-                            />
-                          </svg>
-                        </button>
-                      )}
+          <div className="bg-gray-50 min-h-screen flex items-center justify-center p-6">
+            <div className="p-6 w-full max-w-md">
+              <h1 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
+                Mi Perfil
+              </h1>
+              {user ? (
+                <div className="bg-white border-2 rounded-lg p-6 flex flex-col items-center space-y-4">
+                  {/* Foto de perfil con botón de edición al lado */}
+                  <div className="flex items-center space-x-4 ml-11">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 shadow-md">
+                      <img
+                        src={user.photoUrl || "/images/Avatar.png"}
+                        alt={`${user.firstname} ${user.lastname}`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  ))}
+                    {/* Botón de edición */}
+                    <button
+                      onClick={() => handleEdit("photoUrl")}
+                      className="p-1 rounded-md text-blue-500 hover:bg-gray-100"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-5 h-5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+  
+                  {/* Información del usuario */}
+                  <div className="w-full space-y-3 mt-4">
+                    {userFields.map((item) => (
+                      <div
+                        key={item.key}
+                        className="flex justify-between items-center text-gray-600"
+                      >
+                        <p className="text-sm">
+                          <strong className="text-gray-800">{item.label}:</strong>{" "}
+                          {item.value}
+                        </p>
+                        {item.key !== "Email" && (
+                          <button
+                            onClick={() => handleEdit(item.key)}
+                            className="p-1 rounded-md hover:bg-gray-100"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.5}
+                              stroke="currentColor"
+                              className="w-4 h-4 text-blue-500"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <p className="text-gray-600 text-center">
-                Cargando información...
-              </p>
-            )}
+              ) : (
+                <p className="text-gray-600 text-center">Cargando información...</p>
+              )}
+            </div>
           </div>
         );
+  
       case "traking":
         return (
           <div className="bg-white min-h-screen p-6">
