@@ -8,6 +8,10 @@ import { User } from "@/interfaces/User";
 import { toast } from "react-hot-toast"; // Importa toast
 
 const Admin = () => {
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+  const LOCAL_URL =
+    process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -32,7 +36,7 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get<User[]>("https://valkiriasback.onrender.com/users");
+      const response = await axios.get<User[]>(`${API_URL || LOCAL_URL}/users`);
       setUsers(response.data);
       setFilteredUsers(response.data);
     } catch (error) {
@@ -44,8 +48,8 @@ const Admin = () => {
   const toggleUserStatus = async (id: number, activate: boolean) => {
     try {
       const url = activate
-        ? `https://valkiriasback.onrender.com/users/${id}/activate`
-        : `https://valkiriasback.onrender.com/users/${id}/deactivate`;
+        ? `${API_URL || LOCAL_URL}/users/${id}/activate`
+        : `${API_URL || LOCAL_URL}/users/${id}/deactivate`;
       await axios.put(url);
       fetchUsers();
       toast.success(
@@ -67,7 +71,7 @@ const Admin = () => {
             {/* Enlace para crear productos */}
             <div className=" ">
               <Link href="/CreateProduct" aria-label="Crear Productos">
-                <button className=" text-3xl bg-valkyrie-purple text-white py-2 px-4 ml-6 mt-6 rounded-lg hover:bg-creativity-purple">
+                <button className=" text-xl bg-valkyrie-purple text-white py-2 px-4 ml-6 mt-6 rounded-full hover:bg-creativity-purple">
                   Crear Productos
                 </button>
               </Link>
@@ -103,7 +107,7 @@ const Admin = () => {
               <input
                 type="text"
                 placeholder="Buscar por ID o Email"
-                className="p-3 border border-gray-300 rounded-lg w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="p-3 border border-gray-300 rounded-lg w-full text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -161,15 +165,15 @@ const Admin = () => {
                       <td className="border border-gray-300 p-3 text-black">
                         {user.phone}
                       </td>
-                      <td className="border border-gray-300 p-3 text-black flex space-x-2">
+                      <td className="border border-gray-300 p-3 text-black  flex flex-col gap-2 ">
                         <button
-                          className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg hover:bg-creativity-purple"
+                          className="bg-custom-orange text-white py-1 px-2 mr-2 rounded-full hover:bg-orange-400"
                           onClick={() => toggleUserStatus(user.id, true)}
                         >
                           Activar
                         </button>
                         <button
-                          className="bg-red-500 text-white px-3 py-1 rounded-lg shadow hover:bg-red-600 transition"
+                          className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-full  hover:bg-creativity-purple"
                           onClick={() => toggleUserStatus(user.id, false)}
                         >
                           Desactivar
@@ -178,7 +182,7 @@ const Admin = () => {
                       <td className="border border-gray-300 p-3 text-black">
                         <span
                           className={`px-2 py-1 rounded-full text-white text-sm ${
-                            user.active ? "bg-green-500" : "bg-red-500"
+                            user.active ? "bg-green-200" : "bg-red-200"
                           }`}
                         >
                           {user.active ? "Activo" : "Inactivo"}
