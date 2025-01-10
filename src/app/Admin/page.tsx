@@ -37,7 +37,7 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get<User[]>(`${API_URL || LOCAL_URL}/users`);
+      const response = await axios.get(`${API_URL || LOCAL_URL}/users`);
       setUsers(response.data);
       setFilteredUsers(response.data);
     } catch (error) {
