@@ -121,7 +121,7 @@ const Cart: React.FC = () => {
           {cartItems.map((item, index) => (
             <div
               key={item.id || `cart-item-${index}`}
-              className="p-4 bg-white rounded-lg shadow-md flex flex-col md:flex-row items-center md:items-start gap-6"
+              className="p-4 bg-white rounded-lg shadow-md flex flex-col md:flex-row items-center md:items-start gap-6 relative"
             >
               {item.product?.photos?.[0] && (
                 <div className="flex-shrink-0">
@@ -132,32 +132,53 @@ const Cart: React.FC = () => {
                   />
                 </div>
               )}
-              <div className="flex-1">
-                <h2 className="text-xl font-bold mb-2">{item.name}</h2>
-                {item.selectedSize && (
-                  <p className="text-sm text-gray-700 mb-1">
-                    <strong>Tamaño:</strong> {item.selectedSize}
-                  </p>
-                )}
-                {item.selectedColor && colorNameMap[item.selectedColor] && (
-                  <p className="text-sm text-gray-700 mb-1">
-                    <strong>Color:</strong> {colorNameMap[item.selectedColor]}
-                  </p>
-                )}
-                {item.quantity && (
-                  <p className="text-sm text-gray-700 mb-1">
-                    <strong>Cantidad:</strong> {item.quantity}
-                  </p>
-                )}
-                {item.totalPrice && (
-                  <p className="text-lg font-bold text-gray-900">
-                    Total: ${item.totalPrice}
-                  </p>
-                )}
+              <div className="flex flex-wrap items-start space-x-4">
+                <div className="flex-1">
+                  <h2 className="text-xl text-gray-900 font-bold mb-2">
+                    {item.name}
+                  </h2>
+                  {item.selectedSize && (
+                    <p className="text-sm text-gray-700 mb-1">
+                      <strong>Tamaño:</strong> {item.selectedSize}
+                    </p>
+                  )}
+                  {item.selectedColor && colorNameMap[item.selectedColor] && (
+                    <p className="text-sm text-gray-700 mb-1">
+                      <strong>Color:</strong> {colorNameMap[item.selectedColor]}
+                    </p>
+                  )}
+                  {item.quantity && (
+                    <p className="text-sm text-gray-700 mb-1">
+                      <strong>Cantidad:</strong> {item.quantity}
+                    </p>
+                  )}
+                  {item.totalPrice && (
+                    <p className="text-lg font-bold text-gray-900">
+                      Total: ${item.totalPrice}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center">
+                  {item.selectedSmallPrint && (
+                    <img
+                      src={item.selectedSmallPrint}
+                      alt={`Estampa pequeña de ${item.name || "producto"}`}
+                      className="w-20 h-20 rounded mr-2"
+                    />
+                  )}
+                  {item.selectedLargePrint && (
+                    <img
+                      src={item.selectedLargePrint}
+                      alt={`Estampa grande de ${item.name || "producto"}`}
+                      className="w-20 h-20 rounded"
+                    />
+                  )}
+                </div>
               </div>
+
               <button
                 onClick={() => handleOpenModal("remove", index)}
-                className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg  hover:bg-creativity-purple"
+                className="absolute top-2 right-2 bg-valkyrie-purple text-white py-1 px-2 rounded-lg hover:bg-creativity-purple"
               >
                 Eliminar
               </button>
