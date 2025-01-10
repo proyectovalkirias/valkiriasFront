@@ -75,51 +75,33 @@ const ProductDetail: React.FC = () => {
       setLoading(false);
       return;
     }
-    const API_URL =
-      process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
-    const LOCAL_URL =
-      process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
+
+
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        async function getProducts(): Promise<Product[]> {
-          try {
-            const res = await fetch(`${API_URL || LOCAL_URL}products`, {
+
+        const getProductById = async (id: string): Promise<Product> => {
+          const response = await fetch(
+            `https://valkiriasback.onrender.com/products/${id}`,
+            {
               cache: "no-cache",
               next: { revalidate: 1500 },
-            });
-            if (!res.ok) {
-              throw new Error(`Failed to fetch products: ${res.statusText}`);
             }
-            return (await res.json()) as Product[];
-          } catch (error) {
-            throw new Error(
-              `Error fetching products: ${(error as Error).message}`
-            );
+          );
+          if (!response.ok) {
+            throw new Error(`Failed to fetch product: ${response.statusText}`);
           }
-        }
-        async function getProductById(id: string): Promise<Product> {
-          try {
-            const response = await fetch(
-              `${API_URL || LOCAL_URL}/products/${id}`
-            );
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const product: Product = await response.json();
-            return product;
-          } catch (error) {
-            throw new Error(
-              `Error obtaining the product: ${(error as Error).message}`
-            );
-          }
-        }
+          return response.json() as Promise<Product>;
+        };
+
         const fetchedProduct = await getProductById(productId);
 
         if (!fetchedProduct || typeof fetchedProduct !== "object") {
-          throw new Error("Producto no válido");
+          throw new Error("Producto no válido.");
         }
 
+        // Limpieza de tamaños si es un array de strings
         if (Array.isArray(fetchedProduct.sizes)) {
           fetchedProduct.sizes = fetchedProduct.sizes.map((size: string) =>
             size.replace(/\\|"/g, "")
@@ -134,9 +116,9 @@ const ProductDetail: React.FC = () => {
             : "/placeholder.png"
         );
         setRemainingStock(fetchedProduct.stock || 0);
-      } catch (err) {
+      } catch (error) {
         setError("No se pudo cargar el producto. Intenta nuevamente.");
-        console.error(err);
+        console.error(error);
       } finally {
         setLoading(false);
       }
