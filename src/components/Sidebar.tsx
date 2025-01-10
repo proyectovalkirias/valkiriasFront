@@ -10,10 +10,6 @@ import { FaShoppingCart, FaCog } from "react-icons/fa";
 import Link from "next/link";
 import { toast } from "react-toastify";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
-const LOCAL_URL = process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
-
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");

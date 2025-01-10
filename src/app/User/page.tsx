@@ -87,7 +87,7 @@ const UserPanel: React.FC = () => {
   // Obtener detalles adicionales del usuario desde la API
   const fetchUserDetails = async (id: string) => {
     try {
-      const response = await axios.get(`${API_URL || LOCAL_URL}/users/${id}`);
+      const response = await axios.get(`http://localhost:3000/users/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error al obtener los detalles del usuario:", error);
@@ -96,14 +96,13 @@ const UserPanel: React.FC = () => {
   };
 
   // Obtener órdenes desde la API
-  const fetchOrders = async () => {
+  const fetchOrders = async (id: string) => {
     try {
       const response = await axios.get(
-        `${API_URL || LOCAL_URL}/order/user/${user.id}`
+        `http://localhost:3000/order/user/${id}`
       );
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
-      console.error("Error al obtener las órdenes:", error);
       toast.error("Error al obtener las órdenes.");
     }
   };
@@ -112,7 +111,7 @@ const UserPanel: React.FC = () => {
   const fetchPurchases = async () => {
     try {
       const response = await axios.get(
-        `${API_URL || LOCAL_URL}/purchase/user/${user.id}`
+        `http://localhost:3000/order/user/${user.id}`
       );
       setData((prev) => ({ ...prev, purchases: response.data }));
     } catch (error) {
@@ -163,7 +162,7 @@ const UserPanel: React.FC = () => {
 
   // Cargar órdenes o compras según la pestaña activa
   useEffect(() => {
-    if (activeTab === "orders") fetchOrders();
+    if (activeTab === "orders") fetchOrders(user.id || "");
     if (activeTab === "purchases") fetchPurchases();
   }, [activeTab]);
   const userFields: {
@@ -203,9 +202,17 @@ const UserPanel: React.FC = () => {
     if (!modalField) return;
 
     try {
+      // Asegurar que el campo "dni" sea un número si corresponde
+      const payload = {
+        [modalField.key]:
+          modalField.key === "dni"
+            ? Number(modalField.value)
+            : modalField.value,
+      };
+
       const response = await axios.put(
-        `${API_URL || LOCAL_URL}/users/${user.id}`,
-        { [modalField.key]: modalField.value },
+        `http://localhost:3000/users/${user.id}`,
+        payload,
         { headers: { "Content-Type": "application/json" } }
       );
 
@@ -219,6 +226,29 @@ const UserPanel: React.FC = () => {
     } catch (error) {
       console.error(error);
       toast.error("Hubo un problema al actualizar el dato.");
+    }
+  };
+  const handleDeleteOrder = async (orderId: string) => {
+    const confirmation = window.confirm(
+      "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
+    );
+    if (confirmation) {
+      try {
+        // Realiza la solicitud DELETE al backend
+        await axios.delete(`http://localhost:3000/order/${orderId}`);
+
+        // Actualiza el estado eliminando la orden
+        setData((prevData) => ({
+          ...prevData,
+          orders: prevData.orders.filter((order) => order.id !== orderId),
+        }));
+        toast.success("Orden eliminada con éxito.");
+      } catch (error) {
+        console.error("Error eliminando la orden:", error);
+        toast.error(
+          "Hubo un problema al eliminar la orden. Inténtalo nuevamente."
+        );
+      }
     }
   };
 
@@ -371,30 +401,6 @@ const UserPanel: React.FC = () => {
           </div>
         );
       case "orders":
-        fetchOrders();
-        const handleDeleteOrder = async (orderId: string) => {
-          const confirmation = window.confirm(
-            "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
-          );
-          if (confirmation) {
-            try {
-              // Realiza la solicitud DELETE al backend
-              await axios.delete(`${API_URL || LOCAL_URL}/order/${orderId}`);
-
-              // Actualiza el estado eliminando la orden
-              setData((prevData) => ({
-                ...prevData,
-                orders: prevData.orders.filter((order) => order.id !== orderId),
-              }));
-              toast.success("Orden eliminada con éxito.");
-            } catch (error) {
-              console.error("Error eliminando la orden:", error);
-              toast.error(
-                "Hubo un problema al eliminar la orden. Inténtalo nuevamente."
-              );
-            }
-          }
-        };
         return (
           <div className="bg-white min-h-screen p-6">
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
