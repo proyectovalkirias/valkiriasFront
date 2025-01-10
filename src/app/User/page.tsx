@@ -7,11 +7,6 @@ import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
 
 const UserPanel: React.FC = () => {
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
-  const LOCAL_URL =
-    process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
-
   const [activeTab, setActiveTab] = useState<string>("profile");
   const [user, setUser] = useState<{
     id?: string;
@@ -41,7 +36,7 @@ const UserPanel: React.FC = () => {
     purchases: [],
   });
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalField, setModalField] = useState<{
     key: string;
@@ -84,10 +79,36 @@ const UserPanel: React.FC = () => {
     }
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    const confirmation = window.confirm(
+      "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
+    );
+    if (confirmation) {
+      try {
+        await axios.delete(
+          `https://valkiriasback.onrender.com/order/${orderId}`
+        );
+
+        setData((prevData) => ({
+          ...prevData,
+          orders: prevData.orders.filter((order) => order.id !== orderId),
+        }));
+        toast.success("Orden eliminada con éxito.");
+      } catch (error) {
+        console.error("Error eliminando la orden:", error);
+        toast.error(
+          "Hubo un problema al eliminar la orden. Inténtalo nuevamente."
+        );
+      }
+    }
+  };
+
   // Obtener detalles adicionales del usuario desde la API
   const fetchUserDetails = async (id: string) => {
     try {
-      const response = await axios.get(`http://localhost:3000/users/${id}`);
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/users/${id}`
+      );
       return response.data;
     } catch (error) {
       console.error("Error al obtener los detalles del usuario:", error);
@@ -99,7 +120,7 @@ const UserPanel: React.FC = () => {
   const fetchOrders = async (id: string) => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/order/user/${id}`
+        `https://valkiriasback.onrender.com/order/user/${user.id}`
       );
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
@@ -111,10 +132,10 @@ const UserPanel: React.FC = () => {
   const fetchPurchases = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/order/user/${user.id}`
+        `https://valkiriasback.onrender.com/purchase/user/${user.id}`
       );
       setData((prev) => ({ ...prev, purchases: response.data }));
-    } catch (error) {
+    } catch {
       toast.error("Error al obtener las compras.");
     }
   };
@@ -211,8 +232,8 @@ const UserPanel: React.FC = () => {
       };
 
       const response = await axios.put(
-        `http://localhost:3000/users/${user.id}`,
-        payload,
+        `https://valkiriasback.onrender.com/users/${user.id}`,
+        { [modalField.key]: modalField.value },
         { headers: { "Content-Type": "application/json" } }
       );
 
@@ -226,29 +247,6 @@ const UserPanel: React.FC = () => {
     } catch (error) {
       console.error(error);
       toast.error("Hubo un problema al actualizar el dato.");
-    }
-  };
-  const handleDeleteOrder = async (orderId: string) => {
-    const confirmation = window.confirm(
-      "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
-    );
-    if (confirmation) {
-      try {
-        // Realiza la solicitud DELETE al backend
-        await axios.delete(`http://localhost:3000/order/${orderId}`);
-
-        // Actualiza el estado eliminando la orden
-        setData((prevData) => ({
-          ...prevData,
-          orders: prevData.orders.filter((order) => order.id !== orderId),
-        }));
-        toast.success("Orden eliminada con éxito.");
-      } catch (error) {
-        console.error("Error eliminando la orden:", error);
-        toast.error(
-          "Hubo un problema al eliminar la orden. Inténtalo nuevamente."
-        );
-      }
     }
   };
 

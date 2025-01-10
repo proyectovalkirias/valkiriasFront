@@ -267,7 +267,7 @@ const Sidebar: React.FC = () => {
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
+                className="bg-valkyrie-purple px-4 py-2 rounded-md hover:bg-creativity-purple"
               >
                 Cerrar Sesión
               </button>

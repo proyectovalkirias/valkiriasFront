@@ -7,10 +7,9 @@ import Link from "next/link";
 import { User } from "@/interfaces/User";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+// import Reports from "@/components/Reports";
 import { useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
-
-const Reports = dynamic(() => import("@/components/Reports"), { ssr: false });
 
 function Admin() {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
@@ -299,7 +298,7 @@ function Admin() {
           </div>
         );
       case "reports":
-        return <Reports />;
+      // return <Reports />;
       default:
         return <div>Selecciona una opción</div>;
     }

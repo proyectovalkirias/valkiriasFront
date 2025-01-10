@@ -76,18 +76,13 @@ const ProductDetail: React.FC = () => {
       return;
     }
 
-    const API_URL =
-      process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
-    const LOCAL_URL =
-      process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
-
     const fetchProduct = async () => {
       try {
         setLoading(true);
 
         const getProductById = async (id: string): Promise<Product> => {
           const response = await fetch(
-            `${API_URL || LOCAL_URL}/products/${id}`,
+            `https://valkiriasback.onrender.com/products/${id}`,
             {
               cache: "no-cache",
               next: { revalidate: 1500 },
