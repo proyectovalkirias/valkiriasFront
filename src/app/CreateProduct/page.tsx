@@ -6,12 +6,7 @@ import { ProductPreview } from "@/components/ProductPreview";
 import { toast } from "react-hot-toast";
 
 const CreateProduct: React.FC = () => {
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-  } = useForm<Product>();
+  const { register, handleSubmit, control, reset } = useForm<Product>();
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -339,7 +334,7 @@ const CreateProduct: React.FC = () => {
           </div>
         </div>
 
-        {/* Tamaños */}  
+        {/* Tamaños */}
         <div className="flex space-x-8 mb-4">
           <div>
             <label className="block text-sm font-medium">Talle Niños:</label>

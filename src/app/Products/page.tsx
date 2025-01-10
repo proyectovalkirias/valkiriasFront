@@ -253,8 +253,11 @@ const Products: React.FC = () => {
             </div>
           ))
         ) : (
-          <div className="flex justify-center items-center min-h-screen">
-            <div className="w-16 h-16 border-4 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+          <div className="flex flex-col items-center min-h-screen">
+            <p className="text-xl font-bold mb-4 text-white">
+              No hay productos
+            </p>
+            <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
       </div>
