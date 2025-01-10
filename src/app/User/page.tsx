@@ -20,7 +20,9 @@ const UserPanel: React.FC = () => {
     photoUrl: string;
     dni?: number;
     phone?: string;
-    address?: string;
+    street?: string;
+    number?: number;
+    postalCode?: string;
     city?: string;
     state?: string;
   }>({
@@ -30,7 +32,9 @@ const UserPanel: React.FC = () => {
     photoUrl: "/images/Avatar.png",
     dni: 0,
     phone: "",
-    address: "",
+    street: "",
+    number: 0,
+    postalCode: "",
     city: "",
     state: "",
   });
@@ -75,6 +79,7 @@ const UserPanel: React.FC = () => {
     }
   };
 
+  
   // Obtener detalles adicionales del usuario desde la API
   const fetchUserDetails = async (id: string) => {
     try {
@@ -83,6 +88,32 @@ const UserPanel: React.FC = () => {
     } catch (error) {
       console.error("Error al obtener los detalles del usuario:", error);
       return null;
+    }
+  };
+
+  const updateProfileImage = async (userId: string, imageFile: File) => {
+    try {
+      const formData = new FormData();
+      formData.append("image", imageFile);
+
+      const response = await fetch(
+        `${API_URL || LOCAL_URL}/user/updateProfileImg/${userId}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("No se pudo actualizar la imagen de perfil.");
+      }
+
+      const data = await response.json();
+      toast.success("Imagen de perfil actualizada exitosamente.");
+      setUser((prevUser) => ({ ...prevUser, photoUrl: data.photoUrl })); // Actualizar el estado con la nueva imagen
+    } catch (error) {
+      console.error("Error al actualizar la imagen de perfil:", error);
+      toast.error("Error al actualizar la imagen de perfil.");
     }
   };
 
@@ -161,7 +192,9 @@ const UserPanel: React.FC = () => {
     | "Email"
     | "Telefono"
     | "Dni"
-    | "Direccion"
+    | "Calle"
+    | "Numero" 
+    | "Codigo postal" 
     | "Provincia"
     | "Ciudad";
   const userFields: {
@@ -169,6 +202,7 @@ const UserPanel: React.FC = () => {
     value: string | number;
     key: UserField;
   }[] = [
+    { label: "Foto", value: user.photoUrl || "N/A", key: "Foto" },
     { label: "Email", value: user.email || "N/A", key: "Email" },
     {
       label: "Nombre",
@@ -178,10 +212,11 @@ const UserPanel: React.FC = () => {
     { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "Apellido" },
     { label: "Teléfono", value: user.phone || "N/A", key: "Telefono" },
     { label: "DNI", value: user.dni || "N/A", key: "Dni" },
-    { label: "Dirección", value: user.address || "N/A", key: "Direccion" },
-    { label: "Ciudad", value: user.city || "N/A", key: "Provincia" },
-    { label: "Estado", value: user.state || "N/A", key: "Ciudad" },
-    // { label: "Foto", value: user.photoUrl || "N/A", key: "Foto" },
+    { label: "Provincia", value: user.state || "N/A", key: "Provincia" },
+    { label: "Ciudad", value: user.city || "N/A", key: "Ciudad" },
+    { label: "Calle", value: user.street || "N/A", key: "Calle" },
+    { label: "Numero", value: user.city || "N/A", key: "Numero" },
+    { label: "Codigo postal", value: user.postalCode || "N/A", key: "Codigo postal" },
   ];
   function isUserField(key: string): key is UserField {
     return [
@@ -190,7 +225,9 @@ const UserPanel: React.FC = () => {
       "Email",
       "Telefono",
       "Dni",
-      "Direccion",
+      "Calle",
+      "Numero",
+      "Codigo postal",
       "Provincia",
       "Ciudad",
       "Foto",
@@ -215,7 +252,7 @@ const UserPanel: React.FC = () => {
     let formattedValue: string | number = newValue;
 
     // Validar si el campo requiere un número, como "dni"
-    if (key === "Dni") {
+    if (key === "Dni" && "Numero") {
       const parsedNumber = Number(newValue);
       if (isNaN(parsedNumber)) {
         toast.error(`${key} debe ser un número válido.`);
@@ -268,30 +305,117 @@ const UserPanel: React.FC = () => {
     }
   };
 
+  const handleImageUpload = async () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    
+    input.onchange = async (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+      
+      if (!file) return;
+      
+      try {
+        const formData = new FormData();
+        formData.append("photo", file);
+  
+        if (user.id) {
+          const response = await fetch(
+            `${API_URL || LOCAL_URL}/user/updateProfileImg/${user.id}`,
+            {
+              method: "PUT",
+              body: formData,
+            }
+          );
+  
+          if (!response.ok) {
+            throw new Error("Error al actualizar la imagen");
+          }
+  
+          const data = await response.json();
+          setUser((prevUser) => ({
+            ...prevUser,
+            photoUrl: data.photo, // Actualiza la URL de la foto con la respuesta de la API
+          }));
+          toast.success("Foto de perfil actualizada exitosamente.");
+        } else {
+          toast.error("Usuario no identificado.");
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Ocurrió un error al subir la imagen.");
+      }
+    };
+  
+    input.click();
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "profile":
         return (
-          <div className="bg-gray-50 min-h-screen flex items-center justify-center p-6">
-            <div className="p-6 w-full max-w-md">
-              <h1 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
-                Mi Perfil
-              </h1>
-              {user ? (
-                <div className="bg-white border-2 rounded-lg p-6 flex flex-col items-center space-y-4">
-                  {/* Foto de perfil con botón de edición al lado */}
-                  <div className="flex items-center space-x-4 ml-11">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 shadow-md">
-                      <img
-                        src={user.photoUrl || "/images/Avatar.png"}
-                        alt={`${user.firstname} ${user.lastname}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    {/* Botón de edición */}
+          <div className="bg-gray-100 min-h-screen flex items-center justify-center p-6 ">
+  <div className="p-6 w-full max-w-4xl -mt-14">
+    <h1 className="text-3xl font-semibold text-gray-800 mb-3 text-center">
+      Mi Perfil
+    </h1>
+    {user ? (
+      <div className="bg-white border-2 rounded-lg p-6 flex flex-col md:flex-row md:space-x-6">
+        {/* Columna izquierda: Foto de perfil y datos del usuario */}
+        <div className="flex flex-col items-center space-y-6 md:w-1/2">
+          {/* Foto de perfil */}
+          <div className="flex items-center space-x-4">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 shadow-md">
+              <img
+                src={user.photoUrl || "/images/Avatar.png"}
+                alt={`${user.firstname} ${user.lastname}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* Botón de edición de la foto */}
+            <button
+              onClick={handleImageUpload}
+              className="p-1 rounded-md text-purple-500 hover:bg-gray-100"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Datos del usuario */}
+          <div className="w-full space-y-3">
+            {userFields
+              .filter(
+                (item) =>
+                  !["Provincia", "Ciudad", "Calle", "Numero", "Codigo postal", "Foto"].includes(
+                    item.key
+                  )
+              )
+              .map((item) => (
+                <div
+                    key={item.key}
+                  className="flex justify-between items-center text-gray-600"
+                >
+                  <p className="text-sm">
+                    <strong className="text-gray-800">{item.label}:</strong> {item.value}
+                  </p>
+                  {item.key !== "Email" && (
                     <button
-                      onClick={() => handleEdit("photoUrl")}
-                      className="p-1 rounded-md text-blue-500 hover:bg-gray-100"
+                      onClick={() => handleEdit(item.key)}
+                      className="p-1 rounded-md hover:bg-gray-100"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -299,53 +423,62 @@ const UserPanel: React.FC = () => {
                         viewBox="0 0 24 24"
                         strokeWidth={1.5}
                         stroke="currentColor"
-                        className="w-5 h-5"
+                        className="w-4 h-4 text-purple-500"
                       >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
                         />
-                      </svg>
+                        </svg>
                     </button>
-                  </div>
-  
-                  {/* Información del usuario */}
-                  <div className="w-full space-y-3 mt-4">
-                    {userFields.map((item) => (
-                      <div
-                        key={item.key}
-                        className="flex justify-between items-center text-gray-600"
-                      >
-                        <p className="text-sm">
-                          <strong className="text-gray-800">{item.label}:</strong>{" "}
-                          {item.value}
-                        </p>
-                        {item.key !== "Email" && (
-                          <button
-                            onClick={() => handleEdit(item.key)}
-                            className="p-1 rounded-md hover:bg-gray-100"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={1.5}
-                              stroke="currentColor"
-                              className="w-4 h-4 text-blue-500"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
-                              />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  )}
                 </div>
+              ))}
+          </div>
+        </div>
+
+        {/* Columna derecha: Tabla de direcciones */}
+        <div className="md:w-1/2 bg-gray-100 border-2 rounded-lg p-6">
+          <h2 className="text-lg text-center font-semibold text-gray-800 mb-4">
+            Dirección
+          </h2>
+          <div className="w-full bg-white border rounded-lg p-4 space-y-3">
+            {userFields
+              .filter((item) =>
+                ["Provincia", "Ciudad", "Calle", "Numero", "Codigo postal"].includes(
+                  item.key
+                )
+              )
+              .map((item) => (
+                <div key={item.key} className="flex justify-between items-center">
+                  <div className="text-sm text-gray-600">
+                    <strong>{item.label}:</strong> {item.value}
+                  </div>
+                  <button
+                    onClick={() => handleEdit(item.key)}
+                    className="p-1 rounded-md hover:bg-gray-100"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-4 h-4 text-purple-500"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
               ) : (
                 <p className="text-gray-600 text-center">Cargando información...</p>
               )}
