@@ -5,11 +5,11 @@ import axios from "axios";
 import Link from "next/link";
 import ProductList from "@/components/ProductList";
 import { User } from "@/interfaces/User";
-import { toast } from "react-hot-toast"; // Importa toast
+import { toast } from "react-hot-toast";
 import Reports from "@/components/Reports";
 
 const Admin = () => {
-
+  const API_URL = process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -34,30 +34,36 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(`https://valkiriasback.onrender.com/users`);
+      const response = await axios.get(`${API_URL}/users`);
       setUsers(response.data);
       setFilteredUsers(response.data);
     } catch (error) {
       console.error("Error fetching users:", error);
-      toast.error("Error al obtener los usuarios"); // Notificación de error
+      if (typeof window !== "undefined") {
+        toast.error("Error al obtener los usuarios");
+      }
     }
   };
 
   const toggleUserStatus = async (id: number, activate: boolean) => {
     try {
       const url = activate
-        ? `https://valkiriasback.onrender.com/users/${id}/activate`
-        : `https://valkiriasback.onrender.com/users/${id}/deactivate`;
+        ? `${API_URL}/users/${id}/activate`
+        : `${API_URL}/users/${id}/deactivate`;
       await axios.put(url);
       fetchUsers();
-      toast.success(
-        activate
-          ? "Usuario activado con éxito"
-          : "Usuario desactivado con éxito"
-      ); // Notificación de éxito
+      if (typeof window !== "undefined") {
+        toast.success(
+          activate
+            ? "Usuario activado con éxito"
+            : "Usuario desactivado con éxito"
+        );
+      }
     } catch (error) {
       console.error("Error updating user status:", error);
-      toast.error("Error al actualizar el estado del usuario"); // Notificación de error
+      if (typeof window !== "undefined") {
+        toast.error("Error al actualizar el estado del usuario");
+      }
     }
   };
 
@@ -65,42 +71,25 @@ const Admin = () => {
     switch (activeTab) {
       case "dashboard":
         return (
-          <div className=" bg-white min-h-screen p-6">
-            {/* Enlace para crear productos */}
-            <div className=" ">
+          <div className="bg-white min-h-screen p-6">
+            <div>
               <Link href="/CreateProduct" aria-label="Crear Productos">
-                <button className=" text-xl bg-valkyrie-purple text-white py-2 px-4 ml-6 mt-6 rounded-lg hover:bg-creativity-purple">
+                <button className="text-xl bg-valkyrie-purple text-white py-2 px-4 ml-6 mt-6 rounded-lg hover:bg-creativity-purple">
                   Crear Productos
                 </button>
               </Link>
             </div>
-
-            {/* Lista de productos */}
             <div className="w-full mt-6">
               <ProductList />
-            </div>
-          </div>
-        );
-      case "inbox":
-        return (
-          <div className="bg-white min-h-screen p-6">
-            {/* Enlace para mensajes de contacto */}
-            <div className="bg-white min-h-screen p-6">
-              <h1 className="text-3xl font-bold text-black text-center">
-                Mensajes
-              </h1>
             </div>
           </div>
         );
       case "users":
         return (
           <div className="bg-white min-h-screen p-6">
-            {/* Título */}
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
               Administrar Usuarios
             </h1>
-
-            {/* Campo de búsqueda */}
             <div className="mb-6">
               <input
                 type="text"
@@ -110,8 +99,6 @@ const Admin = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-
-            {/* Tabla de usuarios */}
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-gray-200">
                 <thead>
@@ -163,7 +150,7 @@ const Admin = () => {
                       <td className="border border-gray-300 p-3 text-black">
                         {user.phone}
                       </td>
-                      <td className="border border-gray-300 p-3 text-black  flex flex-col gap-2 ">
+                      <td className="border border-gray-300 p-3 text-black flex flex-col gap-2">
                         <button
                           className="bg-custom-orange text-white py-1 px-2 mr-2 rounded-full hover:bg-orange-400"
                           onClick={() => toggleUserStatus(user.id, true)}
@@ -171,7 +158,7 @@ const Admin = () => {
                           Activar
                         </button>
                         <button
-                          className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-full  hover:bg-creativity-purple"
+                          className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-full hover:bg-creativity-purple"
                           onClick={() => toggleUserStatus(user.id, false)}
                         >
                           Desactivar
@@ -197,19 +184,15 @@ const Admin = () => {
           </div>
         );
       case "reports":
-        return (
-          <div className="bg-white min-h-screen p-6">
-            <Reports />
-          </div>
-        );
+        return <Reports />;
       default:
         return <p>Seleccione una pestaña para ver el contenido.</p>;
     }
   };
 
   return (
-    <div className="flex flex-col h-screen ">
-      <header className="bg-valkyrie-purple text-white flex justify-between items-center p-4 border-b-2 border-white ">
+    <div className="flex flex-col h-screen">
+      <header className="bg-valkyrie-purple text-white flex justify-between items-center p-4 border-b-2 border-white">
         <div className="text-xl font-bold">Panel de Administración</div>
         <nav className="flex space-x-4">
           <button
@@ -245,7 +228,7 @@ const Admin = () => {
             }`}
             onClick={() => setActiveTab("inbox")}
           >
-            <FaInbox className="mr-2 " />
+            <FaInbox className="mr-2" />
             Mensajes
           </button>
         </nav>
