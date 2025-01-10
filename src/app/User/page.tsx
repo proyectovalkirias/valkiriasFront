@@ -25,6 +25,7 @@ const UserPanel: React.FC = () => {
     city?: string;
     state?: string;
   }>({
+    id: "",
     firstname: "",
     lastname: "",
     email: "",
@@ -47,9 +48,6 @@ const UserPanel: React.FC = () => {
     label: string;
     value: string | number;
   } | null>(null);
-
-  
-
 
   // Obtener datos del usuario desde el almacenamiento local
   const getUserData = () => {
@@ -129,6 +127,7 @@ const UserPanel: React.FC = () => {
         const userData = getUserData();
         if (userData) {
           setUser({
+            id: userData.id,
             firstname: userData.firstname,
             lastname: userData.lastname,
             email: userData.email,
@@ -165,7 +164,7 @@ const UserPanel: React.FC = () => {
   // Cargar órdenes o compras según la pestaña activa
   useEffect(() => {
     if (activeTab === "orders") fetchOrders();
-    // if (activeTab === "purchases") fetchPurchases();
+    if (activeTab === "purchases") fetchPurchases();
   }, [activeTab]);
   const userFields: {
     label: string;
@@ -175,12 +174,20 @@ const UserPanel: React.FC = () => {
     { label: "Nombre", value: `${user.firstname || "N/A"} `, key: "firstname" },
     { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "lastname" },
     { label: "Email", value: user.email || "N/A", key: "email" },
-    { label: "Teléfono", value: user.phone || "N/A", key: "phone" },
-    { label: "DNI", value: user.dni || "N/A", key: "dni" },
-    { label: "Dirección", value: user.address || "N/A", key: "address" },
-    { label: "Ciudad", value: user.city || "N/A", key: "city" },
-    { label: "Estado", value: user.state || "N/A", key: "state" },
-    { label: "Foto", value: user.photo || "N/A", key: "photo" },
+    {
+      label: "Teléfono",
+      value: user.phone || "Agregar",
+      key: "phone",
+    },
+    { label: "DNI", value: user.dni || "Agregar", key: "dni" },
+    {
+      label: "Dirección",
+      value: user.address || "Agregar",
+      key: "address",
+    },
+    { label: "Ciudad", value: user.city || "Agregar", key: "city" },
+    { label: "Estado", value: user.state || "Agregar", key: "state" },
+    { label: "Foto", value: user.photo || "Agregar", key: "photo" },
   ];
 
   const handleEdit = (field: {
