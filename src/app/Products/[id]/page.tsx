@@ -66,6 +66,8 @@ const ProductDetail: React.FC = () => {
   const [selectedLargePrint, setSelectedLargePrint] = useState<string>("");
   const [remainingStock, setRemainingStock] = useState<number>(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [clientIdeas, setClientIdeas] = useState<string>("");
 
   useEffect(() => {
     if (!productId) {
@@ -80,7 +82,6 @@ const ProductDetail: React.FC = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-
         async function getProducts(): Promise<Product[]> {
           try {
             const res = await fetch(`${API_URL || LOCAL_URL}products`, {
@@ -97,7 +98,6 @@ const ProductDetail: React.FC = () => {
             );
           }
         }
-
         async function getProductById(id: string): Promise<Product> {
           try {
             const response = await fetch(
@@ -165,6 +165,10 @@ const ProductDetail: React.FC = () => {
     setQuantity(value);
   };
 
+  const handleImageUpload = (file: File) => {
+    setUploadedImage(file);
+  };
+
   const handleAddToCart = () => {
     if (!selectedSize) return toast.error("Selecciona un tamaño");
     if (quantity > remainingStock) return toast.error("Stock insuficiente");
@@ -177,6 +181,8 @@ const ProductDetail: React.FC = () => {
       selectedLargePrint,
       quantity,
       totalPrice,
+      uploadedImage,
+      clientIdeas,
     };
 
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -325,6 +331,31 @@ const ProductDetail: React.FC = () => {
             </select>
           </div>
         )}
+
+        <div className="mb-6">
+          <label className="text-gray-800 font-semibold">Subir Imagen:</label>
+          <input
+            type="file"
+            accept="image/*"
+            className="block w-full text-gray-800 mt-2 border p-2 rounded-lg"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleImageUpload(file);
+            }}
+          />
+        </div>
+
+        <div className="mb-6">
+          <label className="text-gray-800 font-semibold">
+            Ideas del Cliente:
+          </label>
+          <textarea
+            className="w-full p-3 border rounded-lg mt-2 text-gray-800"
+            placeholder="Describe tus ideas o personalización deseada..."
+            value={clientIdeas}
+            onChange={(e) => setClientIdeas(e.target.value)}
+          ></textarea>
+        </div>
 
         <div className="mb-6">
           <label className="text-gray-800 font-semibold">Cantidad:</label>
