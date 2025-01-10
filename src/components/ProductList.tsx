@@ -9,17 +9,14 @@ const ProductList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
-  const LOCAL_URL =
-    process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
+
   useEffect(() => {
     fetchProducts();
   }, []);
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${API_URL || LOCAL_URL}/products`);
+      const response = await fetch(`https://valkiriasback.onrender.com/products`);
       if (!response.ok) {
         throw new Error("Error al obtener los productos");
       }
@@ -47,7 +44,7 @@ const ProductList: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${API_URL || LOCAL_URL}/products/delete/${productId}`,
+        `https://valkiriasback.onrender.com/products/delete/${productId}`,
         {
           method: "DELETE",
         }
