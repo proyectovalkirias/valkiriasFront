@@ -9,10 +9,7 @@ import { toast } from "react-hot-toast"; // Importa toast
 import Reports from "@/components/Reports";
 
 const Admin = () => {
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
-  const LOCAL_URL =
-    process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
+
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -37,7 +34,7 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(`${API_URL || LOCAL_URL}/users`);
+      const response = await axios.get(`https://valkiriasback.onrender.com/users`);
       setUsers(response.data);
       setFilteredUsers(response.data);
     } catch (error) {
@@ -49,8 +46,8 @@ const Admin = () => {
   const toggleUserStatus = async (id: number, activate: boolean) => {
     try {
       const url = activate
-        ? `${API_URL || LOCAL_URL}/users/${id}/activate`
-        : `${API_URL || LOCAL_URL}/users/${id}/deactivate`;
+        ? `https://valkiriasback.onrender.com/users/${id}/activate`
+        : `https://valkiriasback.onrender.com/users/${id}/deactivate`;
       await axios.put(url);
       fetchUsers();
       toast.success(
