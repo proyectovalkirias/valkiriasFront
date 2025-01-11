@@ -5,14 +5,16 @@ import Image from "next/image";
 import Link from "next/dist/client/link";
 import { toast } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 const Login: React.FC = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
-
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -37,30 +39,35 @@ const Login: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`https://valkiriasback.onrender.com/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await axios.post(
+        "https://valkiriasback.onrender.com/auth/login",
+        { email, password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Error al iniciar sesión.");
-        return;
-      }
-
-      const data = await response.json();
+      // Si la respuesta es exitosa
+      const data = response.data;
       toast.success("Inicio de sesión exitoso.");
       console.log("Datos del usuario:", data);
 
+      // Guardar en localStorage
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
-      window.location.href = "/"; // Redirige al dashboard
+      // Redirigir al dashboard
+      router.push("/");
     } catch (err) {
-      toast.error("Hubo un problema al conectar con el servidor.");
-      console.error(err);
+      // Manejo de errores
+      if (axios.isAxiosError(err)) {
+        const errorData = err.response?.data;
+        toast.error(errorData?.message || "Error al iniciar sesión.");
+      } else {
+        toast.error("Hubo un problema al conectar con el servidor.");
+        console.error("Error inesperado:", err);
+      }
     }
   };
 
@@ -90,26 +97,26 @@ const Login: React.FC = () => {
     }
 
     try {
-      const response = await fetch(
-        `https://valkiriasback.onrender.com/auth/${encodeURIComponent(formData.email)}`,
-        {
-          method: "GET",
-        }
+      // Usamos Axios para realizar la solicitud
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/auth/${encodeURIComponent(
+          formData.email
+        )}`
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Error al recuperar la contraseña.");
-        return;
-      }
-
+      // Si la respuesta es exitosa
       toast.success("Se envió un enlace de recuperación a tu correo.");
     } catch (err) {
-      toast.error("Hubo un problema al conectar con el servidor.");
-      console.error(err);
+      // Manejo de errores
+      if (axios.isAxiosError(err)) {
+        const errorData = err.response?.data;
+        toast.error(errorData?.message || "Error al recuperar la contraseña.");
+      } else {
+        toast.error("Hubo un problema al conectar con el servidor.");
+        console.error("Error inesperado:", err);
+      }
     }
   };
-
   return (
     <div className="flex h-screen items-center justify-center bg-[#7b548b] p-4">
       <div className="flex w-full max-w-4xl rounded-lg bg-[#7b548b] flex-col sm:flex-row">
@@ -154,10 +161,11 @@ const Login: React.FC = () => {
                 onClick={togglePasswordVisibility}
                 className="absolute right-2 top-3 text-white"
               >
-                {showPassword ? 
-                <FaEye className="text-purple-900" /> :
-                <FaEyeSlash className="text-purple-900" />}
-
+                {showPassword ? (
+                  <FaEye className="text-purple-900" />
+                ) : (
+                  <FaEyeSlash className="text-purple-900" />
+                )}
               </button>
             </div>
             <button

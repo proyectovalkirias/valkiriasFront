@@ -1,16 +1,18 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import { FaUsers, FaChartBar, FaHome, FaInbox } from "react-icons/fa";
 import axios from "axios";
 import Link from "next/link";
 import { User } from "@/interfaces/User";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-// import Reports from "@/components/Reports";
 import { useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
+import "react-toastify/dist/ReactToastify.css";
+import dynamic from "next/dynamic";
 
+const Reports = dynamic(() => import("@/components/Reports"), {
+  ssr: false,
+});
 function Admin() {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [users, setUsers] = useState<User[]>([]);
@@ -59,15 +61,59 @@ function Admin() {
     }
   };
 
+  // Ahora no necesitas agregar el encabezado manualmente en cada solicitud
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(
-        `https://valkiriasback.onrender.com/users`
-      );
-      setUsers(response.data);
-      setFilteredUsers(response.data);
-    } catch {
-      toast.error("Error al obtener los usuarios");
+      if (typeof window === "undefined") {
+        console.error("No se puede acceder a localStorage en el servidor.");
+        return;
+      }
+
+      const getToken = () => {
+        const user = localStorage.getItem("user");
+
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      // Ejemplo de uso:
+      const token = getToken();
+      if (token) {
+        console.log("Token extraído:", token);
+      } else {
+        console.log("No se encontró el token.");
+      }
+
+      const response = await fetch("https://valkiriasback.onrender.com/users", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error en la respuesta del servidor:", errorData);
+        throw new Error(errorData.message || "Error al obtener los usuarios");
+      }
+
+      const data = await response.json();
+      console.log("Usuarios obtenidos:", data);
+      setUsers(data);
+      setFilteredUsers(data);
+    } catch (error) {
+      console.error("Error al obtener los usuarios:", error);
     }
   };
 
@@ -85,6 +131,26 @@ function Admin() {
       );
     } catch {
       toast.error("Error al actualizar el estado del usuario");
+    }
+  };
+
+  const handleToggleAdmin = async (id: number, newIsAdmin: boolean) => {
+    try {
+      const response = await axios.put(`/users/changeIsAdmin/${id}`, {
+        isAdmin: newIsAdmin,
+      });
+
+      const updatedUser = response.data;
+
+      // Actualiza el estado local con la respuesta del servidor
+      setFilteredUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === id ? { ...user, isAdmin: updatedUser.isAdmin } : user
+        )
+      );
+    } catch (error) {
+      console.error("Error al cambiar el estado de administrador:", error);
+      alert("No se pudo cambiar el estado de administrador. Intenta de nuevo.");
     }
   };
 
@@ -220,74 +286,87 @@ function Admin() {
         );
       case "users":
         return (
-          <div className="bg-white min-h-screen p-6">
-            <h1 className="text-3xl font-bold text-black mb-6 text-center">
+          <div className="bg-white min-h-screen">
+            <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
               Administrar Usuarios
             </h1>
-            <div className="mb-6">
+            <div className="mb-6 max-w-lg mx-auto">
               <input
                 type="text"
                 placeholder="Buscar por ID o Email"
-                className="p-3 border border-gray-300 rounded-lg w-full text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="p-3 border border-gray-300 rounded-lg w-full text-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-valkyrie-purple"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-200">
+              <table className="w-full border-collapse shadow-lg rounded-lg overflow-hidden">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      ID
-                    </th>
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      Nombre
-                    </th>
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      Email
-                    </th>
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      Dirección
-                    </th>
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      Teléfono
-                    </th>
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      Acciones
-                    </th>
+                  <tr className="bg-gray-200 text-gray-700 text-left">
+                    <th className="p-4">ID</th>
+                    <th className="p-4">Nombre</th>
+                    <th className="p-4">Email</th>
+                    <th className="p-4">Dirección</th>
+                    <th className="p-4">Teléfono</th>
+                    <th className="p-4">Activo</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4">Admin</th>
+                    <th className="p-4">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((user) => (
+                  {filteredUsers.map((user, index) => (
                     <tr
                       key={user.id}
-                      className="hover:bg-gray-50 transition-all"
+                      className={`${
+                        index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                      } hover:bg-gray-100 transition`}
                     >
-                      <td className="border border-gray-300 p-3">{user.id}</td>
-                      <td className="border border-gray-300 p-3">
+                      <td className="p-4 border-t text-gray-700">{user.id}</td>
+                      <td className="p-4 border-t text-gray-700">
                         {user.firstname}
                       </td>
-                      <td className="border border-gray-300 p-3">
+                      <td className="p-4 border-t text-gray-700">
                         {user.email}
                       </td>
-                      <td className="border border-gray-300 p-3">
+                      <td className="p-4 border-t text-gray-700">
                         {user.address}
                       </td>
-                      <td className="border border-gray-300 p-3">
+                      <td className="p-4 border-t text-gray-700">
                         {user.phone}
                       </td>
-                      <td className="border border-gray-300 p-3">
+                      <td className="p-4 border-t text-center text-gray-700">
+                        {user.active ? "Sí" : "No"}
+                      </td>
+                      <td className="p-4 border-t text-center">
                         <button
                           onClick={() =>
                             toggleUserStatus(user.id, !user.active)
                           }
-                          className={`$ {
+                          className={`${
                             user.active
-                              ? "bg-red-500 hover:bg-red-600"
+                              ? "bg-custom-orange hover:bg-orange-400"
                               : "bg-green-500 hover:bg-green-600"
-                          } text-white py-2 px-4 rounded-md`}
+                          } text-white py-1 px-3 rounded-md`}
                         >
                           {user.active ? "Desactivar" : "Activar"}
+                        </button>
+                      </td>
+                      <td className="p-4 border-t text-center text-gray-700">
+                        {user.isAdmin ? "Sí" : "No"}
+                      </td>
+                      <td className="p-4 border-t space-y-2 text-center">
+                        <button
+                          onClick={() =>
+                            handleToggleAdmin(user.id, !user.isAdmin)
+                          }
+                          className={`${
+                            user.isAdmin
+                              ? "bg-custom-orange hover:bg-orange-400"
+                              : "bg-valkyrie-purple hover:bg-creativity-purple"
+                          } text-white py-1 px-3 rounded-md`}
+                        >
+                          {user.isAdmin ? "Revocar Admin" : "Hacer Admin"}
                         </button>
                       </td>
                     </tr>
@@ -297,15 +376,16 @@ function Admin() {
             </div>
           </div>
         );
+
       case "reports":
-      // return <Reports />;
+        return <Reports />;
       default:
         return <div>Selecciona una opción</div>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen w-full bg-gray-50">
       <header className="bg-valkyrie-purple p-6 text-white">
         <nav>
           <ul className="flex justify-around">
