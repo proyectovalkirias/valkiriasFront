@@ -99,7 +99,7 @@ const Sidebar: React.FC = () => {
         }
       }
       setIsModalOpen(false);
-      localStorage.clear();
+      localStorage.removeItem("user");
       setUser(null);
       setIsLoggedOut(true);
       handleNavigation("/Login");
@@ -250,7 +250,7 @@ const Sidebar: React.FC = () => {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-4 bg-black bg-opacity-50 flex justify-center items-center">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h2 className="text-lg text-gray-800 font-bold mb-4">
               Cerrar Sesión

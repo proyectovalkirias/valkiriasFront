@@ -85,10 +85,41 @@ const UserPanel: React.FC = () => {
     );
     if (confirmation) {
       try {
+        const getToken = () => {
+          const user = localStorage.getItem("user");
+
+          if (!user) {
+            console.error("No hay datos del usuario en localStorage");
+            return null;
+          }
+
+          try {
+            const parsedUser = JSON.parse(user);
+            return parsedUser.token || null; // Retorna el token si existe
+          } catch (err) {
+            console.error("Error al parsear los datos del usuario:", err);
+            return null;
+          }
+        };
+
+        // Ejemplo de uso:
+        const token = getToken();
+        if (token) {
+          console.log("Token extraído:", token);
+        } else {
+          console.log("No se encontró el token.");
+        }
+
         await axios.delete(
-          `https://valkiriasback.onrender.com/order/${orderId}`
+          `https://valkiriasback.onrender.com/order/${orderId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Token de autorización
+            },
+          }
         );
 
+        // Actualizar el estado después de eliminar la orden
         setData((prevData) => ({
           ...prevData,
           orders: prevData.orders.filter((order) => order.id !== orderId),
@@ -119,12 +150,44 @@ const UserPanel: React.FC = () => {
   // Obtener órdenes desde la API
   const fetchOrders = async (id: string) => {
     try {
+      const getToken = () => {
+        const user = localStorage.getItem("user");
+
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      // Ejemplo de uso:
+      const token = getToken();
+      if (token) {
+        console.log("Token extraído:", token);
+      } else {
+        console.log("No se encontró el token.");
+      }
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/order/user/${user.id}`
+        `https://valkiriasback.onrender.com/order/user/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Token de autorización
+          },
+        }
       );
+
+      // Actualizar el estado con las órdenes obtenidas
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
-      toast.error("Error al obtener las órdenes.");
+      console.error("Error al obtener las órdenes:", error);
+      toast.error("Error al obtener las órdenes del usuario.");
     }
   };
 
@@ -259,7 +322,7 @@ const UserPanel: React.FC = () => {
               Mi Perfil
             </h1>
             {user ? (
-              <div className="p-6 bg-gray-100 rounded-lg shadow-md flex flex-col items-center space-y-4">
+              <div className="p-6 bg-gray-100 min-h-screen rounded-lg shadow-md flex flex-col items-center space-y-4">
                 <div className="w-32 h-32 rounded-full overflow-hidden shadow-lg">
                   <img
                     src={user.photo || "/images/Avatar.png"}
@@ -474,46 +537,47 @@ const UserPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <header className="bg-valkyrie-purple text-white flex justify-between items-center p-4 border-b-2 border-white">
-        <div className="text-xl font-bold">Panel de Usuario</div>
-        <nav className="flex space-x-4">
-          <button
-            className={`p-2 flex items-center cursor-pointer ${
-              activeTab === "profile" ? "border-b-2 border-white" : ""
-            }`}
-            onClick={() => setActiveTab("profile")}
-          >
-            <FaUser className="mr-2" />
-            Perfil
-          </button>
-          <button
-            className={`p-2 flex items-center cursor-pointer ${
-              activeTab === "orders" ? "border-b-2 border-white" : ""
-            }`}
-            onClick={() => setActiveTab("orders")}
-          >
-            <FaShoppingCart className="mr-2" />
-            Órdenes
-          </button>
-          <button
-            className={`p-2 flex items-center cursor-pointer ${
-              activeTab === "purchases" ? "border-b-2 border-white" : ""
-            }`}
-            onClick={() => setActiveTab("purchases")}
-          >
-            <FaReceipt className="mr-2" />
-            Compras
-          </button>
-          <button
-            className={`p-2 flex items-center cursor-pointer ${
-              activeTab === "traking" ? "border-b-2 border-white" : ""
-            }`}
-            onClick={() => setActiveTab("traking")}
-          >
-            <FaTruck className="mr-2" />
-            Seguimiento
-          </button>
+    <div className="min-h-screen w-full bg-gray-50">
+      <header className="bg-valkyrie-purple p-4 text-white">
+        <nav>
+          <ul className="flex justify-around">
+            <li
+              className={`p-2 flex items-center cursor-pointer ${
+                activeTab === "profile" ? "text-orange-400" : ""
+              }`}
+              onClick={() => setActiveTab("profile")}
+            >
+              <FaUser className="mr-2" />
+              Perfil
+            </li>
+            <li
+              className={`p-2 flex items-center cursor-pointer ${
+                activeTab === "orders" ? "text-orange-400" : ""
+              }`}
+              onClick={() => setActiveTab("orders")}
+            >
+              <FaShoppingCart className="mr-2" />
+              Órdenes
+            </li>
+            <li
+              className={`p-2 flex items-center cursor-pointer ${
+                activeTab === "purchases" ? "text-orange-400" : ""
+              }`}
+              onClick={() => setActiveTab("purchases")}
+            >
+              <FaReceipt className="mr-2" />
+              Compras
+            </li>
+            <li
+              className={`p-2 flex items-center cursor-pointer ${
+                activeTab === "traking" ? "text-orange-400" : ""
+              }`}
+              onClick={() => setActiveTab("traking")}
+            >
+              <FaTruck className="mr-2" />
+              Seguimiento
+            </li>
+          </ul>
         </nav>
       </header>
       <main className="flex-1 bg-[#7b548b]">{renderContent()}</main>

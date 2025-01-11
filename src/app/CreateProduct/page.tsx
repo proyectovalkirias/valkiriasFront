@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Product } from "@/interfaces/Product";
 import { ProductPreview } from "@/components/ProductPreview";
 import { toast } from "react-hot-toast";
+import axios from "axios";
 
 const CreateProduct: React.FC = () => {
   const { register, handleSubmit, control, reset } = useForm<Product>();
@@ -29,80 +30,103 @@ const CreateProduct: React.FC = () => {
   const [smallPrintsPreview, setSmallPrintsPreview] = useState<string[]>([]);
   const [largePrintsPreview, setLargePrintsPreview] = useState<string[]>([]);
 
-  const onSubmit = (data: Product) => {
+  const onSubmit = async (data: Product) => {
     setLoading(true);
 
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("description", data.description);
-    formData.append("prices", JSON.stringify(sizePriceMapping));
-    console.log(sizePriceMapping, "prices");
-    formData.append("stock", data.stock.toString());
-    formData.append("color", data.color.join(",")); // Convierte el array de colores a una cadena separada por comas
+    try {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("description", data.description);
+      formData.append("prices", JSON.stringify(sizePriceMapping));
+      console.log(sizePriceMapping, "prices");
+      formData.append("stock", data.stock.toString());
+      formData.append("color", data.color.join(",")); // Convierte el array de colores a una cadena separada por comas
 
-    formData.append("category", category);
+      formData.append("category", category);
 
-    const allSizes = [...kidsSizes, ...adultSizes];
-    if (isUniqueSize) {
-      allSizes.push("Talle Único");
-    }
-    formData.append("size", allSizes.join(",")); // Convierte el array de tamaños a una cadena separada por comas
+      const allSizes = [...kidsSizes, ...adultSizes];
+      if (isUniqueSize) {
+        allSizes.push("Talle Único");
+      }
+      formData.append("size", allSizes.join(",")); // Convierte el array de tamaños a una cadena separada por comas
 
-    console.log("sizes", allSizes);
+      console.log("sizes", allSizes);
 
-    photos.forEach((photo) => {
-      formData.append("photos", photo);
-    });
-
-    smallPrints.forEach((print) => {
-      formData.append("smallPrint", print);
-    });
-
-    largePrints.forEach((print) => {
-      formData.append("largePrint", print);
-    });
-
-    fetch("https://valkiriasback.onrender.com/products", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Error en la solicitud");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        toast.success("Producto creado exitosamente", data);
-        setLoading(false);
-        setIsModalVisible(true);
-
-        setTimeout(() => {
-          reset();
-          setSmallPrintsPreview([]);
-          setLargePrintsPreview([]);
-          setProductName("");
-          setProductDescription("");
-          setPhotos([]);
-          setPreviewImages([]);
-          setSmallPrints([]);
-          setLargePrints([]);
-          setKidsSizes([]);
-          setAdultSizes([]);
-          setPrice([]);
-          setStock(null);
-          setCategory("");
-          setColor([]);
-          setIsModalVisible(false);
-        }, 3000);
-      })
-      .catch((error) => {
-        console.error("Error al crear el producto:", error);
-        toast.error(
-          "Error al crear el producto. Por favor, intente nuevamente."
-        );
-        setLoading(false);
+      photos.forEach((photo) => {
+        formData.append("photos", photo);
       });
+
+      smallPrints.forEach((print) => {
+        formData.append("smallPrint", print);
+      });
+
+      largePrints.forEach((print) => {
+        formData.append("largePrint", print);
+      });
+      const getToken = () => {
+        const user = localStorage.getItem("user");
+
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      // Ejemplo de uso:
+      const token = getToken();
+      if (token) {
+        console.log("Token extraído:", token);
+      } else {
+        console.log("No se encontró el token.");
+      }
+      const response = await axios.post(
+        "https://valkiriasback.onrender.com/products",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`, // Token de autorización
+          },
+        }
+      );
+
+      // Manejo de la respuesta exitosa
+      toast.success("Producto creado exitosamente");
+      setLoading(false);
+      setIsModalVisible(true);
+
+      // Limpiar formulario y resetear estados después de un retraso
+      setTimeout(() => {
+        reset();
+        setSmallPrintsPreview([]);
+        setLargePrintsPreview([]);
+        setProductName("");
+        setProductDescription("");
+        setPhotos([]);
+        setPreviewImages([]);
+        setSmallPrints([]);
+        setLargePrints([]);
+        setKidsSizes([]);
+        setAdultSizes([]);
+        setPrice([]);
+        setStock(null);
+        setCategory("");
+        setColor([]);
+        setIsModalVisible(false);
+      }, 3000);
+    } catch (error) {
+      console.error("Error al crear el producto:", error);
+      toast.error("Error al crear el producto. Por favor, intente nuevamente.");
+      setLoading(false);
+    }
   };
 
   const handleChange = (

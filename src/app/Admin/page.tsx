@@ -86,43 +86,71 @@ function Admin() {
         }
       };
 
-      // Ejemplo de uso:
+      // Extraer el token
       const token = getToken();
-      if (token) {
-        console.log("Token extraído:", token);
-      } else {
-        console.log("No se encontró el token.");
+      if (!token) {
+        console.error("No se encontró el token.");
+        return;
       }
 
-      const response = await fetch("https://valkiriasback.onrender.com/users", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Realizar la solicitud con Axios
+      const response = await axios.get(
+        "https://valkiriasback.onrender.com/users",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error en la respuesta del servidor:", errorData);
-        throw new Error(errorData.message || "Error al obtener los usuarios");
-      }
-
-      const data = await response.json();
-      console.log("Usuarios obtenidos:", data);
-      setUsers(data);
-      setFilteredUsers(data);
+      console.log("Usuarios obtenidos:", response.data);
+      setUsers(response.data);
+      setFilteredUsers(response.data);
     } catch (error) {
       console.error("Error al obtener los usuarios:", error);
+      if (error) {
+        toast.error("Error al obtener los usuarios.");
+      }
     }
   };
 
   const toggleUserStatus = async (id: number, activate: boolean) => {
+    const getToken = () => {
+      const user = localStorage.getItem("user");
+
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
+
+      try {
+        const parsedUser = JSON.parse(user);
+        return parsedUser.token || null; // Retorna el token si existe
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
+
+    // Ejemplo de uso:
+    const token = getToken();
+    if (token) {
+      console.log("Token extraído:", token);
+    } else {
+      console.log("No se encontró el token.");
+    }
     try {
       const url = activate
         ? `https://valkiriasback.onrender.com/users/${id}/activate`
         : `https://valkiriasback.onrender.com/users/${id}/deactivate`;
-      await axios.put(url);
+
+      await axios.put(url, null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       fetchUsers();
       toast.success(
         activate
@@ -135,12 +163,45 @@ function Admin() {
   };
 
   const handleToggleAdmin = async (id: number, newIsAdmin: boolean) => {
+    const getToken = () => {
+      const user = localStorage.getItem("user");
+
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
+
+      try {
+        const parsedUser = JSON.parse(user);
+        return parsedUser.token || null; // Retorna el token si existe
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
+
+    // Ejemplo de uso:
+    const token = getToken();
+    if (token) {
+      console.log("Token extraído:", token);
+    } else {
+      console.log("No se encontró el token.");
+    }
     try {
-      const response = await axios.put(`/users/changeIsAdmin/${id}`, {
-        isAdmin: newIsAdmin,
-      });
+      const response = await axios.put(
+        `https://valkiriasback.onrender.com/users/changeIsAdmin/${id}`,
+        {
+          isAdmin: newIsAdmin,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const updatedUser = response.data;
+      toast.success("Estado de administrador cambiado con éxito");
 
       // Actualiza el estado local con la respuesta del servidor
       setFilteredUsers((prevUsers) =>
@@ -150,30 +211,99 @@ function Admin() {
       );
     } catch (error) {
       console.error("Error al cambiar el estado de administrador:", error);
-      alert("No se pudo cambiar el estado de administrador. Intenta de nuevo.");
+      toast.error("Error al cambiar el estado de administrador.");
+    }
+  };
+  const handleDeleteUser = async (id: number) => {
+    const getToken = () => {
+      const user = localStorage.getItem("user");
+
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
+
+      try {
+        const parsedUser = JSON.parse(user);
+        return parsedUser.token || null; // Retorna el token si existe
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
+
+    // Ejemplo de uso:
+    const token = getToken();
+    if (token) {
+      console.log("Token extraído:", token);
+    } else {
+      console.log("No se encontró el token.");
+    }
+    try {
+      const response = await axios.delete(
+        `https://valkiriasback.onrender.com/users/${id}/delete`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      fetchUsers();
+      toast.success("Usuario eliminado con éxito");
+    } catch (error) {
+      console.error("Error al eliminar el usuario:", error);
+      toast.error("Error al eliminar el usuario.");
     }
   };
 
   const handleDelete = async (productId: string) => {
+    const getToken = () => {
+      const user = localStorage.getItem("user");
+
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
+
+      try {
+        const parsedUser = JSON.parse(user);
+        return parsedUser.token || null; // Retorna el token si existe
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
+
+    // Ejemplo de uso:
+    const token = getToken();
+    if (token) {
+      console.log("Token extraído:", token);
+    } else {
+      console.log("No se encontró el token.");
+    }
     if (!productId) {
       toast.error("Por favor, selecciona un producto válido.");
       return;
     }
 
     try {
-      const response = await fetch(
+      const response = await axios.delete(
         `https://valkiriasback.onrender.com/products/delete/${productId}`,
         {
-          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      if (!response.ok) {
+      if (response.status === 200) {
+        toast.success("El producto ha sido eliminado exitosamente.");
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product.id !== productId)
+        );
+      } else {
         throw new Error("Error al eliminar el producto");
       }
-
-      toast.success("El producto ha sido eliminado exitosamente.");
-      setProducts(products.filter((product) => product.id !== productId));
     } catch (error) {
       console.error("Error al eliminar el producto:", error);
       toast.error("Error al eliminar el producto.");
@@ -263,7 +393,7 @@ function Admin() {
                       <td className="border border-gray-300 p-2 text-gray-800">
                         {product.stock}
                       </td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border flex justify-center border-gray-200 p-2">
                         <button
                           onClick={() => handleEdit(product.id)}
                           className="bg-custom-orange text-white py-1 px-2 mr-2 rounded-lg hover:bg-orange-400"
@@ -299,7 +429,7 @@ function Admin() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="overflow-x-auto">
+            <div className="text-center text-sm">
               <table className="w-full border-collapse shadow-lg rounded-lg overflow-hidden">
                 <thead>
                   <tr className="bg-gray-200 text-gray-700 text-left">
@@ -312,6 +442,7 @@ function Admin() {
                     <th className="p-4">Status</th>
                     <th className="p-4">Admin</th>
                     <th className="p-4">Acciones</th>
+                    <th className="p-4">Eliminar</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -322,23 +453,23 @@ function Admin() {
                         index % 2 === 0 ? "bg-gray-50" : "bg-white"
                       } hover:bg-gray-100 transition`}
                     >
-                      <td className="p-4 border-t text-gray-700">{user.id}</td>
-                      <td className="p-4 border-t text-gray-700">
+                      <td className="p-2 border-t text-gray-700">{user.id}</td>
+                      <td className="p-2 border-t text-gray-700">
                         {user.firstname}
                       </td>
-                      <td className="p-4 border-t text-gray-700">
+                      <td className="p-2 border-t text-gray-700">
                         {user.email}
                       </td>
-                      <td className="p-4 border-t text-gray-700">
+                      <td className="p-2 border-t text-gray-700">
                         {user.address}
                       </td>
-                      <td className="p-4 border-t text-gray-700">
+                      <td className="p-2 border-t text-gray-700">
                         {user.phone}
                       </td>
-                      <td className="p-4 border-t text-center text-gray-700">
+                      <td className="p-2 border-t text-center text-gray-700">
                         {user.active ? "Sí" : "No"}
                       </td>
-                      <td className="p-4 border-t text-center">
+                      <td className="p-2 border-t text-center">
                         <button
                           onClick={() =>
                             toggleUserStatus(user.id, !user.active)
@@ -346,16 +477,16 @@ function Admin() {
                           className={`${
                             user.active
                               ? "bg-custom-orange hover:bg-orange-400"
-                              : "bg-green-500 hover:bg-green-600"
+                              : "bg-valkyrie-purple hover:bg-creativity-purple"
                           } text-white py-1 px-3 rounded-md`}
                         >
                           {user.active ? "Desactivar" : "Activar"}
                         </button>
                       </td>
-                      <td className="p-4 border-t text-center text-gray-700">
+                      <td className="p-2 border-t text-center text-gray-700">
                         {user.isAdmin ? "Sí" : "No"}
                       </td>
-                      <td className="p-4 border-t space-y-2 text-center">
+                      <td className="p-2 border-t space-y-2 text-center">
                         <button
                           onClick={() =>
                             handleToggleAdmin(user.id, !user.isAdmin)
@@ -366,7 +497,15 @@ function Admin() {
                               : "bg-valkyrie-purple hover:bg-creativity-purple"
                           } text-white py-1 px-3 rounded-md`}
                         >
-                          {user.isAdmin ? "Revocar Admin" : "Hacer Admin"}
+                          {user.isAdmin ? "Desactivar" : "Activar"}
+                        </button>
+                      </td>
+                      <td className="p-2 border-t text-center">
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="bg-valkyrie-purple text-white py-1 px-3 rounded-md hover:bg-creativity-purple"
+                        >
+                          Eliminar
                         </button>
                       </td>
                     </tr>
@@ -386,13 +525,13 @@ function Admin() {
 
   return (
     <div className="min-h-screen w-full bg-gray-50">
-      <header className="bg-valkyrie-purple p-6 text-white">
+      <header className="bg-valkyrie-purple p-4 text-white">
         <nav>
           <ul className="flex justify-around">
             <li
               onClick={() => setActiveTab("dashboard")}
               className={`cursor-pointer ${
-                activeTab === "dashboard" ? "text-yellow-400" : ""
+                activeTab === "dashboard" ? "text-orange-400" : ""
               }`}
             >
               <FaHome size={24} className="inline-block mr-2" />
@@ -401,7 +540,7 @@ function Admin() {
             <li
               onClick={() => setActiveTab("users")}
               className={`cursor-pointer ${
-                activeTab === "users" ? "text-yellow-400" : ""
+                activeTab === "users" ? "text-orange-400" : ""
               }`}
             >
               <FaUsers size={24} className="inline-block mr-2" />
@@ -410,7 +549,7 @@ function Admin() {
             <li
               onClick={() => setActiveTab("reports")}
               className={`cursor-pointer ${
-                activeTab === "reports" ? "text-yellow-400" : ""
+                activeTab === "reports" ? "text-orange-400" : ""
               }`}
             >
               <FaChartBar size={24} className="inline-block mr-2" />
@@ -419,7 +558,7 @@ function Admin() {
             <li
               onClick={() => setActiveTab("inbox")}
               className={`cursor-pointer ${
-                activeTab === "inbox" ? "text-yellow-400" : ""
+                activeTab === "inbox" ? "text-orange-400" : ""
               }`}
             >
               <FaInbox size={24} className="inline-block mr-2" />

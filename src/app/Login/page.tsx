@@ -58,7 +58,11 @@ const Login: React.FC = () => {
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
       // Redirigir al dashboard
+
       router.push("/");
+      setTimeout(() => {
+        window.location.reload(); // Refresca la página redirigiendo a la misma ruta
+      }, 500);
     } catch (err) {
       // Manejo de errores
       if (axios.isAxiosError(err)) {
