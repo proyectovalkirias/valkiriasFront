@@ -67,6 +67,13 @@ const Cart: React.FC = () => {
     setIsModalOpen(true);
     setModalType(null);
 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      console.error("El token no está disponible en el localStorage.");
+      return;
+    }
+
     try {
       const products = cartItems.map((item) => ({
         id: item.id,
@@ -75,7 +82,15 @@ const Cart: React.FC = () => {
         quantity: item.quantity,
       }));
 
-      const response = await axios.post(`https://valkiriasback.onrender.com/order`, products);
+      const response = await axios.post(
+        `https://valkiriasback.onrender.com/order`,
+        products,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.data && response.data.url) {
         window.location.href = response.data.url;
