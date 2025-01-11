@@ -16,7 +16,7 @@ const ProductList: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("https://valkiriasback.onrender.com/products");
+      const response = await fetch(`https://valkiriasback.onrender.com/products`);
       if (!response.ok) {
         throw new Error("Error al obtener los productos");
       }
@@ -44,9 +44,9 @@ const ProductList: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/products/delete/${productId}`,
+        `https://valkiriasback.onrender.com/products/delete/${productId}`,
         {
-          method: "POST",
+          method: "DELETE",
         }
       );
 
@@ -95,7 +95,7 @@ const ProductList: React.FC = () => {
       <input
         type="text"
         placeholder="Buscar por nombre o ID"
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
+        className="mb-4 p-2 border border-gray-300 text-gray-800 rounded w-full"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
@@ -129,13 +129,13 @@ const ProductList: React.FC = () => {
               <td className="border border-gray-300 p-2">
                 <button
                   onClick={() => handleEdit(product.id)}
-                  className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded hover:bg-creativity-purple"
+                  className="bg-custom-orange text-white py-1 px-2 mr-2 rounded-lg hover:bg-orange-400"
                 >
                   Editar
                 </button>
                 <button
                   onClick={() => handleDelete(product.id)}
-                  className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
+                  className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg  hover:bg-creativity-purple"
                 >
                   Eliminar
                 </button>

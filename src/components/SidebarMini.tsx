@@ -10,9 +10,9 @@ import { FaShoppingCart } from "react-icons/fa"; // Agregado ícono de carrito
 const SidebarMini: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Estado de autenticación
-  const [isLocalUser, setIsLocalUser] = useState(false); // Indica si el usuario es local
-  const [isGoogleUser, setIsGoogleUser] = useState(false); // Indica si el usuario es de Google
-  const [needsMoreInfo, setNeedsMoreInfo] = useState(false); // Si necesita agregar información
+  const [, setIsLocalUser] = useState(false); // Indica si el usuario es local
+  const [, setIsGoogleUser] = useState(false); // Indica si el usuario es de Google
+  const [, setNeedsMoreInfo] = useState(false); // Si necesita agregar información
 
   const sidebarRef = useRef<HTMLDivElement | null>(null); // Ref para la barra lateral
 
@@ -56,10 +56,6 @@ const SidebarMini: React.FC = () => {
     };
   }, [activeMenu]);
 
-  const toggleMenu = (menu: string) => {
-    setActiveMenu((prevMenu) => (prevMenu === menu ? null : menu));
-  };
-
   const handleNavigation = (path: string) => {
     setActiveMenu(null);
     window.location.href = path;
@@ -92,19 +88,7 @@ const SidebarMini: React.FC = () => {
                 className="py-1 px-2 hover:bg-gray-600 rounded"
                 onClick={() => handleNavigation("/Products")}
               >
-                Todos los productos
-              </button>
-              <button
-                className="py-1 px-2 hover:bg-gray-600 rounded"
-                onClick={() => handleNavigation("/Category1")}
-              >
-                Categoría 1
-              </button>
-              <button
-                className="py-1 px-2 hover:bg-gray-600 rounded"
-                onClick={() => handleNavigation("/Category2")}
-              >
-                Categoría 2
+                Productos
               </button>
             </div>
           )}
@@ -113,43 +97,9 @@ const SidebarMini: React.FC = () => {
             <div className="flex gap-1 text-xs">
               <button
                 className="py-1 px-2 hover:bg-gray-600 rounded"
-                onClick={() => handleNavigation("/Dashboard")}
+                onClick={() => handleNavigation("/User")}
               >
                 Mi Perfil
-              </button>
-              {isLocalUser && (
-                <button
-                  className="py-1 px-2 hover:bg-gray-600 rounded"
-                  onClick={() => handleNavigation("/ProfileConfiguration")}
-                >
-                  Configuración
-                </button>
-              )}
-              {isGoogleUser && needsMoreInfo && (
-                <button
-                  className="py-1 px-2 hover:bg-gray-600 rounded"
-                  onClick={() => handleNavigation("/GoogleDniPhone")}
-                >
-                  Agregar información
-                </button>
-              )}
-              <button
-                className="py-1 px-2 hover:bg-gray-600 rounded"
-                onClick={() => handleNavigation("/Addresses")}
-              >
-                Direcciones
-              </button>
-              <button
-                className="py-1 px-2 hover:bg-gray-600 rounded"
-                onClick={() => handleNavigation("/Orders")}
-              >
-                Mis Compras
-              </button>
-              <button
-                className="py-1 px-2 hover:bg-gray-600 rounded"
-                onClick={() => handleNavigation("/ChangePassword")}
-              >
-                Cambiar contraseña
               </button>
             </div>
           )}
@@ -166,7 +116,7 @@ const SidebarMini: React.FC = () => {
 
           <button
             className="flex flex-col items-center text-gray-300 hover:text-white"
-            onClick={() => toggleMenu("products")}
+            onClick={() => handleNavigation("/Products")}
           >
             <IoShirtOutline size={24} />
             <span className="text-xs">Productos</span>
@@ -175,7 +125,7 @@ const SidebarMini: React.FC = () => {
           {isLoggedIn && (
             <button
               className="flex flex-col items-center text-gray-300 hover:text-white"
-              onClick={() => toggleMenu("profile")}
+              onClick={() => handleNavigation("/User")}
             >
               <FiUser size={24} />
               <span className="text-xs">Perfil</span>

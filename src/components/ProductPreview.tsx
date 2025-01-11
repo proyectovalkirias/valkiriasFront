@@ -90,7 +90,7 @@ export const ProductPreview: React.FC<{
       <div className="mt-4">
         <h4 className="font-medium">Imágenes de Producto:</h4>
         <div className="flex space-x-2 mt-2">
-          {previewImages.map((src, index) => (
+          {previewImages?.map((src, index) => (
             <div key={index} className="relative">
               <Image
                 src={src}
@@ -114,7 +114,7 @@ export const ProductPreview: React.FC<{
       <div className="mt-4">
         <h4 className="font-medium">Imágenes de Estampas Pequeñas:</h4>
         <div className="flex space-x-2 mt-2">
-          {smallPrintsPreview.map((src, index) => (
+          {smallPrintsPreview?.map((src, index) => (
             <div key={index} className="relative">
               <Image
                 src={src}
@@ -138,7 +138,7 @@ export const ProductPreview: React.FC<{
       <div className="mt-4">
         <h4 className="font-medium">Imágenes de Estampas Grandes:</h4>
         <div className="flex space-x-2 mt-2">
-          {largePrintsPreview.map((src, index) => (
+          {largePrintsPreview?.map((src, index) => (
             <div key={index} className="relative">
               <Image
                 src={src}

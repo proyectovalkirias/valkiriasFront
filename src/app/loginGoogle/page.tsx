@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 
 interface UserInfo {
   picture: string;
@@ -10,11 +9,11 @@ interface UserInfo {
 }
 
 const Landingoogle: React.FC = () => {
-  const router = useRouter();
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
+
+    console.log("code:" + code);
 
     if (code) {
       exchangeCodeForToken(code);
@@ -26,9 +25,6 @@ const Landingoogle: React.FC = () => {
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
     const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI!;
     const tokenUrl = process.env.TOKEN_URL!;
-    console.log("CLIENT_ID:", process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
-console.log("REDIRECT_URI:", process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI);
-console.log("TOKEN_URL:", process.env.TOKEN_URL);
     const body = new URLSearchParams();
     body.append("code", code);
     body.append("client_id", clientId);
@@ -44,6 +40,7 @@ console.log("TOKEN_URL:", process.env.TOKEN_URL);
       });
 
       const data = await response.json();
+      console.log("Data fetch Token URL:" + data);
 
       if (data.access_token) {
         localStorage.setItem("access_token", data.access_token);
@@ -65,11 +62,13 @@ console.log("TOKEN_URL:", process.env.TOKEN_URL);
         },
       });
 
+      console.log("Response FetchuserInfo" + response);
+
       const userInfo: UserInfo = await response.json();
       localStorage.setItem("user_info", JSON.stringify(userInfo));
+
+      console.log("UserInfo: " + userInfo);
       showToast(userInfo);
-      toast.success("¡Inicio de sesión exitoso!");  // Alerta de éxito al loguearse
-      router.push("/");
     } catch (error) {
       console.error("Error fetching user info:", error);
     }

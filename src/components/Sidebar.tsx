@@ -1,75 +1,58 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
 import { CiLogin } from "react-icons/ci";
 import { useRouter } from "next/navigation";
 import { FiUser, FiUsers } from "react-icons/fi";
-import { HiChevronDown } from "react-icons/hi";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaShoppingCart, FaCog } from "react-icons/fa";
 import Link from "next/link";
-import { toast } from "react-toastify"; // Asegúrate de tener esto importado
-import { FaCog } from "react-icons/fa";
+import { toast } from "react-toastify";
 
-// Define la función getUserData
+
+
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
     const storedGoogleUser = localStorage.getItem("user_info");
 
-    // Si hay un usuario local
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       return {
+        id: parsedUser.user.id,
         firstname: parsedUser.user.firstname || "",
         lastname: parsedUser.user.lastname || "",
         email: parsedUser.user.email || "",
         photoUrl: parsedUser.user.photo || "/images/Avatar.png",
         isAdmin: parsedUser.user.isAdmin || false,
-        isGoogleUser: false, // Asegura que esté definido como booleano
+        isGoogleUser: false,
       };
-    }
-    // Si hay un usuario de Google
-    else if (storedGoogleUser) {
+    } else if (storedGoogleUser) {
       const googleUser = JSON.parse(storedGoogleUser);
       return {
         firstname: googleUser.given_name || "",
         lastname: googleUser.family_name || "",
         email: googleUser.email || "",
         photoUrl: googleUser.picture || "/images/Avatar.png",
-        isGoogleUser: true, // Asegura que esté definido como booleano
+        isGoogleUser: true,
         dni: googleUser.dni || null,
         phone: googleUser.phone || null,
       };
     }
 
-    // Si no hay datos, devuelve un objeto vacío por defecto
-    return {
-      firstname: "",
-      lastname: "",
-      email: "",
-      photoUrl: "/images/Avatar.png",
-      isGoogleUser: false, // Asegura que esté definido como booleano
-    };
+    return null;
   } catch (error) {
     console.error("Error al obtener los datos del usuario:", error);
-    return {
-      firstname: "",
-      lastname: "",
-      email: "",
-      photoUrl: "/images/Avatar.png",
-      isGoogleUser: false, // Asegura que esté definido como booleano
-    }; // Objeto por defecto
+    return null;
   }
 };
 
-// Componente Sidebar
 const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
-  const [isProfileAccordionOpen, setIsProfileAccordionOpen] = useState(false);
   const [user, setUser] = useState<{
+    id?: string;
     firstname: string;
     lastname: string;
     email: string;
@@ -79,28 +62,25 @@ const Sidebar: React.FC = () => {
     phone?: string | null;
     isAdmin?: boolean;
   } | null>(null);
+  const [isLoggedOut, setIsLoggedOut] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const userData = getUserData();
-    setUser(userData); // Establecer datos del usuario
+  const handleNavigation = useCallback(
+    (path: string) => {
+      router.push(path);
+    },
+    [router]
+  );
+
+  const toggleSidebar = useCallback(() => {
+    setIsOpen((prevState) => !prevState);
   }, []);
 
-  // Función para manejar la navegación
-  const handleNavigation = (path: string) => {
-    router.push(path);
-  };
-
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-    setIsProfileAccordionOpen(false);
-  };
-
-  // Función de cierre de sesión
-  const handleLogout = async () => {
-    const accessToken = localStorage.getItem("access_token");
-
+  const handleLogout = useCallback(async () => {
     try {
+      const accessToken = localStorage.getItem("access_token");
+
       if (accessToken) {
         const response = await fetch("https://oauth2.googleapis.com/revoke", {
           method: "POST",
@@ -120,22 +100,21 @@ const Sidebar: React.FC = () => {
           toast.error("No se pudo cerrar sesión en Google correctamente");
         }
       }
-
-      // Limpiar datos locales
-      localStorage.removeItem("user");
-      localStorage.removeItem("user_info");
-      localStorage.removeItem("access_token");
-
-      // Limpiar estado del usuario
+      setIsModalOpen(false);
+      localStorage.clear();
       setUser(null);
-
-      // Redirigir al login
+      setIsLoggedOut(true);
       handleNavigation("/Login");
     } catch (error) {
       console.error("Error durante el logout:", error);
       toast.error("Ocurrió un error al cerrar sesión");
     }
-  };
+  }, [handleNavigation]);
+
+  useEffect(() => {
+    const userData = getUserData();
+    setUser(userData);
+  }, [isLoggedOut]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -144,7 +123,6 @@ const Sidebar: React.FC = () => {
         !sidebarRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
-        setIsProfileAccordionOpen(false);
       }
     };
 
@@ -154,10 +132,6 @@ const Sidebar: React.FC = () => {
     };
   }, []);
 
-  const toggleProfileAccordion = () => {
-    setIsProfileAccordionOpen(!isProfileAccordionOpen);
-  };
-
   return (
     <div
       ref={sidebarRef}
@@ -165,10 +139,10 @@ const Sidebar: React.FC = () => {
         isOpen ? "w-64" : "w-16"
       } h-screen bg-purple-dark text-white flex flex-col justify-between transition-all duration-300 overflow-hidden`}
     >
-      {/* LOGO */}
       <div
         className="p-4 text-center font-bold text-xl cursor-pointer flex justify-center items-center"
         onClick={toggleSidebar}
+        aria-label="Toggle Sidebar"
       >
         <img
           src={isOpen ? "/images/valkiriaslogo.jpg" : "/images/LogCircular.jpg"}
@@ -178,12 +152,12 @@ const Sidebar: React.FC = () => {
         />
       </div>
 
-      {/* NAVEGACIÓN */}
       <nav className="mt-4 flex-grow overflow-y-auto max-h-screen">
         <ul>
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/")}
+            aria-label="Inicio"
           >
             <TbHomeHeart size={24} />
             {isOpen && <span>Inicio</span>}
@@ -192,116 +166,64 @@ const Sidebar: React.FC = () => {
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/Products")}
+            aria-label="Productos"
           >
             <IoShirtOutline size={24} />
             {isOpen && <span>Productos</span>}
           </li>
 
-          {user && (
-            <li>
-              <div
-                className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-                onClick={() => handleNavigation("/Dashboard")}
-              >
-                <FiUser size={24} />
-                {isOpen && (
-                  <>
-                    <span>Mi Perfil</span>
-                    <HiChevronDown
-                      size={20}
-                      className={`transition-transform duration-300 ${
-                        isProfileAccordionOpen ? "transform rotate-180" : ""
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleProfileAccordion();
-                      }}
-                      style={{ marginLeft: "auto" }}
-                    />
-                  </>
-                )}
-              </div>
-
-              {isProfileAccordionOpen && (
-                <ul className="ml-8">
-                  {!localStorage.getItem("user_info") && (
-                    <li
-                      className="py-1 hover:bg-gray-700 cursor-pointer"
-                      onClick={() => handleNavigation("/ProfileConfiguration")}
-                    >
-                      Configuración
-                    </li>
-                  )}
-                  {user.isGoogleUser && (!user.dni || !user.phone) && (
-                    <li
-                      className="py-1 hover:bg-gray-700 cursor-pointer"
-                      onClick={() => handleNavigation("/GoogleDniPhone")}
-                    >
-                      Agregar información
-                    </li>
-                  )}
-                  <li
-                    className="py-1 hover:bg-gray-700 cursor-pointer"
-                    onClick={() => handleNavigation("/Addresses")}
-                  >
-                    Direcciones
-                  </li>
-                  <li
-                    className="py-1 hover:bg-gray-700 cursor-pointer"
-                    onClick={() => handleNavigation("/Orders")}
-                  >
-                    Mis Compras
-                  </li>
-                  <li
-                    className="py-1 hover:bg-gray-700 cursor-pointer"
-                    onClick={() => handleNavigation("/ChangePassword")}
-                  >
-                    Cambiar Contraseña
-                  </li>
-                </ul>
-              )}
-            </li>
-          )}
-
           <li
             className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
             onClick={() => handleNavigation("/About")}
+            aria-label="Sobre Nosotros"
           >
             <FiUsers size={24} />
             {isOpen && <span>Sobre Nosotros</span>}
           </li>
 
-          {!user ? (
-            <li
-              className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-              onClick={() => handleNavigation("/Login")}
-            >
-              <CiLogin size={24} />
-              {isOpen && <span>Iniciar Sesión</span>}
-            </li>
+          {user && !isLoggedOut ? (
+            <>
+              <li
+                className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
+                onClick={() => handleNavigation("/User")}
+                aria-label="Mi Perfil"
+              >
+                <FiUser size={24} />
+                {isOpen && <span>Mi perfil</span>}
+              </li>
+              <li
+                className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
+                onClick={() => setIsModalOpen(true)}
+                aria-label="Cerrar Sesión"
+              >
+                <CiLogin size={24} />
+                {isOpen && <span>Cerrar Sesión</span>}
+              </li>
+            </>
           ) : (
             <li
               className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer"
-              onClick={handleLogout}
+              onClick={() => handleNavigation("/Login")}
+              aria-label="Iniciar Sesión"
             >
               <CiLogin size={24} />
-              {isOpen && <span>Cerrar Sesión</span>}
+              {isOpen && <span>Iniciar Sesión</span>}
             </li>
           )}
         </ul>
       </nav>
 
-      {user && (
+      {user && !isLoggedOut && (
         <>
           {user.isAdmin && (
-            <Link href="/Admin">
+            <Link href="/Admin" aria-label="Administrador">
               <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
-                <FaCog size={24} color="white" />
+                <FaCog size={24} />
                 {isOpen && <span>Administrador</span>}
               </div>
             </Link>
           )}
-          <Link href="/Cart">
+          <Link href="/Cart" aria-label="Mi Carrito">
             <div className="flex items-center gap-4 py-2 px-4 hover:bg-gray-700 cursor-pointer">
               <FaShoppingCart size={24} />
               {isOpen && <span>Mi carrito</span>}
@@ -327,6 +249,33 @@ const Sidebar: React.FC = () => {
             )}
           </div>
         </>
+      )}
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg text-gray-800 font-bold mb-4">
+              Cerrar Sesión
+            </h2>
+            <p className="mb-4 text-gray-600">
+              ¿Estás seguro de que deseas cerrar sesión?
+            </p>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-valkyrie-purple px-4 py-2 rounded-md hover:bg-creativity-purple"
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

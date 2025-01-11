@@ -3,36 +3,47 @@ import React, { useState, useEffect } from "react";
 import { FaUser, FaShoppingCart, FaReceipt, FaTruck } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import Order from "@/interfaces/Order";
+import Purchase from "@/interfaces/Purchase";
 
 const UserPanel: React.FC = () => {
+
   const [activeTab, setActiveTab] = useState<string>("profile");
   const [user, setUser] = useState<{
     id?: string;
     firstname: string;
     lastname: string;
     email: string;
-    photoUrl: string;
-    dni?: string;
+    photo: string;
+    dni?: number;
     phone?: string;
     address?: string;
     city?: string;
     state?: string;
   }>({
+    id: "",
     firstname: "",
     lastname: "",
     email: "",
-    photoUrl: "/images/Avatar.png",
-    dni: "",
+    photo: "/images/Avatar.png",
+    dni: 0,
     phone: "",
     address: "",
     city: "",
     state: "",
   });
-  const [data, setData] = useState<{ orders: any[]; purchases: any[] }>({
+  const [data, setData] = useState<{ orders: Order[]; purchases: Purchase[] }>({
     orders: [],
     purchases: [],
   });
-  const [loading, setLoading] = useState<boolean>(true);
+
+  const [, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [modalField, setModalField] = useState<{
+    key: string;
+    label: string;
+    value: string | number;
+  } | null>(null);
 
   // Obtener datos del usuario desde el almacenamiento local
   const getUserData = () => {
@@ -47,7 +58,7 @@ const UserPanel: React.FC = () => {
           firstname: parsedUser.user.firstname || "",
           lastname: parsedUser.user.lastname || "",
           email: parsedUser.user.email || "",
-          photoUrl: parsedUser.user.photo || "/images/Avatar.png",
+          photo: parsedUser.user.photo || "/images/Avatar.png",
           isGoogleUser: false,
         };
       } else if (storedGoogleUser) {
@@ -56,8 +67,8 @@ const UserPanel: React.FC = () => {
           firstname: googleUser.given_name || "",
           lastname: googleUser.family_name || "",
           email: googleUser.email || "",
-          photoUrl: googleUser.picture || "/images/Avatar.png",
-          dni: googleUser.dni || "",
+          photo: googleUser.picture || "/images/Avatar.png",
+          dni: googleUser.dni || 0,
           phone: googleUser.phone || "",
           isGoogleUser: true,
         };
@@ -69,11 +80,35 @@ const UserPanel: React.FC = () => {
     }
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    const confirmation = window.confirm(
+      "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
+    );
+    if (confirmation) {
+      try {
+  
+        await axios.delete(`https://valkiriasback.onrender.com/order/${orderId}`);
+
+      
+        setData((prevData) => ({
+          ...prevData,
+          orders: prevData.orders.filter((order) => order.id !== orderId),
+        }));
+        toast.success("Orden eliminada con éxito.");
+      } catch (error) {
+        console.error("Error eliminando la orden:", error);
+        toast.error(
+          "Hubo un problema al eliminar la orden. Inténtalo nuevamente."
+        );
+      }
+    }
+  };
+
   // Obtener detalles adicionales del usuario desde la API
   const fetchUserDetails = async (id: string) => {
     try {
-      const response = await axios.get(`http://localhost:3000/users/${id}`);
-      return response.data; // Incluye dni, phone y otros detalles adicionales
+      const response = await axios.get(`https://valkiriasback.onrender.com/users/${id}`);
+      return response.data;
     } catch (error) {
       console.error("Error al obtener los detalles del usuario:", error);
       return null;
@@ -83,7 +118,9 @@ const UserPanel: React.FC = () => {
   // Obtener órdenes desde la API
   const fetchOrders = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/order/orders");
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/order/user/${user.id}`
+      );
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
@@ -94,10 +131,11 @@ const UserPanel: React.FC = () => {
   // Obtener compras desde la API
   const fetchPurchases = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/purchases");
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/purchase/user/${user.id}`
+      );
       setData((prev) => ({ ...prev, purchases: response.data }));
-    } catch (error) {
-      console.error("Error al obtener las compras:", error);
+    } catch {
       toast.error("Error al obtener las compras.");
     }
   };
@@ -109,10 +147,11 @@ const UserPanel: React.FC = () => {
         const userData = getUserData();
         if (userData) {
           setUser({
+            id: userData.id,
             firstname: userData.firstname,
             lastname: userData.lastname,
             email: userData.email,
-            photoUrl: userData.photoUrl,
+            photo: userData.photo,
             dni: userData.dni,
             phone: userData.phone,
           });
@@ -147,70 +186,61 @@ const UserPanel: React.FC = () => {
     if (activeTab === "orders") fetchOrders();
     if (activeTab === "purchases") fetchPurchases();
   }, [activeTab]);
-  type UserField =
-    | "firstname"
-    | "lastname"
-    | "email"
-    | "phone"
-    | "dni"
-    | "address"
-    | "city"
-    | "state";
-  const userFields: { label: string; value: string; key: UserField }[] = [
-    {
-      label: "Nombre",
-      value: `${user.firstname || "N/A"} ${user.lastname || "N/A"}`,
-      key: "firstname",
-    },
+  const userFields: {
+    label: string;
+    value: string | number;
+    key: string;
+  }[] = [
+    { label: "Nombre", value: `${user.firstname || "N/A"} `, key: "firstname" },
     { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "lastname" },
     { label: "Email", value: user.email || "N/A", key: "email" },
-    { label: "Teléfono", value: user.phone || "N/A", key: "phone" },
-    { label: "DNI", value: user.dni || "N/A", key: "dni" },
-    { label: "Dirección", value: user.address || "N/A", key: "address" },
-    { label: "Ciudad", value: user.city || "N/A", key: "city" },
-    { label: "Estado", value: user.state || "N/A", key: "state" },
+    {
+      label: "Teléfono",
+      value: user.phone || "Agregar",
+      key: "phone",
+    },
+    { label: "DNI", value: user.dni || "Agregar", key: "dni" },
+    {
+      label: "Dirección",
+      value: user.address || "Agregar",
+      key: "address",
+    },
+    { label: "Ciudad", value: user.city || "Agregar", key: "city" },
+    { label: "Estado", value: user.state || "Agregar", key: "state" },
+    { label: "Foto", value: user.photo || "Agregar", key: "photo" },
   ];
-  function isUserField(key: string): key is UserField {
-    return [
-      "firstname",
-      "lastname",
-      "email",
-      "phone",
-      "dni",
-      "address",
-      "city",
-      "state",
-    ].includes(key);
-  }
 
-  async function handleEdit(key: string): Promise<void> {
-    if (!isUserField(key)) {
-      console.error(`Campo inválido: ${key}`);
-      return;
-    }
+  const handleEdit = (field: {
+    key: string;
+    label: string;
+    value: string | number;
+  }) => {
+    setModalField(field);
+    setIsModalOpen(true);
+  };
 
-    const newValue = prompt(`Ingrese el nuevo valor para ${key}:`);
-    if (!newValue) return;
+  const handleSave = async () => {
+    if (!modalField) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/users/${user.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [key]: newValue }),
-      });
+      const response = await axios.put(
+        `https://valkiriasback.onrender.com/users/${user.id}`,
+        { [modalField.key]: modalField.value },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUser(updatedUser);
-        alert(`${key} actualizado correctamente.`);
+      if (response.status === 200) {
+        setUser(response.data);
+        toast.success(`${modalField.label} actualizado correctamente.`);
+        setIsModalOpen(false);
       } else {
         throw new Error("No se pudo actualizar el dato.");
       }
     } catch (error) {
       console.error(error);
-      alert("Hubo un problema al actualizar el dato.");
+      toast.error("Hubo un problema al actualizar el dato.");
     }
-  }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -222,16 +252,13 @@ const UserPanel: React.FC = () => {
             </h1>
             {user ? (
               <div className="p-6 bg-gray-100 rounded-lg shadow-md flex flex-col items-center space-y-4">
-                {/* Foto de perfil */}
                 <div className="w-32 h-32 rounded-full overflow-hidden shadow-lg">
                   <img
-                    src={user.photoUrl || "/images/Avatar.png"}
+                    src={user.photo || "/images/Avatar.png"}
                     alt={`${user.firstname} ${user.lastname}`}
                     className="w-full h-full object-cover"
                   />
                 </div>
-
-                {/* Información del usuario */}
                 <div className="text-center space-y-2">
                   {userFields.map((item) => (
                     <div
@@ -241,25 +268,27 @@ const UserPanel: React.FC = () => {
                       <p className="text-lg text-gray-600">
                         <strong>{item.label}:</strong> {item.value}
                       </p>
-                      <button
-                        onClick={() => handleEdit(item.key)}
-                        className="ml-2 text-blue-500 hover:text-blue-700"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-5 h-5"
+                      {item.key !== "email" && (
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="ml-2 text-blue-500 hover:text-blue-700"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
-                          />
-                        </svg>
-                      </button>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1}
+                            stroke="purple"
+                            className="w-3 h-3"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
+                            />
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -271,7 +300,6 @@ const UserPanel: React.FC = () => {
             )}
           </div>
         );
-
       case "traking":
         return (
           <div className="bg-white min-h-screen p-6">
@@ -363,7 +391,7 @@ const UserPanel: React.FC = () => {
           </div>
         );
       case "orders":
-        fetchOrders();
+        
         return (
           <div className="bg-white min-h-screen p-6">
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
@@ -374,18 +402,26 @@ const UserPanel: React.FC = () => {
                 data.orders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 bg-gray-100 rounded-lg shadow-md"
+                    className="p-4 bg-gray-100 rounded-lg shadow-md flex justify-between items-center"
                   >
-                    <p className="text-lg text-gray-800">
-                      <strong>ID:</strong> {order.id}
-                    </p>
-                    <p className="text-lg text-gray-800">
-                      <strong>Fecha:</strong>{" "}
-                      {new Date(order.date).toLocaleDateString()}
-                    </p>
-                    <p className="text-lg text-gray-800">
-                      <strong>Total:</strong> ${order.total}
-                    </p>
+                    <div>
+                      <p className="text-lg text-gray-800">
+                        <strong>ID:</strong> {order.id}
+                      </p>
+                      <p className="text-lg text-gray-800">
+                        <strong>Fecha:</strong>{" "}
+                        {new Date(order.date).toLocaleDateString()}
+                      </p>
+                      <p className="text-lg text-gray-800">
+                        <strong>Total:</strong> ${order.total}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteOrder(order.id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600"
+                    >
+                      Eliminar
+                    </button>
                   </div>
                 ))
               ) : (
@@ -427,12 +463,13 @@ const UserPanel: React.FC = () => {
         );
       default:
         return <p>Seleccione una pestaña para ver el contenido.</p>;
+        
     }
   };
 
   return (
-    <div className=" flex flex-col h-screen">
-      <header className="bg-valkyrie-purple  text-white flex justify-between items-center p-4 border-b-2 border-white">
+    <div className="flex flex-col h-screen">
+      <header className="bg-valkyrie-purple text-white flex justify-between items-center p-4 border-b-2 border-white">
         <div className="text-xl font-bold">Panel de Usuario</div>
         <nav className="flex space-x-4">
           <button
@@ -474,6 +511,40 @@ const UserPanel: React.FC = () => {
         </nav>
       </header>
       <main className="flex-1 bg-[#7b548b]">{renderContent()}</main>
+
+      {isModalOpen && modalField && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
+              Editar {modalField.label}
+            </h2>
+            <input
+              type="text"
+              value={modalField.value}
+              onChange={(e) =>
+                setModalField(
+                  (prev) => prev && { ...prev, value: e.target.value }
+                )
+              }
+              className="w-full p-2 border text-gray-800 rounded-md"
+            />
+            <div className="flex justify-end mt-4 space-x-2">
+              <button
+                onClick={handleSave}
+                className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className=" bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

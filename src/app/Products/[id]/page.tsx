@@ -66,6 +66,8 @@ const ProductDetail: React.FC = () => {
   const [selectedLargePrint, setSelectedLargePrint] = useState<string>("");
   const [remainingStock, setRemainingStock] = useState<number>(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [clientIdeas, setClientIdeas] = useState<string>("");
 
   useEffect(() => {
     if (!productId) {
@@ -74,43 +76,32 @@ const ProductDetail: React.FC = () => {
       return;
     }
 
+
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        async function getProducts(): Promise<Product[]> {
-          try {
-            const res = await fetch(`https://valkiriasback.onrender.com/products`, {
+
+        const getProductById = async (id: string): Promise<Product> => {
+          const response = await fetch(
+            `https://valkiriasback.onrender.com/products/${id}`,
+            {
               cache: "no-cache",
               next: { revalidate: 1500 },
-            });
-            if (!res.ok) {
-              throw new Error(`Failed to fetch products: ${res.statusText}`);
             }
-            return (await res.json()) as Product[];
-          } catch (error) {
-            throw new Error(
-              `Error fetching products: ${(error as Error).message}`
-            );
+          );
+          if (!response.ok) {
+            throw new Error(`Failed to fetch product: ${response.statusText}`);
           }
-        }
-        async function getProductById(id: string): Promise<Product> {
-          try {
-            const products: Product[] = await getProducts();
-            const productFiltered = products.find(
-              (product) => product.id.toString() === id
-            );
-            if (!productFiltered) throw new Error("Product not found");
-            return productFiltered;
-          } catch (error) {
-            throw new Error(`Error obtaining the product: ${error}`);
-          }
-        }
+          return response.json() as Promise<Product>;
+        };
+
         const fetchedProduct = await getProductById(productId);
 
         if (!fetchedProduct || typeof fetchedProduct !== "object") {
-          throw new Error("Producto no válido");
+          throw new Error("Producto no válido.");
         }
 
+        // Limpieza de tamaños si es un array de strings
         if (Array.isArray(fetchedProduct.sizes)) {
           fetchedProduct.sizes = fetchedProduct.sizes.map((size: string) =>
             size.replace(/\\|"/g, "")
@@ -125,9 +116,9 @@ const ProductDetail: React.FC = () => {
             : "/placeholder.png"
         );
         setRemainingStock(fetchedProduct.stock || 0);
-      } catch (err) {
+      } catch (error) {
         setError("No se pudo cargar el producto. Intenta nuevamente.");
-        console.error(err);
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -156,6 +147,10 @@ const ProductDetail: React.FC = () => {
     setQuantity(value);
   };
 
+  const handleImageUpload = (file: File) => {
+    setUploadedImage(file);
+  };
+
   const handleAddToCart = () => {
     if (!selectedSize) return toast.error("Selecciona un tamaño");
     if (quantity > remainingStock) return toast.error("Stock insuficiente");
@@ -168,6 +163,8 @@ const ProductDetail: React.FC = () => {
       selectedLargePrint,
       quantity,
       totalPrice,
+      uploadedImage,
+      clientIdeas,
     };
 
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -229,9 +226,6 @@ const ProductDetail: React.FC = () => {
           <Image
             src={mainImage}
             alt={product.name}
-            className="h-[500px] w-auto mx-auto rounded-xl shadow-md object-contain"
-            width={500}
-            height={500}
             className="w-[500px] aspect-square mx-auto rounded-xl shadow-md"
             width={100}
             height={100}
@@ -319,6 +313,31 @@ const ProductDetail: React.FC = () => {
             </select>
           </div>
         )}
+
+        <div className="mb-6">
+          <label className="text-gray-800 font-semibold">Subir Imagen:</label>
+          <input
+            type="file"
+            accept="image/*"
+            className="block w-full text-gray-800 mt-2 border p-2 rounded-lg"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleImageUpload(file);
+            }}
+          />
+        </div>
+
+        <div className="mb-6">
+          <label className="text-gray-800 font-semibold">
+            Ideas del Cliente:
+          </label>
+          <textarea
+            className="w-full p-3 border rounded-lg mt-2 text-gray-800"
+            placeholder="Describe tus ideas o personalización deseada..."
+            value={clientIdeas}
+            onChange={(e) => setClientIdeas(e.target.value)}
+          ></textarea>
+        </div>
 
         <div className="mb-6">
           <label className="text-gray-800 font-semibold">Cantidad:</label>
