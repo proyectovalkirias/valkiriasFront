@@ -25,9 +25,6 @@ const colorNameMap: Record<string, string> = {
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
-
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);

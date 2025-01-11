@@ -83,6 +83,14 @@ const Cart: React.FC = () => {
     });
 
     try {
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        Swal.fire("Error", "No se encontró un token de autenticación", "error");
+        return;
+      }
+
       const products = cartItems.map((item) => ({
         id: item.id,
         name: item.name,
@@ -92,8 +100,13 @@ const Cart: React.FC = () => {
 
       const response = await axios.post(
         "https://valkiriasback.onrender.com/payment/create",
-        products
-      );
+      products,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
       if (response.data && response.data.url) {
         window.location.href = response.data.url;
