@@ -58,40 +58,36 @@ const UserPanel: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Obtener datos del usuario desde el almacenamiento local
+  // Obtener datos del usuario
   const getUserData = () => {
     try {
       const storedUser = localStorage.getItem("user");
       const storedGoogleUser = localStorage.getItem("user_info");
+      console.log("Datos obtenidos de localStorage:", { storedUser, storedGoogleUser });
 
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
+        console.log("Usuario (local):", parsedUser);
         return {
-          id: parsedUser.user.id,
-          firstname: parsedUser.user.firstname || "",
-          lastname: parsedUser.user.lastname || "",
-          email: parsedUser.user.email || "",
-          photo: parsedUser.user.photo || "/images/Avatar.png",
-          addresses: parsedUser.user.addresses || [], // Incluye las direcciones, o un array vacío si no existen
-          dni: parsedUser.user.dni || 0,
-          phone: parsedUser.user.phone || "",
+          ...parsedUser.user,
           isGoogleUser: false,
         };
       } else if (storedGoogleUser) {
         const googleUser = JSON.parse(storedGoogleUser);
+        console.log("Usuario (Google):", googleUser);
         return {
           firstname: googleUser.given_name || "",
           lastname: googleUser.family_name || "",
           email: googleUser.email || "",
           photo: googleUser.picture || "/images/Avatar.png",
-          addresses: googleUser.addresses || [], // Asegura que también sea un array
-          dni: googleUser.dni || 0,
-          phone: googleUser.phone || "",
+          addresses: googleUser.addresses || [],
           isGoogleUser: true,
         };
       }
+      console.warn("No se encontró información del usuario en localStorage.");
       return null;
     } catch (error) {
-      console.error("Error al obtener los datos del usuario:", error);
+      console.error("Error al procesar los datos del usuario desde localStorage:", error);
       return null;
     }
   };
@@ -123,7 +119,9 @@ const UserPanel: React.FC = () => {
   // Obtener detalles adicionales del usuario desde la API
   const fetchUserDetails = async (id: string) => {
     try {
+      console.log(`Obteniendo detalles para el usuario con ID: ${id}`);
       const response = await axios.get(`https://valkiriasback.onrender.com/users/${id}`);
+      console.log("Detalles del usuario obtenidos:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error al obtener los detalles del usuario:", error);
@@ -134,9 +132,9 @@ const UserPanel: React.FC = () => {
   // Obtener órdenes desde la API
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(
-        `https://valkiriasback.onrender.com/order/user/${user.id}`
-      );
+      console.log(`Obteniendo órdenes para el usuario con ID: ${user.id}`);
+      const response = await axios.get(`https://valkiriasback.onrender.com/order/user/${user.id}`);
+      console.log("Órdenes obtenidas:", response.data);
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
@@ -147,11 +145,12 @@ const UserPanel: React.FC = () => {
   // Obtener compras desde la API
   const fetchPurchases = async () => {
     try {
-      const response = await axios.get(
-        `https://valkiriasback.onrender.com/purchase/user/${user.id}`
-      );
+      console.log(`Obteniendo compras para el usuario con ID: ${user.id}`);
+      const response = await axios.get(`https://valkiriasback.onrender.com/purchase/user/${user.id}`);
+      console.log("Compras obtenidas:", response.data);
       setData((prev) => ({ ...prev, purchases: response.data }));
-    } catch {
+    } catch (error) {
+      console.error("Error al obtener las compras:", error);
       toast.error("Error al obtener las compras.");
     }
   };
@@ -248,6 +247,7 @@ useEffect(() => {
   
 // Función para editar los campos del usuario
 const handleEdit = (field: { key: string; label: string; value: string | number; addressIndex?: number }) => {
+  console.log("handleEdit llamado con:", field); // Depuración
   setModalField(field);
   setIsModalOpen(true);
 };
@@ -256,12 +256,14 @@ const handleEdit = (field: { key: string; label: string; value: string | number;
 const handleSave = async () => {
   if (!modalField) {
     toast.error("No hay campo para guardar.");
+    console.error("No hay campo modalField definido."); // Depuración
     return;
   }
 
   try {
     // Copia del estado actual del usuario
     const updatedUser = { ...user };
+    console.log("Usuario antes de actualizar:", updatedUser); // Depuración
 
     // Validación de `modalField.key`
     if (!modalField.key) {
@@ -278,6 +280,7 @@ const handleSave = async () => {
           ...updatedUser.addresses[addressIndex],
           [modalField.key]: modalField.value,
         };
+        console.log("Dirección actualizada:", updatedUser.addresses[addressIndex]); // Depuración
       } else {
         throw new Error("Índice de dirección inválido.");
       }
@@ -290,17 +293,19 @@ const handleSave = async () => {
         throw new Error("El DNI debe ser un número válido y positivo.");
       }
       updatedUser.dni = dniValue;
+      console.log("DNI actualizado:", updatedUser.dni); // Depuración
     }
     // Actualización de otros campos
     else if (modalField.key in updatedUser) {
       // Garantizamos que `modalField.key` es una clave válida
       const key = modalField.key as keyof typeof updatedUser;
       updatedUser[key] = modalField.value as never; // Aseguramos que el valor sea del tipo correcto
+      console.log(`Campo ${modalField.key} actualizado a:`, updatedUser[key]); // Depuración
     } else {
       throw new Error(`La clave ${modalField.key} no es válida.`);
     }
 
-    console.log("Usuario actualizado:", updatedUser);
+    console.log("Usuario actualizado:", updatedUser); // Depuración
 
     // Enviar datos al back-end
     const response = await axios.put(
@@ -317,11 +322,29 @@ const handleSave = async () => {
       throw new Error("Error en la respuesta del servidor.");
     }
   } catch (error) {
-    console.error("Error al guardar:", error);
+    console.error("Error al guardar:", error); // Depuración
     toast.error("Hubo un problema al guardar los cambios.");
   }
 };
- 
+
+// Función para obtener el token desde el localStorage
+const getToken = () => {
+  const user = localStorage.getItem("user");
+
+  if (!user) {
+    console.error("No hay datos del usuario en localStorage");
+    return null;
+  }
+
+  try {
+    const parsedUser = JSON.parse(user);
+    return parsedUser.token || null; // Retorna el token si existe
+  } catch (err) {
+    console.error("Error al parsear los datos del usuario:", err);
+    return null;
+  }
+};
+
 const handleImageUpload = async () => {
   const input = document.createElement("input");
   input.type = "file";
@@ -334,50 +357,58 @@ const handleImageUpload = async () => {
     if (!file) return;
 
     try {
+      console.log("Archivo seleccionado:", file); // Depuración
+
+      // Convertir el archivo a base64
       const reader = new FileReader();
       reader.onloadend = async () => {
-        if (reader.result) {
-          const base64String = reader.result.toString();
+        const base64Image = reader.result as string; // Resultado en base64
+        console.log("Imagen convertida a base64:", base64Image); // Depuración
 
-          const body = {
-            photo: base64String, // Enviar el string base64 en lugar del archivo
-          };
-
-          if (user.id) {
-            const response = await fetch(
-              `https://valkiriasback.onrender.com/users/updateProfileImg/${user.id}`,
-              {
-                method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(body),
-              }
-            );
-
-            if (!response.ok) {
-              throw new Error("Error al actualizar la imagen");
-            }
-
-            const data = await response.json();
-            setUser((prevUser) => ({
-              ...prevUser,
-              photo: data.photo, // Actualizar la URL de la foto con la respuesta
-            }));
-            toast.success("Foto de perfil actualizada exitosamente.");
-            
-            if (!data.photo) {
-              throw new Error("La API no devolvió la URL de la nueva imagen.");
-            }
-            
-          } else {
-            toast.error("Usuario no identificado.");
+        if (user.id) {
+          // Obtener el token
+          const token = getToken();
+          console.log("Token:", token); // Verifica que el token sea válido
+          
+          if (!token) {
+            throw new Error("No se encontró el token");
           }
+
+          const response = await fetch(
+            `https://valkiriasback.onrender.com/users/updateProfileImg/${user.id}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // Asegúrate de que el token se pasa correctamente
+              },
+              body: JSON.stringify({
+                photo: base64Image, // Enviar la imagen como string base64
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            // Mostrar el mensaje de error en la respuesta del servidor
+            const errorData = await response.json();
+            console.error("Error de servidor:", errorData);
+            throw new Error("Error al actualizar la imagen");
+          }
+
+          const data = await response.json();
+          setUser((prevUser) => ({
+            ...prevUser,
+            photo: data.photo, // Actualiza la URL de la foto con la respuesta de la API
+          }));
+          toast.success("Foto de perfil actualizada exitosamente.");
+        } else {
+          toast.error("Usuario no identificado.");
         }
       };
-      reader.readAsDataURL(file); // Convertir el archivo a base64
+
+      reader.readAsDataURL(file); // Leer el archivo como una URL en base64
     } catch (error) {
-      console.error(error);
+      console.error("Error al subir la imagen:", error); // Depuración
       toast.error("Ocurrió un error al subir la imagen.");
     }
   };
@@ -385,28 +416,27 @@ const handleImageUpload = async () => {
   input.click();
 };
 
-
 const renderContent = () => {
   switch (activeTab) {
     case "profile":
       return (
-        <div className="bg-white min-h-screen p-6">
+        <div className="bg-gray-100 min-h-screen p-6">
           <h1 className="text-3xl font-bold text-black mb-6 text-center">
             Mi Perfil
           </h1>
           {user ? (
-            <div className="p-6 bg-gray-100 rounded-lg shadow-md flex flex-col md:flex-row md:space-x-6">
+            <div className="p-6 bg-white rounded-lg shadow-md flex flex-col md:flex-row md:space-x-6">
               {/* Columna izquierda: Foto de perfil y datos del usuario */}
               <div className="flex flex-col items-center space-y-6 md:w-1/2">
                 {/* Foto de perfil */}
                 <div className="flex items-center space-x-4">
-                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 shadow-md">
-                  <img
-                    src={user.photo || "/images/Avatar.png"}
-                    alt={`${user.firstname} ${user.lastname}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 shadow-md">
+                    <img
+                      src={user.photo || "/images/Avatar.png"} // Si no hay foto, se usa la predeterminada
+                      alt={`${user.firstname} ${user.lastname}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   {/* Botón de edición de la foto */}
                   <button
                     onClick={handleImageUpload}
@@ -430,13 +460,11 @@ const renderContent = () => {
                 </div>
 
                 {/* Datos del usuario (sin foto) */}
-                <div className="w-full space-y-4">
+                <div className="w-full space-y-3">
                   {userFields
                     .filter(
                       (item) =>
-                        ![
-                          "Foto",
-                        ].includes(item.label) // Excluye
+                        !["Foto"].includes(item.label)
                     )
                     .map((item) => (
                       <div key={item.key} className="flex justify-between items-center text-gray-600">
@@ -469,34 +497,34 @@ const renderContent = () => {
                     ))}
                 </div>
               </div>
+
               {/* Columna derecha: Datos de dirección y mapa */}
               <div className="md:w-1/2 space-y-6">
                 {/* Datos de dirección */}
-                <div className="bg-gray-100 p-6 rounded-lg shadow-md">
+                <div className="bg-purple-200 p-6 rounded-lg shadow-md ">
                   <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-                    Dirección
+                    Direccion
                   </h2>
                   <div className="space-y-4">
                     {user?.addresses?.map((address, index) => (
-                      <div key={index}>
-                        {Object.entries(address).map(([key, value]) => (
-                          <div key={key} className="flex justify-between items-center text-gray-600">
-                            <p className="text-lg">
-                              <strong className="text-gray-800">{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {value || "Agregar"}
-                            </p>
-                          </div>
-                        ))}
+                      <div key={index} className="text-sm text-gray-600 p-2 bg-white">
+                        <p className="text-lg text-center">
+                          {address.street}, {address.number}, {address.postalCode}, {address.city}
+                        </p>
+                        {/* <p className="text-gray-500 text-xs">
+                          Coordenadas: {address.latitude}, {address.longitude}
+                        </p> */}
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Espacio para el mapa */}
-                <div className="bg-gray-100 p-6 rounded-lg shadow-md">
+                <div className="bg-purple-200 p-6 rounded-lg shadow-md">
                   <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
                     Mapa de Dirección
                   </h2>
-                  <div className="h-64 bg-gray-200 rounded-lg">
+                  <div className="h-64 bg-white rounded-lg">
                     {/* Aquí iría el mapa con las coordenadas */}
                   </div>
                 </div>
