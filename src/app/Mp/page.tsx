@@ -6,16 +6,19 @@ export default function CheckoutMp() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePayment = async () => {
-    setIsLoading(true); // Mostrar indicador de carga
+    setIsLoading(true);
 
     try {
+
+      const token = localStorage.getItem("token");
+
       const response = await fetch("https://valkiriasback.onrender.com/payment/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          // Aquí puedes incluir productos seleccionados u otros datos
           items: [
             { title: "Producto 1", quantity: 1, price: 100 },
             { title: "Producto 2", quantity: 2, price: 200 },
@@ -30,13 +33,12 @@ export default function CheckoutMp() {
       const data = await response.json();
       const { url } = data;
 
-      // Redirigir al usuario a la URL de pago
       window.location.href = url;
     } catch (error) {
       console.error("Error en el proceso de pago:", error);
       alert("Ocurrió un problema. Intenta nuevamente.");
     } finally {
-      setIsLoading(false); // Ocultar indicador de carga
+      setIsLoading(false); 
     }
   };
 
