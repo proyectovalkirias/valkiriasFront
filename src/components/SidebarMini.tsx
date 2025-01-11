@@ -10,9 +10,9 @@ import { FaShoppingCart } from "react-icons/fa"; // Agregado ícono de carrito
 const SidebarMini: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Estado de autenticación
-  const [isLocalUser, setIsLocalUser] = useState(false); // Indica si el usuario es local
-  const [isGoogleUser, setIsGoogleUser] = useState(false); // Indica si el usuario es de Google
-  const [needsMoreInfo, setNeedsMoreInfo] = useState(false); // Si necesita agregar información
+  const [, setIsLocalUser] = useState(false); // Indica si el usuario es local
+  const [, setIsGoogleUser] = useState(false); // Indica si el usuario es de Google
+  const [, setNeedsMoreInfo] = useState(false); // Si necesita agregar información
 
   const sidebarRef = useRef<HTMLDivElement | null>(null); // Ref para la barra lateral
 

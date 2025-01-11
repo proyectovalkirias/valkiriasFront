@@ -12,10 +12,7 @@ const Login: React.FC = () => {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
-  const LOCAL_URL =
-    process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -94,7 +91,7 @@ const Login: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${API_URL || LOCAL_URL}/auth/${encodeURIComponent(formData.email)}`,
+        `https://valkiriasback.onrender.com/auth/${encodeURIComponent(formData.email)}`,
         {
           method: "GET",
         }
