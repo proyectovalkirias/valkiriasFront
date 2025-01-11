@@ -105,41 +105,10 @@ const UserPanel: React.FC = () => {
     );
     if (confirmation) {
       try {
-        const getToken = () => {
-          const user = localStorage.getItem("user");
-
-          if (!user) {
-            console.error("No hay datos del usuario en localStorage");
-            return null;
-          }
-
-          try {
-            const parsedUser = JSON.parse(user);
-            return parsedUser.token || null; // Retorna el token si existe
-          } catch (err) {
-            console.error("Error al parsear los datos del usuario:", err);
-            return null;
-          }
-        };
-
-        // Ejemplo de uso:
-        const token = getToken();
-        if (token) {
-          console.log("Token extraído:", token);
-        } else {
-          console.log("No se encontró el token.");
-        }
-
         await axios.delete(
-          `https://valkiriasback.onrender.com/order/${orderId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`, // Token de autorización
-            },
-          }
+          `https://valkiriasback.onrender.com/order/${orderId}`
         );
 
-        // Actualizar el estado después de eliminar la orden
         setData((prevData) => ({
           ...prevData,
           orders: prevData.orders.filter((order) => order.id !== orderId),
@@ -172,61 +141,15 @@ const UserPanel: React.FC = () => {
   // Obtener órdenes desde la API
   const fetchOrders = async () => {
     try {
-      const getToken = () => {
-        const user = localStorage.getItem("user");
-
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
-
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
-      };
-
-      // Ejemplo de uso:
-      const token = getToken();
-      if (token) {
-        console.log("Token extraído:", token);
-      } else {
-        console.log("No se encontró el token.");
-      }
-
-      if (!token) {
-        console.error("No se encontró el token de autorización.");
-        toast.error(
-          "Error de autenticación. Por favor, inicia sesión nuevamente."
-        );
-        return;
-      }
-
       console.log(`Obteniendo órdenes para el usuario con ID: ${user.id}`);
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/order/user/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Incluye el token en los encabezados
-          },
-        }
+        `https://valkiriasback.onrender.com/order/user/${user.id}`
       );
-
       console.log("Órdenes obtenidas:", response.data);
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
-
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          error.response.data.message || "Error al obtener las órdenes."
-        );
-      } else {
-        toast.error("Error al obtener las órdenes.");
-      }
+      toast.error("Error al obtener las órdenes.");
     }
   };
 
@@ -311,9 +234,6 @@ const UserPanel: React.FC = () => {
 
   // Cargar órdenes o compras según la pestaña activa
   useEffect(() => {
-    if (activeTab === "orders") fetchOrders(user.id || "");
-    if (activeTab === "purchases") fetchPurchases();
-  }, [activeTab]);
     // Aquí agregarías tu lógica para obtener los datos del usuario si es necesario
   }, []);
 
@@ -365,10 +285,7 @@ const UserPanel: React.FC = () => {
       ])
       .flat(),
   ];
-  useEffect(() => {
-    if (activeTab === "orders") fetchOrders();
-    if (activeTab === "purchases") fetchPurchases();
-  }, [activeTab]);
+
   // Función para editar los campos del usuario
   const handleEdit = (field: {
     key: string;
