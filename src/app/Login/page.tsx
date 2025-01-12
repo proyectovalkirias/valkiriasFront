@@ -40,7 +40,7 @@ const Login: React.FC = () => {
 
     try {
       const response = await axios.post(
-        "https://valkiriasback.onrender.com/auth/login",
+        "https://localhost:3000/auth/login",
         { email, password },
         {
           headers: {
