@@ -45,7 +45,7 @@ const Products: React.FC = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL || LOCAL_URL}/products`, {
+        const res = await fetch(`${API_URL}/products`, {
           cache: "no-cache",
         });
         if (!res.ok) {

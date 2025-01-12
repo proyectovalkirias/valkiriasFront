@@ -9,18 +9,26 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 
 const Login: React.FC = () => {
+  const API_URL =
+    process.env.NEXT_PUBLIC_URL || "https://valkiriasback.onrender.com";
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const validateEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
   };
 
   const togglePasswordVisibility = () => {
@@ -38,9 +46,16 @@ const Login: React.FC = () => {
       return;
     }
 
+    if (!validateEmail(email)) {
+      toast.error("El correo electrónico no es válido.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
       const response = await axios.post(
-        "https://localhost:3000/auth/login",
+        `${API_URL}/auth/login`,
         { email, password },
         {
           headers: {
@@ -49,29 +64,31 @@ const Login: React.FC = () => {
         }
       );
 
-      // Si la respuesta es exitosa
       const data = response.data;
       toast.success("Inicio de sesión exitoso.");
       console.log("Datos del usuario:", data);
 
-      // Guardar en localStorage
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
-      // Redirigir al dashboard
-
       router.push("/");
-      setTimeout(() => {
-        window.location.reload(); // Refresca la página redirigiendo a la misma ruta
-      }, 500);
     } catch (err) {
-      // Manejo de errores
       if (axios.isAxiosError(err)) {
         const errorData = err.response?.data;
-        toast.error(errorData?.message || "Error al iniciar sesión.");
+        if (err.response?.status === 400) {
+          toast.error(errorData?.message || "Credenciales inválidas.");
+        } else if (err.response?.status === 500) {
+          console.log("Error en el servidor:", err);
+          toast.error("Error en el servidor. Inténtalo más tarde.");
+        } else {
+          toast.error(errorData?.message || "Error al iniciar sesión.");
+          console.error("Error inesperado:", err);
+        }
       } else {
         toast.error("Hubo un problema al conectar con el servidor.");
         console.error("Error inesperado:", err);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,17 +118,12 @@ const Login: React.FC = () => {
     }
 
     try {
-      // Usamos Axios para realizar la solicitud
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/auth/${encodeURIComponent(
-          formData.email
-        )}`
+        `${API_URL}/auth/${encodeURIComponent(formData.email)}`
       );
 
-      // Si la respuesta es exitosa
       toast.success("Se envió un enlace de recuperación a tu correo.");
     } catch (err) {
-      // Manejo de errores
       if (axios.isAxiosError(err)) {
         const errorData = err.response?.data;
         toast.error(errorData?.message || "Error al recuperar la contraseña.");
@@ -121,6 +133,7 @@ const Login: React.FC = () => {
       }
     }
   };
+
   return (
     <div className="flex h-screen items-center justify-center bg-[#7b548b] p-4">
       <div className="flex w-full max-w-4xl rounded-lg bg-[#7b548b] flex-col sm:flex-row">
@@ -175,8 +188,9 @@ const Login: React.FC = () => {
             <button
               type="submit"
               className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
+              disabled={loading}
             >
-              Iniciar Sesión
+              {loading ? "Cargando..." : "Iniciar Sesión"}
             </button>
           </form>
 

@@ -8,6 +8,8 @@ import { FaEye, FaEyeSlash } from "react-icons/fa"; // Importa los íconos
 import axios from "axios";
 
 const Register: React.FC = () => {
+  const API_URL =
+    process.env.NEXT_PUBLIC__URL || "https://valkiriasback.onrender.com";
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -66,7 +68,7 @@ const Register: React.FC = () => {
 
     try {
       const response = await axios.post(
-        "https://valkiriasback.onrender.com/auth/singup",
+        `${API_URL}/auth/singup`,
         {
           firstname: firstName,
           lastname: lastName,

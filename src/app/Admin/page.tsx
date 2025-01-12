@@ -69,29 +69,29 @@ function Admin() {
         return;
       }
 
-      const getToken = () => {
-        const user = localStorage.getItem("user");
+      // const getToken = () => {
+      //   const user = localStorage.getItem("user");
 
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
+      //   if (!user) {
+      //     console.error("No hay datos del usuario en localStorage");
+      //     return null;
+      //   }
 
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
-      };
+      //   try {
+      //     const parsedUser = JSON.parse(user);
+      //     return parsedUser.token || null; // Retorna el token si existe
+      //   } catch (err) {
+      //     console.error("Error al parsear los datos del usuario:", err);
+      //     return null;
+      //   }
+      // };
 
-      // Extraer el token
-      const token = getToken();
-      if (!token) {
-        console.error("No se encontró el token.");
-        return;
-      }
+      // // Extraer el token
+      // const token = getToken();
+      // if (!token) {
+      //   console.error("No se encontró el token.");
+      //   return;
+      // }
 
       // Realizar la solicitud con Axios
       const response = await axios.get(
@@ -99,7 +99,7 @@ function Admin() {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            // Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -515,7 +515,6 @@ function Admin() {
             </div>
           </div>
         );
-
       case "reports":
         return <Reports />;
       default:

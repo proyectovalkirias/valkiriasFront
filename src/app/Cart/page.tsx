@@ -31,6 +31,7 @@ const Cart: React.FC = () => {
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartItems(storedCart);
+    console.log(storedCart);
   }, []);
 
   const handleOpenModal = (type: "clear" | "remove", index?: number) => {
@@ -66,30 +67,7 @@ const Cart: React.FC = () => {
     setIsModalOpen(true);
     setModalType(null);
 
-    const getToken = () => {
-      const user = localStorage.getItem("user");
-
-      if (!user) {
-        console.error("No hay datos del usuario en localStorage");
-        return null;
-      }
-
-      try {
-        const parsedUser = JSON.parse(user);
-        return parsedUser.token || null; // Retorna el token si existe
-      } catch (err) {
-        console.error("Error al parsear los datos del usuario:", err);
-        return null;
-      }
-    };
-
-    // Ejemplo de uso:
-    const token = getToken();
-    if (token) {
-      console.log("Token extraído:", token);
-    } else {
-      console.log("No se encontró el token.");
-    }
+    const token = localStorage.getItem("token");
 
     if (!token) {
       console.error("El token no está disponible en el localStorage.");
@@ -130,26 +108,24 @@ const Cart: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-purple-200 py-8 px-4 text-black">
-      <h1 className="text-2xl lg:text-4xl font-bold text-center text-purple-dark mb-4 ">
+      <h1 className="text-3xl lg:text-4xl font-bold text-purple-dark mb-4">
         Carrito de Compras
       </h1>
 
       {cartItems.length === 0 ? (
-        <div className="flex items-center justify-center h-screen p-6 text-center">
-          <div className="flex flex-col items-center justify-center">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              Tu carrito está vacío
-            </h2>
-            <p className="text-gray-600 mt-2">
-              Agrega algunos productos y vuelve aquí para revisarlos.
-            </p>
-            <button
-              className="mt-4 bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg hover:bg-creativity-purple"
-              onClick={() => (window.location.href = "/Products")}
-            >
-              Ir a la tienda
-            </button>
-          </div>
+        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+          <h2 className="text-2xl font-semibold text-gray-800">
+            Tu carrito está vacío
+          </h2>
+          <p className="text-gray-600 mt-2">
+            Agrega algunos productos y vuelve aquí para revisarlos.
+          </p>
+          <button
+            className="mt-6 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-700"
+            onClick={() => (window.location.href = "/Products")}
+          >
+            Ir a la tienda
+          </button>
         </div>
       ) : (
         <div className="space-y-6">
@@ -167,8 +143,8 @@ const Cart: React.FC = () => {
                   />
                 </div>
               )}
-              <div className="flex flex-wrap items-start space-x-4 w-full">
-                <div className="flex-2">
+              <div className="flex flex-wrap items-start space-x-4">
+                <div className="flex-1">
                   <h2 className="text-xl text-gray-900 font-bold mb-2">
                     {item.name}
                   </h2>
@@ -188,29 +164,26 @@ const Cart: React.FC = () => {
                     </p>
                   )}
                   {item.totalPrice && (
-                    <p className="text-lg font-bold mt-2 text-gray-900">
+                    <p className="text-lg font-bold text-gray-900">
                       Total: ${item.totalPrice}
                     </p>
                   )}
                 </div>
-                <div className="  flex flex-col text-center gap-4 ">
-                  <p className="text-gray-800 font-semibold">Estampados:</p>
-                  <div className="flex items-center justify-center gap-4">
-                    {item.selectedSmallPrint && (
-                      <img
-                        src={item.selectedSmallPrint}
-                        alt={`Estampa pequeña de ${item.name || "producto"}`}
-                        className="w-20 h-20 rounded shadow-md"
-                      />
-                    )}
-                    {item.selectedLargePrint && (
-                      <img
-                        src={item.selectedLargePrint}
-                        alt={`Estampa grande de ${item.name || "producto"}`}
-                        className="w-20 h-20 rounded shadow-md"
-                      />
-                    )}
-                  </div>
+                <div className="flex items-center">
+                  {item.selectedSmallPrint && (
+                    <img
+                      src={item.selectedSmallPrint}
+                      alt={`Estampa pequeña de ${item.name || "producto"}`}
+                      className="w-20 h-20 rounded mr-2"
+                    />
+                  )}
+                  {item.selectedLargePrint && (
+                    <img
+                      src={item.selectedLargePrint}
+                      alt={`Estampa grande de ${item.name || "producto"}`}
+                      className="w-20 h-20 rounded"
+                    />
+                  )}
                 </div>
               </div>
 
