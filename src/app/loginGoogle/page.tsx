@@ -77,7 +77,7 @@ const Landingoogle: React.FC = () => {
   const validateUserEmail = async (userInfo: UserInfo) => {
     try {
       const response = await fetch(
-        `https://valkiriasback.onrender.com/users/email/${userInfo.email}`
+        `https://valkiriasback.onrender.com/auth/google-login`
       );
       const data = await response.json();
 
