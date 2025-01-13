@@ -91,7 +91,7 @@ const Landingoogle: React.FC = () => {
         // Si no está registrado, limpiar datos y redirigir
         localStorage.removeItem("user_info");
         localStorage.removeItem("access_token");
-        toast.error("Usuario no registrado en la base de datos");
+        toast.error("Usuario no registrado en la base de datos, por favor registrate para seguir comprando");
         router.push("/Register");
       }
     } catch (error) {
