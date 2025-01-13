@@ -21,7 +21,7 @@ const GoogleAuth = () => {
       try {
         // Realizar la solicitud al backend para obtener el token con el código de autorización
         const res = await axios.post(
-          'https://valkiriasback.onrender.com/auth/google-login', { code }
+          'https://valkiriasback.onrender.com/google/redirect', { code }
         );
 
         const { token } = res.data;
