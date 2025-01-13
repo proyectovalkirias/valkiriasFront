@@ -4,10 +4,9 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 interface UserInfo {
-  given_name: string;  // Primer nombre
-  family_name: string; // Apellido
-  picture: string;     // Foto de perfil
-  email: string;       // Email del usuario
+  picture: string;
+  name: string;
+  email: string;
 }
 
 const Landingoogle: React.FC = () => {
@@ -67,11 +66,7 @@ const Landingoogle: React.FC = () => {
       });
 
       const userInfo: UserInfo = await response.json();
-
-      // Console log para ver todos los datos de Google
-      console.log("Datos recibidos de Google:", userInfo);
-
-      sendUserDataToBackend(userInfo, accessToken);
+      validateUserEmail(userInfo);
     } catch (error) {
       console.error("Error fetching user info:", error);
       toast.error("Error al obtener información del usuario");
@@ -79,22 +74,11 @@ const Landingoogle: React.FC = () => {
     }
   };
 
-  const sendUserDataToBackend = async (userInfo: UserInfo, accessToken: string) => {
+  const validateUserEmail = async (userInfo: UserInfo) => {
     try {
-      const response = await fetch(`https://valkiriasback.onrender.com/auth/google-login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          firstname: userInfo.given_name, // Primer nombre
-          lastname: userInfo.family_name, // Apellido
-          photo: userInfo.picture,       // Foto de perfil
-          email: userInfo.email,         // Email del usuario
-          accessToken: accessToken,      // Token de acceso de Google
-        }),
-      });
-
+      const response = await fetch(
+        `https://valkiriasback.onrender.com/users/email/${userInfo.email}`
+      );
       const data = await response.json();
 
       if (data.isRegistered) {
@@ -104,10 +88,8 @@ const Landingoogle: React.FC = () => {
         toast.success("Bienvenido de nuevo");
         router.push("/");
       } else {
-        // Si no está registrado, limpiar datos y redirigir
-        toast.error(
-          "Usuario no registrado en la base de datos, por favor regístrate para seguir comprando"
-        );
+      
+        toast.error("Usuario no registrado en la base de datos, por favor registrate para poder seguir comprando");
         router.push("/Register");
       }
     } catch (error) {
