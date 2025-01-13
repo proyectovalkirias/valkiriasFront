@@ -74,7 +74,7 @@ const Register: React.FC = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:3000/auth/singup",
+        "https://valkiriasback.onrender.com//auth/singup",
         {
           method: "POST",
           headers: {
