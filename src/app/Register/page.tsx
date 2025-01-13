@@ -74,7 +74,7 @@ const Register: React.FC = () => {
 
     try {
       const response = await fetch(
-        "https://valkiriasback.onrender.com/auth/signup",
+        "https://valkiriasback.onrender.com//auth/singup",
         {
           method: "POST",
           headers: {

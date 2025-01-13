@@ -9,8 +9,6 @@ export interface Product {
   name: string;
   description: string;
   prices: Price[];
-  priceAdults: Price[];
-  priceKids: Price[];
   sizes: string[];
   category: string;
   photos: string[];
@@ -19,6 +17,9 @@ export interface Product {
   smallPrint: string[];
   largePrint: string[];
   isAvailable?: boolean;
+  isCustomizable?: boolean;
+  imagePrint?: string | null;
+  ideas?: string | null;
 }
 
 export interface CartItem {
