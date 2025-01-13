@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
+import { getAuthHeaders } from "@/helpers/tokenHelper";
 
 const UserPanel: React.FC = () => {
 
@@ -18,6 +19,7 @@ const UserPanel: React.FC = () => {
     dni?: number;
     phone?: string;
     addresses: {
+      id: string;
       street: string;
       number: number;
       postalCode: string;
@@ -34,6 +36,7 @@ const UserPanel: React.FC = () => {
     phone: "",
     addresses: [
       {
+        id: "",
         street: "",
         number: 0,
         postalCode: "",
@@ -58,7 +61,6 @@ const UserPanel: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Obtener datos del usuario desde el almacenamiento local
-  // Obtener datos del usuario
   const getUserData = () => {
     try {
       const storedUser = localStorage.getItem("user");
@@ -98,10 +100,10 @@ const UserPanel: React.FC = () => {
     );
     if (confirmation) {
       try {
-  
-        await axios.delete(`https://valkiriasback.onrender.com/order/${orderId}`);
+        await axios.delete(`https://valkiriasback.onrender.com/order/${orderId}`, {
+          headers: getAuthHeaders(), // Autenticación con el token
+        });
 
-      
         setData((prevData) => ({
           ...prevData,
           orders: prevData.orders.filter((order) => order.id !== orderId),
@@ -120,7 +122,9 @@ const UserPanel: React.FC = () => {
   const fetchUserDetails = async (id: string) => {
     try {
       console.log(`Obteniendo detalles para el usuario con ID: ${id}`);
-      const response = await axios.get(`https://valkiriasback.onrender.com/users/${id}`);
+      const response = await axios.get(`https://valkiriasback.onrender.com/users/${id}`, {
+        headers: getAuthHeaders(), // Autenticación con el token
+      });
       console.log("Detalles del usuario obtenidos:", response.data);
       return response.data;
     } catch (error) {
@@ -129,38 +133,63 @@ const UserPanel: React.FC = () => {
     }
   };
 
-  // Obtener órdenes desde la API
-  const fetchOrders = async () => {
-    try {
-      console.log(`Obteniendo órdenes para el usuario con ID: ${user.id}`);
-      const response = await axios.get(`https://valkiriasback.onrender.com/order/user/${user.id}`);
-      console.log("Órdenes obtenidas:", response.data);
-      setData((prev) => ({ ...prev, orders: response.data }));
-    } catch (error) {
-      console.error("Error al obtener las órdenes:", error);
-      toast.error("Error al obtener las órdenes.");
-    }
-  };
+// Corregido para asegurar que user.addresses siempre es un arreglo
+const fetchUserAddresses = async (id: string) => {
+  try {
+    console.log(`Obteniendo direcciones para el usuario con ID: ${id}`);
+    const response = await axios.get(`https://valkiriasback.onrender.com/users/address/${id}`, {
+      headers: getAuthHeaders(),
+    });
+    console.log("Direcciones obtenidas:", response.data);
+    
+    // Asegúrate de que sea un arreglo
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error("Error al obtener las direcciones:", error);
+    return [];
+  }
+};
 
-  // Obtener compras desde la API
-  const fetchPurchases = async () => {
-    try {
-      console.log(`Obteniendo compras para el usuario con ID: ${user.id}`);
-      const response = await axios.get(`https://valkiriasback.onrender.com/purchase/user/${user.id}`);
-      console.log("Compras obtenidas:", response.data);
-      setData((prev) => ({ ...prev, purchases: response.data }));
-    } catch (error) {
-      console.error("Error al obtener las compras:", error);
-      toast.error("Error al obtener las compras.");
-    }
-  };
+
+  // // Obtener órdenes desde la API
+  // const fetchOrders = async () => {
+  //   try {
+  //     console.log(`Obteniendo órdenes para el usuario con ID: ${user.id}`);
+  //     const response = await axios.get(
+  //       `https://valkiriasback.onrender.com/order/user/${user.id}`,
+  //       { headers: getAuthHeaders() } // Autenticación con el token
+  //     );
+  //     console.log("Órdenes obtenidas:", response.data);
+  //     setData((prev) => ({ ...prev, orders: response.data }));
+  //   } catch (error) {
+  //     console.error("Error al obtener las órdenes:", error);
+  //     toast.error("Error al obtener las órdenes.");
+  //   }
+  // };
+
+  // // Obtener compras desde la API
+  // const fetchPurchases = async () => {
+  //   try {
+  //     console.log(`Obteniendo compras para el usuario con ID: ${user.id}`);
+  //     const response = await axios.get(
+  //       `https://valkiriasback.onrender.com/purchase/user/${user.id}`,
+  //       { headers: getAuthHeaders() } // Autenticación con el token
+  //     );
+  //     console.log("Compras obtenidas:", response.data);
+  //     setData((prev) => ({ ...prev, purchases: response.data }));
+  //   } catch (error) {
+  //     console.error("Error al obtener las compras:", error);
+  //     toast.error("Error al obtener las compras.");
+  //   }
+  // };
 
 // Cargar datos iniciales del usuario
 useEffect(() => {
   const fetchData = async () => {
     try {
-      const userData = getUserData();
+      const userData = getUserData(); // Obtiene datos básicos del usuario desde localStorage o sesión
       if (userData) {
+        // Configura los datos básicos del usuario
         setUser({
           id: userData.id,
           firstname: userData.firstname,
@@ -169,38 +198,47 @@ useEffect(() => {
           photo: userData.photo || "/images/Avatar.png",
           dni: userData.dni || 0,
           phone: userData.phone || "",
-          addresses: Array.isArray(userData.addresses) && userData.addresses.length
-            ? userData.addresses
-            : [
-                {
-                  street: "",
-                  number: 0,
-                  postalCode: "",
-                  city: "",
-                  state: "",
-                },
-              ], // Siempre asegura al menos una dirección vacía
+          addresses: [
+            {
+              id: "",
+              street: "",
+              number: 0,
+              postalCode: "",
+              city: "",
+              state: "",
+            },
+          ], // Valor inicial de direcciones vacío
         });
 
+        // Si no es un usuario de Google, obtener detalles adicionales
         if (!userData.isGoogleUser) {
           const details = await fetchUserDetails(userData.id);
           if (details) {
             setUser((prevState) => ({
               ...prevState,
               ...details,
-              addresses: Array.isArray(details.addresses) && details.addresses.length
-                ? details.addresses
-                : [
-                    {
-                      street: "",
-                      number: 0,
-                      postalCode: "",
-                      city: "",
-                      state: "",
-                    },
-                  ], // Asegura al menos una dirección vacía
             }));
           }
+        }
+
+        // Obtener direcciones del usuario desde el endpoint correspondiente
+        const addresses = await fetchUserAddresses(userData.id);
+        if (addresses) {
+          setUser((prevState) => ({
+            ...prevState,
+            addresses: Array.isArray(addresses) && addresses.length > 0
+              ? addresses
+              : [
+                  {
+                    id: "",
+                    street: "",
+                    number: 0,
+                    postalCode: "",
+                    city: "",
+                    state: "",
+                  },
+                ],
+          }));
         }
       } else {
         toast.error("Por favor, inicie sesión para acceder a esta página.");
@@ -218,6 +256,7 @@ useEffect(() => {
 }, []);
 
 
+
   // Cargar órdenes o compras según la pestaña activa
   useEffect(() => {
     // Aquí agregarías tu lógica para obtener los datos del usuario si es necesario
@@ -227,23 +266,48 @@ useEffect(() => {
     label: string;
     value: string | number;
     key: string;
-    addressIndex?: number; // Agregado para manejar direcciones
+    addressIndex?: number;
   }[] = [
-    { label: "Email", value: user.email || "N/A", key: "email" }, //!!!! que el email no se pueda editar
+    { label: "Email", value: user.email || "N/A", key: "email" },
     { label: "Nombre", value: user.firstname || "N/A", key: "firstname" },
     { label: "Apellido", value: user.lastname || "N/A", key: "lastname" },
     { label: "Teléfono", value: user.phone || "Agregar", key: "phone" },
     { label: "DNI", value: user.dni || "Agregar", key: "dni" },
-    { label: "Foto", value: user.photo || "Agregar", key: "photo" }, //!!!! sacarlo del formulario
-    // Direcciones
-    ...(user.addresses.map((address, index) => [
-      { label: `Calle`, value: address.street || "Agregar", key: "street", addressIndex: index },
-      { label: `Número`, value: address.number || "Agregar", key: "number", addressIndex: index },
-      { label: `Código Postal`, value: address.postalCode || "Agregar", key: "postalCode", addressIndex: index },
-      { label: `Ciudad`, value: address.city || "Agregar", key: "city", addressIndex: index },
-      { label: `Provincia`, value: address.state || "Agregar", key: "state", addressIndex: index },
-    ]).flat()),
+    // Agregamos las direcciones
+    ...user.addresses.map((address, index) => [
+      {
+        label: `Calle (${index + 1})`,
+        value: address.street || "Agregar",
+        key: `street-${address.id || index}`,
+        addressIndex: index,
+      },
+      {
+        label: `Número (${index + 1})`,
+        value: address.number || "Agregar",
+        key: `number-${address.id || index}`,
+        addressIndex: index,
+      },
+      {
+        label: `Código Postal (${index + 1})`,
+        value: address.postalCode || "Agregar",
+        key: `postalCode-${address.id || index}`,
+        addressIndex: index,
+      },
+      {
+        label: `Ciudad (${index + 1})`,
+        value: address.city || "Agregar",
+        key: `city-${address.id || index}`,
+        addressIndex: index,
+      },
+      {
+        label: `Provincia (${index + 1})`,
+        value: address.state || "Agregar",
+        key: `state-${address.id || index}`,
+        addressIndex: index,
+      },
+    ]).flat(), // Asegura que todas las direcciones se combinen en un solo arreglo
   ];
+  
   
 // Función para editar los campos del usuario
 const handleEdit = (field: { key: string; label: string; value: string | number; addressIndex?: number }) => {
@@ -252,85 +316,95 @@ const handleEdit = (field: { key: string; label: string; value: string | number;
   setIsModalOpen(true);
 };
 
-// Guardar los datos
+// Guardar los datos (mejorado)
 const handleSave = async () => {
   if (!modalField) {
     toast.error("No hay campo para guardar.");
-    console.error("No hay campo modalField definido."); // Depuración
     return;
   }
 
   try {
-    // Copia del estado actual del usuario
-    const updatedUser = { ...user };
-    console.log("Usuario antes de actualizar:", updatedUser); // Depuración
-
-    // Validación de `modalField.key`
-    if (!modalField.key) {
-      throw new Error("El campo clave del modal no es válido.");
+    const token = getToken();
+    if (!token) {
+      throw new Error("No se encontró el token.");
     }
 
-    // Edición de direcciones
+    // Lógica para actualizar una dirección
     if (modalField.addressIndex !== undefined) {
-      const addressIndex = modalField.addressIndex;
-
-      if (addressIndex >= 0 && addressIndex < user.addresses.length) {
-        // Actualización de la dirección específica
-        updatedUser.addresses[addressIndex] = {
-          ...updatedUser.addresses[addressIndex],
-          [modalField.key]: modalField.value,
-        };
-        console.log("Dirección actualizada:", updatedUser.addresses[addressIndex]); // Depuración
-      } else {
-        throw new Error("Índice de dirección inválido.");
+      const addressId = user.addresses?.[modalField.addressIndex]?.id; // Asegúrate de tener el ID de la dirección
+      if (!addressId) {
+        throw new Error("No se encontró la dirección para actualizar.");
       }
-    }
-    // Edición del DNI
-    else if (modalField.key === "dni") {
-      const dniValue = Number(modalField.value);
 
+      const updatedAddress = {
+        ...user.addresses[modalField.addressIndex],
+        [modalField.key]: modalField.value,
+      };
+
+      console.log("Dirección actualizada:", updatedAddress);
+
+      // Actualizar la dirección en el servidor
+      const response = await axios.put(
+        `https://valkiriasback.onrender.com/addresses/${addressId}`,
+        updatedAddress,
+        { headers: getAuthHeaders() }
+      );
+
+      if (response.status === 200) {
+        // Actualiza la dirección localmente
+        const updatedAddresses = [...user.addresses];
+        updatedAddresses[modalField.addressIndex] = response.data;
+
+        setUser({ ...user, addresses: updatedAddresses });
+        toast.success("Dirección actualizada correctamente.");
+        setIsModalOpen(false);
+      } else {
+        throw new Error("Error al actualizar la dirección.");
+      }
+
+      return;
+    }
+
+    // Lógica para actualizar otros datos del usuario
+    const updatedUser = { ...user };
+    if (modalField.key === "dni") {
+      const dniValue = Number(modalField.value);
       if (isNaN(dniValue) || dniValue <= 0) {
         throw new Error("El DNI debe ser un número válido y positivo.");
       }
       updatedUser.dni = dniValue;
-      console.log("DNI actualizado:", updatedUser.dni); // Depuración
-    }
-    // Actualización de otros campos
-    else if (modalField.key in updatedUser) {
-      // Garantizamos que `modalField.key` es una clave válida
+    } else if (modalField.key in updatedUser) {
       const key = modalField.key as keyof typeof updatedUser;
-      updatedUser[key] = modalField.value as never; // Aseguramos que el valor sea del tipo correcto
-      console.log(`Campo ${modalField.key} actualizado a:`, updatedUser[key]); // Depuración
+      updatedUser[key] = modalField.value as never;
     } else {
       throw new Error(`La clave ${modalField.key} no es válida.`);
     }
 
-    console.log("Usuario actualizado:", updatedUser); // Depuración
+    console.log("Usuario actualizado:", updatedUser);
 
-    // Enviar datos al back-end
     const response = await axios.put(
       `https://valkiriasback.onrender.com/users/${user.id}`,
       updatedUser,
-      { headers: { "Content-Type": "application/json" } }
+      { headers: getAuthHeaders() }
     );
 
     if (response.status === 200) {
-      setUser(response.data); // Actualiza el estado local con los datos del servidor
+      setUser(response.data); // Actualiza el estado local
       toast.success(`${modalField.label} actualizado correctamente.`);
-      setIsModalOpen(false); // Cierra el modal
+      setIsModalOpen(false);
     } else {
-      throw new Error("Error en la respuesta del servidor.");
+      throw new Error("Error al actualizar los datos del usuario.");
     }
   } catch (error) {
-    console.error("Error al guardar:", error); // Depuración
     toast.error("Hubo un problema al guardar los cambios.");
+    console.error("Error al guardar:", error);
   }
 };
 
 // Función para obtener el token desde el localStorage
 const getToken = () => {
   const user = localStorage.getItem("user");
-
+  console.log("Datos del usuario en localStorage:", user); // Depuración
   if (!user) {
     console.error("No hay datos del usuario en localStorage");
     return null;
@@ -338,7 +412,8 @@ const getToken = () => {
 
   try {
     const parsedUser = JSON.parse(user);
-    return parsedUser.token || null; // Retorna el token si existe
+    console.log("Usuario parseado:", parsedUser); // Depuración
+    return parsedUser.token || null;
   } catch (err) {
     console.error("Error al parsear los datos del usuario:", err);
     return null;
@@ -354,61 +429,77 @@ const handleImageUpload = async () => {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
 
-    if (!file) return;
+    if (!file) {
+      toast.error("No se seleccionó ningún archivo.");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("El archivo es demasiado grande (máx. 2 MB).");
+      return;
+    }
 
     try {
-      console.log("Archivo seleccionado:", file); // Depuración
+      const formData = new FormData();
+      formData.append("photo", file);
 
-      // Convertir el archivo a base64
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Image = reader.result as string; // Resultado en base64
-        console.log("Imagen convertida a base64:", base64Image); // Depuración
+      const headers = getAuthHeaders();
+      if (!headers) {
+        toast.error("No se encontró el token.");
+        return;
+      }
+      
+      const getToken = () => {
+        const user = localStorage.getItem("user");
 
-        if (user.id) {
-          // Obtener el token
-          const token = getToken();
-          console.log("Token:", token); // Verifica que el token sea válido
-          
-          if (!token) {
-            throw new Error("No se encontró el token");
-          }
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
 
-          const response = await fetch(
-            `https://valkiriasback.onrender.com/users/updateProfileImg/${user.id}`,
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`, // Asegúrate de que el token se pasa correctamente
-              },
-              body: JSON.stringify({
-                photo: base64Image, // Enviar la imagen como string base64
-              }),
-            }
-          );
-
-          if (!response.ok) {
-            // Mostrar el mensaje de error en la respuesta del servidor
-            const errorData = await response.json();
-            console.error("Error de servidor:", errorData);
-            throw new Error("Error al actualizar la imagen");
-          }
-
-          const data = await response.json();
-          setUser((prevUser) => ({
-            ...prevUser,
-            photo: data.photo, // Actualiza la URL de la foto con la respuesta de la API
-          }));
-          toast.success("Foto de perfil actualizada exitosamente.");
-        } else {
-          toast.error("Usuario no identificado.");
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
         }
       };
 
-      reader.readAsDataURL(file); // Leer el archivo como una URL en base64
+      // Ejemplo de uso:
+      const token = getToken();
+      if (token) {
+        console.log("Token extraído:", token);
+      } else {
+        console.log("No se encontró el token.");
+      }
+
+      const response = await fetch(
+        `https://valkiriasback.onrender.com/users/updateProfileImg/${user.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData, // Enviar el archivo como FormData
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error de servidor:", errorData);
+        throw new Error(errorData.message || "Error al actualizar la imagen.");
+      }
+
+      const data = await response.json();
+      setUser((prevUser) => ({
+        ...prevUser,
+        photo: data.photo,
+      }));
+      toast.success("Foto de perfil actualizada exitosamente.");
     } catch (error) {
-      console.error("Error al subir la imagen:", error); // Depuración
+      console.error("Error al subir la imagen:", error);
       toast.error("Ocurrió un error al subir la imagen.");
     }
   };
@@ -420,7 +511,7 @@ const renderContent = () => {
   switch (activeTab) {
     case "profile":
       return (
-        <div className="bg-gray-100 min-h-screen p-6">
+        <div className="bg-purple-200 min-h-screen p-6">
           <h1 className="text-3xl font-bold text-black mb-6 text-center">
             Mi Perfil
           </h1>
@@ -503,22 +594,25 @@ const renderContent = () => {
                 {/* Datos de dirección */}
                 <div className="bg-purple-200 p-6 rounded-lg shadow-md ">
                   <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-                    Direccion
+                    Dirección
                   </h2>
                   <div className="space-y-4">
-                    {user?.addresses?.map((address, index) => (
-                      <div key={index} className="text-sm text-gray-600 p-2 bg-white">
-                        <p className="text-lg text-center">
-                          {address.street}, {address.number}, {address.postalCode}, {address.city}
-                        </p>
-                        {/* <p className="text-gray-500 text-xs">
-                          Coordenadas: {address.latitude}, {address.longitude}
-                        </p> */}
-                      </div>
-                    ))}
+                    {user?.addresses?.length === 0 || user?.addresses?.some(address => !address.street || !address.number || !address.postalCode || !address.city) ? (
+                      <p className="text-center text-gray-600">No hay ninguna dirección registrada.</p>
+                    ) : (
+                      user?.addresses?.map((address, index) => (
+                        <div key={index} className="text-sm text-gray-600 p-2 bg-white">
+                          <p className="text-lg text-center">
+                            {address.street}, {address.number}, {address.postalCode}, {address.city}
+                          </p>
+                          {/* <p className="text-gray-500 text-xs">
+                            Coordenadas: {address.latitude}, {address.longitude}
+                          </p> */}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
-
                 {/* Espacio para el mapa */}
                 <div className="bg-purple-200 p-6 rounded-lg shadow-md">
                   <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
@@ -538,7 +632,7 @@ const renderContent = () => {
 
     case "traking":
       return (
-        <div className="bg-white min-h-screen p-6">
+        <div className="bg-purple-200 min-h-screen p-6">
           <h1 className="text-3xl font-bold text-black mb-6 text-center">
             Seguimiento de Pedidos
           </h1>
