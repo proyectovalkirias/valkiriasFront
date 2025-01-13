@@ -66,7 +66,7 @@ const Landingoogle: React.FC = () => {
       });
 
       const userInfo: UserInfo = await response.json();
-      validateUserEmail(userInfo);
+      sendUserDataToBackend(userInfo, accessToken);
     } catch (error) {
       console.error("Error fetching user info:", error);
       toast.error("Error al obtener información del usuario");
@@ -74,11 +74,21 @@ const Landingoogle: React.FC = () => {
     }
   };
 
-  const validateUserEmail = async (userInfo: UserInfo) => {
+  const sendUserDataToBackend = async (userInfo: UserInfo, accessToken: string) => {
     try {
-      const response = await fetch(
-        `https://valkiriasback.onrender.com/auth/google-login`
-      );
+      const response = await fetch(`https://valkiriasback.onrender.com/auth/google-login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: userInfo.email,
+          name: userInfo.name,
+          picture: userInfo.picture,
+          accessToken: accessToken,
+        }),
+      });
+
       const data = await response.json();
 
       if (data.isRegistered) {
@@ -89,9 +99,10 @@ const Landingoogle: React.FC = () => {
         router.push("/");
       } else {
         // Si no está registrado, limpiar datos y redirigir
-        localStorage.removeItem("user_info");
-        localStorage.removeItem("access_token");
-        toast.error("Usuario no registrado en la base de datos, por favor registrate para seguir comprando");
+
+        toast.error(
+          "Usuario no registrado en la base de datos, por favor regístrate para seguir comprando"
+        );
         router.push("/Register");
       }
     } catch (error) {
