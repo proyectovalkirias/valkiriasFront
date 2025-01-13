@@ -16,6 +16,7 @@
     "formik": "^2.4.6",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
+    "leaflet": "^1.9.4",
     "next": "^15.1.4",
     "next-cloudinary": "^6.16.0",
     "react": "^18.3.1",
@@ -25,11 +26,13 @@
     "react-icons": "^5.4.0",
     "react-modal": "^3.16.3",
     "react-toastify": "^11.0.2",
+    "socket.io-client": "^4.8.1",
     "sweetalert2": "^11.15.0",
     "yup": "^1.6.1"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
+    "@types/leaflet": "^1.9.16",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

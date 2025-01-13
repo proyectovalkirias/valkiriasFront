@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { TbEyeHeart } from "react-icons/tb";
 import { toast } from "react-hot-toast";
+import axios from "axios";
 
 const ChangePassword: React.FC = () => {
   const router = useRouter();
@@ -41,27 +42,34 @@ const ChangePassword: React.FC = () => {
     }
 
     try {
-      const response = await fetch(
-        `https://valkiriasback.onrender.com/auth/change-password?email=${encodeURIComponent(
-          email
-        )}`,
+      // Token de autorización (puede venir del estado o contexto)
+
+      const response = await axios.put(
+        `https://valkiriasback.onrender.com/auth/change-password`,
         {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password: newPassword, confirmPassword }),
+          password: newPassword,
+          confirmPassword,
+        },
+        {
+          params: { email }, // Para enviar el email como query param
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Error al cambiar la contraseña.");
-        return;
-      }
-
       toast.success("Contraseña cambiada exitosamente.");
       setTimeout(() => router.push("/Login"), 2000);
-    } catch {
-      toast.error("Hubo un problema al conectar con el servidor.");
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        // Manejo de errores del servidor
+        toast.error(
+          error.response.data.message || "Error al cambiar la contraseña."
+        );
+      } else {
+        // Error de conexión
+        toast.error("Hubo un problema al conectar con el servidor.");
+      }
     }
   };
 

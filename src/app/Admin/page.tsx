@@ -60,7 +60,47 @@ function Admin() {
       setLoading(false);
     }
   };
+  const fetchUserAddress = async (userId: number) => {
+    try {
+      const getToken = () => {
+        const user = localStorage.getItem("user");
 
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+        return;
+      }
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/users/address/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        `Error al obtener la dirección para el usuario ${userId}:`,
+        error
+      );
+      return null;
+    }
+  };
   // Ahora no necesitas agregar el encabezado manualmente en cada solicitud
   const fetchUsers = async () => {
     try {
@@ -69,52 +109,54 @@ function Admin() {
         return;
       }
 
-      // const getToken = () => {
-      //   const user = localStorage.getItem("user");
+      const getToken = () => {
+        const user = localStorage.getItem("user");
 
-      //   if (!user) {
-      //     console.error("No hay datos del usuario en localStorage");
-      //     return null;
-      //   }
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
 
-      //   try {
-      //     const parsedUser = JSON.parse(user);
-      //     return parsedUser.token || null; // Retorna el token si existe
-      //   } catch (err) {
-      //     console.error("Error al parsear los datos del usuario:", err);
-      //     return null;
-      //   }
-      // };
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
 
-      // // Extraer el token
-      // const token = getToken();
-      // if (!token) {
-      //   console.error("No se encontró el token.");
-      //   return;
-      // }
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+        return;
+      }
 
-      // Realizar la solicitud con Axios
       const response = await axios.get(
         "https://valkiriasback.onrender.com/users",
         {
           headers: {
             "Content-Type": "application/json",
-            // Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      console.log("Usuarios obtenidos:", response.data);
-      setUsers(response.data);
-      setFilteredUsers(response.data);
+      const usersWithAddresses = await Promise.all(
+        response.data.map(async (user: User) => {
+          const newAddress = await fetchUserAddress(user.id);
+          return { ...user, address: newAddress || "Sin dirección" };
+        })
+      );
+
+      setUsers(usersWithAddresses);
+      setFilteredUsers(usersWithAddresses);
     } catch (error) {
       console.error("Error al obtener los usuarios:", error);
-      if (error) {
-        toast.error("Error al obtener los usuarios.");
-      }
+      toast.error("Error al obtener los usuarios.");
     }
   };
-
+  console.log(users);
   const toggleUserStatus = async (id: number, activate: boolean) => {
     const getToken = () => {
       const user = localStorage.getItem("user");
@@ -339,61 +381,52 @@ function Admin() {
     switch (activeTab) {
       case "dashboard":
         return (
-          <div className="bg-white min-h-screen p-6">
-            <div>
+          <div className="bg-white min-h-screen">
+            <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+              Lista de Productos
+            </h1>
+            <div className="mb-6 max-w-lg mx-auto">
               <Link href="/CreateProduct" aria-label="Crear Productos">
-                <button className="text-xl bg-valkyrie-purple text-white py-2 px-4 ml-6 mt-6 rounded-lg hover:bg-creativity-purple">
+                <button className=" mr-8 bg-valkyrie-purple text-white p-3   rounded-lg hover:bg-creativity-purple">
                   Crear Productos
                 </button>
               </Link>
-            </div>
-            <div className="p-6 min-h-screen w-full">
-              <h1 className="text-2xl font-bold mb-6 text-gray-800">
-                Lista de Productos
-              </h1>
+
               <input
                 type="text"
                 placeholder="Buscar por nombre o ID"
-                className="mb-4 p-2 border border-gray-300 text-gray-800 rounded w-full"
+                className="p-3 border border-gray-300 rounded-lg w-1/2 text-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-valkyrie-purple"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <table className="w-full table-auto border-collapse border border-gray-300">
+            </div>
+            <div className="text-center text-sm">
+              <table className="w-full border-collapse shadow-lg rounded-lg overflow-hidden">
                 <thead>
-                  <tr>
-                    <th className="border border-gray-300 p-2 text-gray-800">
-                      ID
-                    </th>
-                    <th className="border border-gray-300 p-2 text-gray-800">
-                      Nombre
-                    </th>
-                    <th className="border border-gray-300 p-2 text-gray-800">
-                      Precio
-                    </th>
-                    <th className="border border-gray-300 p-2 text-gray-800">
-                      Stock
-                    </th>
-                    <th className="border border-gray-300 p-2 text-gray-800">
-                      Acciones
-                    </th>
+                  <tr className="bg-gray-200 text-gray-700 text-left">
+                    <th className="p-4">ID</th>
+                    <th className="p-4">Nombre</th>
+                    <th className="p-4">Precio</th>
+                    <th className="p-4">Stock</th>
+                    <th className="p-4">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredProducts.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-100">
-                      <td className="border border-gray-300 p-2 text-gray-800">
+                      <td className="p-2 border-t text-gray-700">
                         {product.id}
                       </td>
-                      <td className="border border-gray-300 p-2 text-gray-800">
+                      <td className="p-2 border-t text-gray-700">
                         {product.name}
                       </td>
-                      <td className="border border-gray-300 p-2 text-gray-800">
+                      <td className="p-2 border-t text-gray-700">
                         {product.prices[0]?.price}
                       </td>
-                      <td className="border border-gray-300 p-2 text-gray-800">
+                      <td className="p-2 border-t text-gray-700">
                         {product.stock}
                       </td>
-                      <td className="border flex justify-center border-gray-200 p-2">
+                      <td className="p-2 border-t text-center flex justify-center items-center align-middle text-gray-700">
                         <button
                           onClick={() => handleEdit(product.id)}
                           className="bg-custom-orange text-white py-1 px-2 mr-2 rounded-lg hover:bg-orange-400"
@@ -457,12 +490,15 @@ function Admin() {
                       <td className="p-2 border-t text-gray-700">
                         {user.firstname}
                       </td>
-                      <td className="p-2 border-t text-gray-700">
-                        {user.email}
+                      <td className="  border-t text-gray-700">{user.email}</td>
+                      <td className="p-2 border-t text-gray-700 whitespace-normal break-words w-1/3">
+                        Calle: {user.address[0]?.street}
+                        <br />
+                        Provincia: {user.address[0]?.state}
+                        <br />
+                        CP: {user.address[0]?.postalCode}
                       </td>
-                      <td className="p-2 border-t text-gray-700">
-                        {user.address}
-                      </td>
+
                       <td className="p-2 border-t text-gray-700">
                         {user.phone}
                       </td>
@@ -517,6 +553,14 @@ function Admin() {
         );
       case "reports":
         return <Reports />;
+      case "inbox":
+        return (
+          <div className="bg-white min-h-screen">
+            <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+              Mensajes
+            </h1>
+          </div>
+        );
       default:
         return <div>Selecciona una opción</div>;
     }
@@ -530,37 +574,37 @@ function Admin() {
             <li
               onClick={() => setActiveTab("dashboard")}
               className={`cursor-pointer ${
-                activeTab === "dashboard" ? "text-orange-400" : ""
+                activeTab === "dashboard" ? "border-b-2 border-white" : ""
               }`}
             >
-              <FaHome size={24} className="inline-block mr-2" />
+              <FaHome size={24} className="inline-block mr-2 mb-2" />
               Dashboard
             </li>
             <li
               onClick={() => setActiveTab("users")}
               className={`cursor-pointer ${
-                activeTab === "users" ? "text-orange-400" : ""
+                activeTab === "users" ? "border-b-2 border-whitek" : ""
               }`}
             >
-              <FaUsers size={24} className="inline-block mr-2" />
+              <FaUsers size={24} className="inline-block mr-2 mb-2" />
               Usuarios
             </li>
             <li
               onClick={() => setActiveTab("reports")}
               className={`cursor-pointer ${
-                activeTab === "reports" ? "text-orange-400" : ""
+                activeTab === "reports" ? "border-b-2 border-white" : ""
               }`}
             >
-              <FaChartBar size={24} className="inline-block mr-2" />
+              <FaChartBar size={24} className="inline-block mr-2 mb-2" />
               Reportes
             </li>
             <li
               onClick={() => setActiveTab("inbox")}
               className={`cursor-pointer ${
-                activeTab === "inbox" ? "text-orange-400" : ""
+                activeTab === "inbox" ? "border-b-2 border-white" : ""
               }`}
             >
-              <FaInbox size={24} className="inline-block mr-2" />
+              <FaInbox size={24} className="inline-block mr-2 mb-2" />
               Bandeja de entrada
             </li>
           </ul>

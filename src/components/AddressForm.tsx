@@ -1,0 +1,219 @@
+"use client";
+
+import React, { useState } from "react";
+import axios from "axios";
+import Map from "./Map";
+import toast from "react-hot-toast";
+
+const AddressForm = ({ userId }: { userId: string }) => {
+  const [address, setAddress] = useState({
+    street: "",
+    number: "",
+    city: "",
+    state: "",
+    postalCode: "",
+  });
+
+  const [coordinates, setCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const getToken = () => {
+    const user = localStorage.getItem("user");
+
+    if (!user) {
+      console.error("No hay datos del usuario en localStorage");
+      return null;
+    }
+
+    try {
+      const parsedUser = JSON.parse(user);
+      return parsedUser.token || null; // Retorna el token si existe
+    } catch (err) {
+      console.error("Error al parsear los datos del usuario:", err);
+      return null;
+    }
+  };
+
+  const token = getToken();
+  if (!token) {
+    console.error("No se encontró el token.");
+  }
+
+  const fetchCoordinates = async () => {
+    try {
+      setError("");
+      const { street, number, city, state, postalCode } = address;
+
+      if (!street || !number || !city || !state || !postalCode) {
+        setError("Por favor, completa todos los campos de la dirección.");
+        return;
+      }
+
+      const query = `?street=${encodeURIComponent(
+        street
+      )}&number=${encodeURIComponent(number)}&city=${encodeURIComponent(
+        city
+      )}&state=${encodeURIComponent(state)}&postalCode=${encodeURIComponent(
+        postalCode
+      )}`;
+
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/geocoding${query}`
+      );
+
+      if (response.data) {
+        setCoordinates(response.data);
+      } else {
+        throw new Error("Coordenadas no encontradas.");
+      }
+    } catch (error) {
+      setError(
+        "Error al obtener las coordenadas. Por favor, verifica los datos ingresados."
+      );
+      console.error(error);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setAddress({ ...address, [name]: value });
+  };
+
+  const saveAddress = async () => {
+    if (!coordinates) {
+      setError("Primero debes verificar la ubicación.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const payload = {
+        addresses: [
+          {
+            street: address.street,
+            number: address.number,
+            city: address.city,
+            state: address.state,
+            postalCode: address.postalCode,
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude,
+          },
+        ],
+      };
+
+      const response = await axios.put(
+        `https://valkiriasback.onrender.com/users/${userId}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success("Dirección guardada exitosamente.");
+      console.log("Dirección guardada: ", response.data);
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Error al guardar la dirección.";
+      setError(errorMessage);
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="w-full mx-auto p-6  rounded-lg">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+        Agregar Dirección
+      </h2>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          fetchCoordinates();
+        }}
+        className="space-y-4 w-[500px]"
+      >
+        <div>
+          <input
+            name="street"
+            placeholder="Calle"
+            value={address.street}
+            onChange={handleChange}
+            className="w-full p-2 border rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <input
+            name="number"
+            placeholder="Número"
+            value={address.number}
+            onChange={handleChange}
+            className="w-full p-2 border rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <input
+            name="city"
+            placeholder="Ciudad"
+            value={address.city}
+            onChange={handleChange}
+            className="w-full p-2 border rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <input
+            name="state"
+            placeholder="Provincia"
+            value={address.state}
+            onChange={handleChange}
+            className="w-full p-2 border rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <input
+            name="postalCode"
+            placeholder="Código Postal"
+            value={address.postalCode}
+            onChange={handleChange}
+            className="w-full p-2 border rounded-md focus:ring-blue-500 text-gray-800 focus:border-blue-500"
+          />
+        </div>
+        <button
+          type="submit"
+          className="bg-valkyrie-purple w-full text-white py-1 px-2 mr-2 rounded-lg hover:bg-creativity-purple"
+        >
+          Obtener Ubicación
+        </button>
+      </form>
+      {coordinates && (
+        <div className="mt-6">
+          <Map
+            latitude={coordinates.latitude}
+            longitude={coordinates.longitude}
+          />
+          <button
+            onClick={saveAddress}
+            disabled={saving}
+            className={`w-full mt-4 py-2 px-4 rounded-md transition ${
+              saving
+                ? "bg-custom-orange text-white py-1 px-2 mr-2 rounded-lg hover:bg-orange-400"
+                : "bg-custom-orange text-white py-1 px-2 mr-2 rounded-lg hover:bg-orange-400"
+            } text-white`}
+          >
+            {saving ? "Guardando..." : "Guardar Dirección"}
+          </button>
+        </div>
+      )}
+      {error && (
+        <p className="mt-4 text-red-500 text-sm font-medium">{error}</p>
+      )}
+    </div>
+  );
+};
+
+export default AddressForm;

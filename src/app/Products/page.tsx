@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Product } from "@/interfaces/Product";
 import Link from "next/link";
 import Image from "next/image";
+import axios from "axios";
 
 const colorNameMap: Record<string, string> = {
   "#ff0000": "Rojo",
@@ -30,17 +31,13 @@ const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Estados para filtros
   const [categories, setCategories] = useState<string[]>([]);
   const [colors, setColors] = useState<string[]>([]);
   const [sizes, setSizes] = useState<string[]>([]);
-
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  // Obtener todos los productos y opciones de filtrado
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -130,27 +127,27 @@ const Products: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center bg-purple-100 items-center min-h-screen">
         <div className="w-16 h-16 border-4 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#7b548b] min-h-screen p-8">
+    <div className="bg-purple-100 min-h-screen p-8">
       {/* Formulario de Filtros */}
       <div className="mb-8  p-4 rounded-lg">
-        <h2 className="text-lg font-bold mb-4 text-center">
+        <h2 className="text-lg text-gray-800 font-bold mb-4 text-center">
           Explora nuestra colección y encuentra el producto perfecto para ti.
         </h2>
-        <div className="flex flex-wrap gap-4 justify-center">
+        <div className="flex flex-wrap text-gray-800s gap-4 justify-center">
           {/* Filtro por Categoría */}
           <select
             className="p-2 border rounded text-gray-600"
             value={selectedCategory || ""}
             onChange={(e) => setSelectedCategory(e.target.value || null)}
           >
-            <option value="">Todas las categorías</option>
+            <option>Todas las categorías</option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -193,13 +190,13 @@ const Products: React.FC = () => {
         {Object.keys(groupedProducts).length > 0 ? (
           Object.keys(groupedProducts).map((category) => (
             <div key={category} className="mb-8">
-              <h2 className="text-2xl font-bold mb-4 text-center text-white">
+              <h2 className="text-2xl font-bold mb-4 text-gray-800 text-center ">
                 {category}
               </h2>
               <div className="flex flex-wrap gap-4 justify-center items-center">
                 {groupedProducts[category].map((product) => (
                   <Link key={product.id} href={`/Products/${product.id}`}>
-                    <div className="w-64 h-96 rounded-xl overflow-hidden p-4 bg-white hover:scale-105 transform transition duration-300 shadow-xl hover:shadow-2xl border border-gray-200">
+                    <div className="w-64 h-96 rounded-xl overflow-hidden p-4 bg-gray-100 hover:scale-105 transform transition duration-300 shadow-xl hover:shadow-2xl border border-gray-200">
                       {/* Imagen */}
                       <Image
                         className="rounded-lg object-cover w-48 h-48 mb-4 mx-auto"

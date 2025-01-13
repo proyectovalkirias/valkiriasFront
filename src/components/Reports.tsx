@@ -5,11 +5,17 @@ import axios from "axios";
 
 const Reports: React.FC = () => {
   const [chartsData, setChartsData] = useState<{
-    ventas?: number[];
-    usuariosActivos?: number[];
-    ingresos?: number[];
-    categorias?: string[];
-  }>({});
+    ventas: number[];
+    usuariosActivos: number[];
+    ingresos: number[];
+    categorias: string[];
+  }>({
+    ventas: [0, 0, 0, 0, 0, 0], // Valores iniciales de ejemplo
+    usuariosActivos: [0, 0, 0, 0, 0, 0], // Valores iniciales de ejemplo
+    ingresos: [0, 0, 0, 0, 0, 0], // Valores iniciales de ejemplo
+    categorias: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"], // Categorías iniciales
+  });
+
   const getToken = () => {
     const user = localStorage.getItem("user");
 
@@ -20,19 +26,19 @@ const Reports: React.FC = () => {
 
     try {
       const parsedUser = JSON.parse(user);
-      return parsedUser.token || null; // Retorna el token si existe
+      return parsedUser.token || null;
     } catch (err) {
       console.error("Error al parsear los datos del usuario:", err);
       return null;
     }
   };
 
-  // Ejemplo de uso:
   const token = getToken();
+
   if (token) {
     console.log("Token extraído:", token);
   } else {
-    console.log("No se encontró el token.");
+    console.error("No se encontró el token.");
   }
 
   useEffect(() => {
@@ -51,11 +57,17 @@ const Reports: React.FC = () => {
             }),
           ]);
 
+        console.log("Ventas data:", ventasResponse.data);
+        console.log("Usuarios data:", usuariosResponse.data);
+        console.log("Ingresos data:", ingresosResponse.data);
+
         setChartsData({
-          ventas: ventasResponse.data.data, // Ajusta según la estructura de la respuesta
-          usuariosActivos: usuariosResponse.data.data,
-          ingresos: ingresosResponse.data.data,
-          categorias: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"], // Ejemplo estático
+          ventas: ventasResponse.data.data || [0, 0, 0, 0, 0, 0],
+          usuariosActivos: usuariosResponse.data.length
+            ? Array(6).fill(usuariosResponse.data.length)
+            : [0, 0, 0, 0, 0, 0],
+          ingresos: ingresosResponse.data.data || [0, 0, 0, 0, 0, 0],
+          categorias: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"], // Datos estáticos
         });
       } catch (error) {
         console.error("Error al obtener los datos:", error);
@@ -71,8 +83,11 @@ const Reports: React.FC = () => {
       !chartsData.usuariosActivos ||
       !chartsData.ingresos
     ) {
+      console.log("Los datos para los gráficos están incompletos.");
       return;
     }
+
+    console.log("chartsData actualizado:", chartsData);
 
     const chartsConfig = [
       {
@@ -91,12 +106,13 @@ const Reports: React.FC = () => {
           chart: {
             type: "line",
             height: 400,
-            toolbar: {
-              show: true,
-            },
+            toolbar: { show: true },
           },
           series: [
-            { name: "Usuarios Activos", data: chartsData.usuariosActivos },
+            {
+              name: "Usuarios Activos",
+              data: chartsData.usuariosActivos,
+            },
           ],
           xaxis: { categories: chartsData.categorias },
           colors: ["#FF5733"],
@@ -109,9 +125,7 @@ const Reports: React.FC = () => {
           chart: {
             type: "area",
             height: 400,
-            toolbar: {
-              show: true,
-            },
+            toolbar: { show: true },
           },
           series: [{ name: "Ingresos", data: chartsData.ingresos }],
           xaxis: { categories: chartsData.categorias },
@@ -122,16 +136,19 @@ const Reports: React.FC = () => {
     ];
 
     const renderedCharts = chartsConfig.map((config) => {
-      const chart = new ApexCharts(
-        document.querySelector(`#${config.id}`),
-        config.options
-      );
+      const element = document.querySelector(`#${config.id}`);
+      if (!element) {
+        console.error(`No se encontró el elemento con id ${config.id}`);
+        return null;
+      }
+
+      const chart = new ApexCharts(element, config.options);
       chart.render();
       return chart;
     });
 
     return () => {
-      renderedCharts.forEach((chart) => chart.destroy());
+      renderedCharts.forEach((chart) => chart?.destroy());
     };
   }, [chartsData]);
 

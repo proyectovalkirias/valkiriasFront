@@ -5,27 +5,25 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
+import dynamic from "next/dynamic";
 
+const AddressForm = dynamic(() => import("@/components/AddressForm"), {
+  ssr: false,
+});
 const UserPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("profile");
-  const [user, setUser] = useState<
-    {
-      id?: string;
-      firstname: string;
-      lastname: string;
-      email: string;
-      photo: string;
-      dni?: number;
-      phone?: string;
-      addresses: {
-        street: string;
-        number: number;
-        postalCode: string;
-        city: string;
-        state: string;
-      }[];
-    } & { [key: string]: any }
-  >({
+  const [user, setUser] = useState<{
+    id?: string;
+    firstname: string;
+    lastname: string;
+    email: string;
+    photo: string;
+    dni?: number;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+  }>({
     id: "",
     firstname: "",
     lastname: "",
@@ -33,71 +31,78 @@ const UserPanel: React.FC = () => {
     photo: "/images/Avatar.png",
     dni: 0,
     phone: "",
-    addresses: [
-      {
-        street: "",
-        number: 0,
-        postalCode: "",
-        city: "",
-        state: "",
-      },
-    ],
+    address: "",
+    city: "",
+    state: "",
   });
-
   const [data, setData] = useState<{ orders: Order[]; purchases: Purchase[] }>({
     orders: [],
     purchases: [],
   });
 
   const [, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalField, setModalField] = useState<{
     key: string;
     label: string;
     value: string | number;
-    addressIndex?: number; // Para indicar el índice de la dirección si es necesario
   } | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Obtener datos del usuario desde el almacenamiento local
-  // Obtener datos del usuario
   const getUserData = () => {
     try {
       const storedUser = localStorage.getItem("user");
       const storedGoogleUser = localStorage.getItem("user_info");
-      console.log("Datos obtenidos de localStorage:", {
-        storedUser,
-        storedGoogleUser,
-      });
 
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        console.log("Usuario (local):", parsedUser);
         return {
-          ...parsedUser.user,
+          id: parsedUser.user.id,
+          firstname: parsedUser.user.firstname || "",
+          lastname: parsedUser.user.lastname || "",
+          email: parsedUser.user.email || "",
+          photo: parsedUser.user.photo || "/images/Avatar.png",
           isGoogleUser: false,
         };
       } else if (storedGoogleUser) {
         const googleUser = JSON.parse(storedGoogleUser);
-        console.log("Usuario (Google):", googleUser);
         return {
           firstname: googleUser.given_name || "",
           lastname: googleUser.family_name || "",
           email: googleUser.email || "",
           photo: googleUser.picture || "/images/Avatar.png",
-          addresses: googleUser.addresses || [],
+          dni: googleUser.dni || 0,
+          phone: googleUser.phone || "",
           isGoogleUser: true,
         };
       }
-      console.warn("No se encontró información del usuario en localStorage.");
       return null;
     } catch (error) {
-      console.error(
-        "Error al procesar los datos del usuario desde localStorage:",
-        error
-      );
+      console.error("Error al obtener los datos del usuario:", error);
       return null;
     }
   };
+  const getToken = () => {
+    const user = localStorage.getItem("user");
+
+    if (!user) {
+      console.error("No hay datos del usuario en localStorage");
+      return null;
+    }
+
+    try {
+      const parsedUser = JSON.parse(user);
+      return parsedUser.token || null; // Retorna el token si existe
+    } catch (err) {
+      console.error("Error al parsear los datos del usuario:", err);
+      return null;
+    }
+  };
+
+  const token = getToken();
+  if (!token) {
+    console.error("No se encontró el token.");
+  }
 
   const handleDeleteOrder = async (orderId: string) => {
     const confirmation = window.confirm(
@@ -106,7 +111,12 @@ const UserPanel: React.FC = () => {
     if (confirmation) {
       try {
         await axios.delete(
-          `https://valkiriasback.onrender.com/order/${orderId}`
+          `https://valkiriasback.onrender.com/order/${orderId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         setData((prevData) => ({
@@ -126,11 +136,14 @@ const UserPanel: React.FC = () => {
   // Obtener detalles adicionales del usuario desde la API
   const fetchUserDetails = async (id: string) => {
     try {
-      console.log(`Obteniendo detalles para el usuario con ID: ${id}`);
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/users/${id}`
+        `https://valkiriasback.onrender.com/users/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      console.log("Detalles del usuario obtenidos:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error al obtener los detalles del usuario:", error);
@@ -141,11 +154,14 @@ const UserPanel: React.FC = () => {
   // Obtener órdenes desde la API
   const fetchOrders = async () => {
     try {
-      console.log(`Obteniendo órdenes para el usuario con ID: ${user.id}`);
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/order/user/${user.id}`
+        `https://valkiriasback.onrender.com/order/user/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      console.log("Órdenes obtenidas:", response.data);
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
@@ -156,15 +172,58 @@ const UserPanel: React.FC = () => {
   // Obtener compras desde la API
   const fetchPurchases = async () => {
     try {
-      console.log(`Obteniendo compras para el usuario con ID: ${user.id}`);
       const response = await axios.get(
         `https://valkiriasback.onrender.com/purchase/user/${user.id}`
       );
-      console.log("Compras obtenidas:", response.data);
       setData((prev) => ({ ...prev, purchases: response.data }));
-    } catch (error) {
-      console.error("Error al obtener las compras:", error);
+    } catch {
       toast.error("Error al obtener las compras.");
+    }
+  };
+
+  const handleImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      toast.error("No se seleccionó un archivo válido.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("photo", file); // La clave 'photo' debe coincidir con la esperada en la API.
+
+    try {
+      const response = await axios.put(
+        `https://valkiriasback.onrender.com/users/updateProfileImg/${user?.id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        console.log("Imagen actualizada con éxito:", response.data);
+
+        // Actualiza el estado del usuario con la nueva URL de la imagen
+        setUser((prev) => ({
+          ...prev,
+          photo: response.data.photo || prev.photo, // Verifica que la API devuelva la URL actualizada
+        }));
+
+        toast.success("Imagen de perfil actualizada con éxito.");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        toast.error("Error al actualizar la imagen.");
+      }
+    } catch (error) {
+      console.error("Error al realizar la solicitud:", error);
+      toast.error("Hubo un error al subir la imagen.");
     }
   };
 
@@ -179,41 +238,18 @@ const UserPanel: React.FC = () => {
             firstname: userData.firstname,
             lastname: userData.lastname,
             email: userData.email,
-            photo: userData.photo || "/images/Avatar.png",
-            dni: userData.dni || 0,
-            phone: userData.phone || "",
-            addresses:
-              Array.isArray(userData.addresses) && userData.addresses.length
-                ? userData.addresses
-                : [
-                    {
-                      street: "",
-                      number: 0,
-                      postalCode: "",
-                      city: "",
-                      state: "",
-                    },
-                  ], // Siempre asegura al menos una dirección vacía
+            photo: userData.photo,
+            dni: userData.dni,
+            phone: userData.phone,
           });
 
+          // Si no es usuario de Google, obtener detalles adicionales
           if (!userData.isGoogleUser) {
             const details = await fetchUserDetails(userData.id);
             if (details) {
               setUser((prevState) => ({
                 ...prevState,
-                ...details,
-                addresses:
-                  Array.isArray(details.addresses) && details.addresses.length
-                    ? details.addresses
-                    : [
-                        {
-                          street: "",
-                          number: 0,
-                          postalCode: "",
-                          city: "",
-                          state: "",
-                        },
-                      ], // Asegura al menos una dirección vacía
+                ...details, // Combina los detalles adicionales
               }));
             }
           }
@@ -234,71 +270,34 @@ const UserPanel: React.FC = () => {
 
   // Cargar órdenes o compras según la pestaña activa
   useEffect(() => {
-    // Aquí agregarías tu lógica para obtener los datos del usuario si es necesario
-  }, []);
-
+    if (activeTab === "orders") fetchOrders();
+    if (activeTab === "purchases") fetchPurchases();
+  }, [activeTab]);
   const userFields: {
     label: string;
     value: string | number;
     key: string;
-    addressIndex?: number; // Agregado para manejar direcciones
   }[] = [
-    { label: "Email", value: user.email || "N/A", key: "email" }, //!!!! que el email no se pueda editar
-    { label: "Nombre", value: user.firstname || "N/A", key: "firstname" },
-    { label: "Apellido", value: user.lastname || "N/A", key: "lastname" },
-    { label: "Teléfono", value: user.phone || "Agregar", key: "phone" },
+    { label: "Nombre", value: `${user.firstname || "N/A"} `, key: "firstname" },
+    { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "lastname" },
+    { label: "Email", value: user.email || "N/A", key: "email" },
+    {
+      label: "Teléfono",
+      value: user.phone || "Agregar",
+      key: "phone",
+    },
     { label: "DNI", value: user.dni || "Agregar", key: "dni" },
-    { label: "Foto", value: user.photo || "Agregar", key: "photo" }, //!!!! sacarlo del formulario
-    // Direcciones
-    ...user.addresses
-      .map((address, index) => [
-        {
-          label: `Calle`,
-          value: address.street || "Agregar",
-          key: "street",
-          addressIndex: index,
-        },
-        {
-          label: `Número`,
-          value: address.number || "Agregar",
-          key: "number",
-          addressIndex: index,
-        },
-        {
-          label: `Código Postal`,
-          value: address.postalCode || "Agregar",
-          key: "postalCode",
-          addressIndex: index,
-        },
-        {
-          label: `Ciudad`,
-          value: address.city || "Agregar",
-          key: "city",
-          addressIndex: index,
-        },
-        {
-          label: `Provincia`,
-          value: address.state || "Agregar",
-          key: "state",
-          addressIndex: index,
-        },
-      ])
-      .flat(),
   ];
 
-  // Función para editar los campos del usuario
   const handleEdit = (field: {
     key: string;
     label: string;
     value: string | number;
-    addressIndex?: number;
   }) => {
-    console.log("handleEdit llamado con:", field); // Depuración
     setModalField(field);
     setIsModalOpen(true);
   };
 
-  // Guardar los datos
   const handleSave = async () => {
     if (!modalField) {
       toast.error("No hay campo para guardar.");
@@ -316,24 +315,6 @@ const UserPanel: React.FC = () => {
         throw new Error("El campo clave del modal no es válido.");
       }
 
-      // Edición de direcciones
-      if (modalField.addressIndex !== undefined) {
-        const addressIndex = modalField.addressIndex;
-
-        if (addressIndex >= 0 && addressIndex < user.addresses.length) {
-          // Actualización de la dirección específica
-          updatedUser.addresses[addressIndex] = {
-            ...updatedUser.addresses[addressIndex],
-            [modalField.key]: modalField.value,
-          };
-          console.log(
-            "Dirección actualizada:",
-            updatedUser.addresses[addressIndex]
-          ); // Depuración
-        } else {
-          throw new Error("Índice de dirección inválido.");
-        }
-      }
       // Edición del DNI
       else if (modalField.key === "dni") {
         const dniValue = Number(modalField.value);
@@ -360,7 +341,12 @@ const UserPanel: React.FC = () => {
       const response = await axios.put(
         `https://valkiriasback.onrender.com/users/${user.id}`,
         updatedUser,
-        { headers: { "Content-Type": "application/json" } }
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (response.status === 200) {
@@ -376,214 +362,75 @@ const UserPanel: React.FC = () => {
     }
   };
 
-  // Función para obtener el token desde el localStorage
-  const getToken = () => {
-    const user = localStorage.getItem("user");
-
-    if (!user) {
-      console.error("No hay datos del usuario en localStorage");
-      return null;
-    }
-
-    try {
-      const parsedUser = JSON.parse(user);
-      return parsedUser.token || null; // Retorna el token si existe
-    } catch (err) {
-      console.error("Error al parsear los datos del usuario:", err);
-      return null;
-    }
-  };
-
-  const handleImageUpload = async () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-
-    input.onchange = async (event: Event) => {
-      const target = event.target as HTMLInputElement;
-      const file = target.files?.[0];
-
-      if (!file) return;
-
-      try {
-        console.log("Archivo seleccionado:", file); // Depuración
-
-        // Convertir el archivo a base64
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64Image = reader.result as string; // Resultado en base64
-          console.log("Imagen convertida a base64:", base64Image); // Depuración
-
-          if (user.id) {
-            // Obtener el token
-            const token = getToken();
-            console.log("Token:", token); // Verifica que el token sea válido
-
-            if (!token) {
-              throw new Error("No se encontró el token");
-            }
-
-            const response = await fetch(
-              `https://valkiriasback.onrender.com/users/updateProfileImg/${user.id}`,
-              {
-                method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`, // Asegúrate de que el token se pasa correctamente
-                },
-                body: JSON.stringify({
-                  photo: base64Image, // Enviar la imagen como string base64
-                }),
-              }
-            );
-
-            if (!response.ok) {
-              // Mostrar el mensaje de error en la respuesta del servidor
-              const errorData = await response.json();
-              console.error("Error de servidor:", errorData);
-              throw new Error("Error al actualizar la imagen");
-            }
-
-            const data = await response.json();
-            setUser((prevUser) => ({
-              ...prevUser,
-              photo: data.photo, // Actualiza la URL de la foto con la respuesta de la API
-            }));
-            toast.success("Foto de perfil actualizada exitosamente.");
-          } else {
-            toast.error("Usuario no identificado.");
-          }
-        };
-
-        reader.readAsDataURL(file); // Leer el archivo como una URL en base64
-      } catch (error) {
-        console.error("Error al subir la imagen:", error); // Depuración
-        toast.error("Ocurrió un error al subir la imagen.");
-      }
-    };
-
-    input.click();
-  };
-
   const renderContent = () => {
     switch (activeTab) {
       case "profile":
         return (
-          <div className="bg-gray-100 min-h-screen p-6">
+          <div className="bg-white min-h-screen p-6">
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
               Mi Perfil
             </h1>
             {user ? (
-              <div className="p-6 bg-white rounded-lg shadow-md flex flex-col md:flex-row md:space-x-6">
-                {/* Columna izquierda: Foto de perfil y datos del usuario */}
-                <div className="flex flex-col items-center space-y-6 md:w-1/2">
-                  {/* Foto de perfil */}
-                  <div className="flex items-center space-x-4">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 shadow-md">
-                      <img
-                        src={user.photo || "/images/Avatar.png"} // Si no hay foto, se usa la predeterminada
-                        alt={`${user.firstname} ${user.lastname}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    {/* Botón de edición de la foto */}
-                    <button
-                      onClick={handleImageUpload}
-                      className="p-1 rounded-md text-purple-500 hover:bg-gray-100"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-5 h-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
-                        />
-                      </svg>
-                    </button>
-                  </div>
+              <div className="p-6 bg-gray-100 rounded-lg shadow-md flex flex-col items-center space-y-4 w-full">
+                <div className="w-32 h-32 rounded-full overflow-hidden shadow-lg relative group">
+                  <img
+                    src={user.photo || "/images/Avatar.png"}
+                    alt={`${user.firstname} ${user.lastname}`}
+                    className="w-full h-full object-cover"
+                  />
 
-                  {/* Datos del usuario (sin foto) */}
-                  <div className="w-full space-y-3">
-                    {userFields
-                      .filter((item) => !["Foto"].includes(item.label))
-                      .map((item) => (
-                        <div
-                          key={item.key}
-                          className="flex justify-between items-center text-gray-600"
-                        >
-                          <p className="text-lg">
-                            <strong className="text-gray-800">
-                              {item.label}:
-                            </strong>{" "}
-                            {item.value}
-                          </p>
-                          {/* Botón de editar */}
-                          {item.key !== "email" && (
-                            <button
-                              onClick={() => handleEdit(item)}
-                              className="p-1 rounded-md hover:bg-gray-100"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={1}
-                                stroke="purple"
-                                className="w-4 h-4"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
-                                />
-                              </svg>
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                  </div>
+                  <button
+                    onClick={() =>
+                      document.getElementById("fileInput")?.click()
+                    }
+                    className="absolute inset-0 bg-black bg-opacity-50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                  >
+                    Editar
+                  </button>
+
+                  <input
+                    type="file"
+                    id="fileInput"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
                 </div>
-
-                {/* Columna derecha: Datos de dirección y mapa */}
-                <div className="md:w-1/2 space-y-6">
-                  {/* Datos de dirección */}
-                  <div className="bg-purple-200 p-6 rounded-lg shadow-md ">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-                      Direccion
-                    </h2>
-                    <div className="space-y-4">
-                      {user?.addresses?.map((address, index) => (
-                        <div
-                          key={index}
-                          className="text-sm text-gray-600 p-2 bg-white"
+                <div className="text-center space-y-2">
+                  {userFields.map((item) => (
+                    <div
+                      key={item.key}
+                      className="flex items-center justify-center"
+                    >
+                      <p className="text-lg text-gray-600">
+                        <strong>{item.label}:</strong> {item.value}
+                      </p>
+                      {item.key !== "email" && (
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="ml-2 text-blue-500 hover:text-blue-700"
                         >
-                          <p className="text-lg text-center">
-                            {address.street}, {address.number},{" "}
-                            {address.postalCode}, {address.city}
-                          </p>
-                          {/* <p className="text-gray-500 text-xs">
-                          Coordenadas: {address.latitude}, {address.longitude}
-                        </p> */}
-                        </div>
-                      ))}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1}
+                            stroke="purple"
+                            className="w-3 h-3"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M15.232 5.232l3.536 3.536m-2.036-6.036a2.5 2.5 0 013.536 3.536L7.5 21H3v-4.5L16.732 3.732z"
+                            />
+                          </svg>
+                        </button>
+                      )}
                     </div>
-                  </div>
-
-                  {/* Espacio para el mapa */}
-                  <div className="bg-purple-200 p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-                      Mapa de Dirección
-                    </h2>
-                    <div className="h-64 bg-white rounded-lg">
-                      {/* Aquí iría el mapa con las coordenadas */}
-                    </div>
-                  </div>
+                  ))}
+                </div>
+                <div className="">
+                  <AddressForm userId={user?.id || ""} />
                 </div>
               </div>
             ) : (
@@ -593,7 +440,6 @@ const UserPanel: React.FC = () => {
             )}
           </div>
         );
-
       case "traking":
         return (
           <div className="bg-white min-h-screen p-6">
@@ -760,10 +606,9 @@ const UserPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <header className="bg-valkyrie-purple text-white flex justify-between items-center p-4 border-b-2 border-white">
-        <div className="text-xl font-bold">Panel de Usuario</div>
-        <nav className="flex space-x-4">
+    <div className="min-h-screen w-full bg-gray-50">
+      <header className="bg-valkyrie-purple p-4 text-white">
+        <nav className="flex justify-around">
           <button
             className={`p-2 flex items-center cursor-pointer ${
               activeTab === "profile" ? "border-b-2 border-white" : ""
@@ -823,7 +668,7 @@ const UserPanel: React.FC = () => {
             <div className="flex justify-end mt-4 space-x-2">
               <button
                 onClick={handleSave}
-                className="bg-valkyrie-purple px-4 py-2 rounded-md hover:bg-creativity-purple"
+                className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
               >
                 Guardar
               </button>

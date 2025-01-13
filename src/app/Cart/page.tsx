@@ -27,7 +27,30 @@ const Cart: React.FC = () => {
     "#f7e90f": "Amarillo",
     "#00913f": "Verde Oliva",
   };
+  const getToken = () => {
+    const user = localStorage.getItem("user");
 
+    if (!user) {
+      console.error("No hay datos del usuario en localStorage");
+      return null;
+    }
+
+    try {
+      const parsedUser = JSON.parse(user);
+      return parsedUser.token || null; // Retorna el token si existe
+    } catch (err) {
+      console.error("Error al parsear los datos del usuario:", err);
+      return null;
+    }
+  };
+
+  // Ejemplo de uso:
+  const token = getToken();
+  if (token) {
+    console.log("Token extraído:", token);
+  } else {
+    console.log("No se encontró el token.");
+  }
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartItems(storedCart);
@@ -66,8 +89,6 @@ const Cart: React.FC = () => {
   const handlePurchase = async () => {
     setIsModalOpen(true);
     setModalType(null);
-
-    const token = localStorage.getItem("token");
 
     if (!token) {
       console.error("El token no está disponible en el localStorage.");
