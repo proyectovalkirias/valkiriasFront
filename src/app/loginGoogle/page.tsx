@@ -42,7 +42,6 @@ const Landingoogle: React.FC = () => {
 
       const data = await response.json();
       if (data.access_token) {
-        localStorage.setItem("access_token", data.access_token);
         fetchUserInfo(data.access_token);
       }
     } catch (error) {
@@ -64,9 +63,7 @@ const Landingoogle: React.FC = () => {
       });
 
       const userInfo: UserInfo = await response.json();
-      localStorage.setItem("user_info", JSON.stringify(userInfo));
-
-      validateUserEmail(userInfo.email);
+      validateUserEmail(userInfo);
     } catch (error) {
       console.error("Error fetching user info:", error);
       toast.error("Error al obtener información del usuario");
@@ -74,17 +71,21 @@ const Landingoogle: React.FC = () => {
     }
   };
 
-  const validateUserEmail = async (email: string) => {
+  const validateUserEmail = async (userInfo: UserInfo) => {
     try {
       const response = await fetch(
-        `https://valkiriasback.onrender.com/users/email/${email}`
+        `https://valkiriasback.onrender.com/users/email/${userInfo.email}`
       );
       const data = await response.json();
 
       if (data.isRegistered) {
+        // Si el usuario está registrado, guardar datos en localStorage y redirigir
+        localStorage.setItem("user_info", JSON.stringify(userInfo));
+        localStorage.setItem("access_token", data.token); // Si el backend retorna un token
         toast.success("Bienvenido de nuevo");
         router.push("/");
       } else {
+        // Si no está registrado, mostrar error y redirigir a /Register
         toast.error("Usuario no registrado en la base de datos");
         router.push("/Register");
       }
