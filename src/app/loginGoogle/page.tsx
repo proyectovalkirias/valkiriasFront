@@ -7,6 +7,7 @@ interface UserInfo {
   given_name: string;  // Primer nombre
   family_name: string; // Apellido
   picture: string;     // Foto de perfil
+  email: string;       // Email del usuario
 }
 
 const Landingoogle: React.FC = () => {
@@ -88,8 +89,9 @@ const Landingoogle: React.FC = () => {
         body: JSON.stringify({
           firstname: userInfo.given_name, // Primer nombre
           lastname: userInfo.family_name, // Apellido
-          photo: userInfo.picture, // Foto de perfil
-          accessToken: accessToken, // Token de acceso de Google
+          photo: userInfo.picture,       // Foto de perfil
+          email: userInfo.email,         // Email del usuario
+          accessToken: accessToken,      // Token de acceso de Google
         }),
       });
 
