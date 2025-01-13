@@ -76,7 +76,7 @@ const ChatComponent = () => {
     <div className="relative flex items-center justify-center h-screen">
       {/* Logo siempre visible para alternar el chat */}
       <img
-        src="/images/valki.png"
+        src="https://res.cloudinary.com/dwuxvipza/image/upload/v1736369135/Valki_yqz720.png"
         alt="Logo Valki"
         className="fixed bottom-5 right-5 w-20 h-20 cursor-pointer z-50"
         onClick={() => setIsChatOpen((prev) => !prev)}

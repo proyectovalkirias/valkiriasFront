@@ -11,7 +11,6 @@ const CreateProduct: React.FC = () => {
     register,
     handleSubmit,
     control,
-    formState: { errors },
     reset,
   } = useForm<Product>();
 
@@ -73,36 +72,36 @@ const CreateProduct: React.FC = () => {
     for (const [key, value] of formData.entries()) {
       console.log(`${key}: ${value}`);
     }
-    // const getToken = () => {
-    //   const user = localStorage.getItem("user");
+    const getToken = () => {
+      const user = localStorage.getItem("user");
       
-    //   if (!user) {
-    //     console.error("No hay datos del usuario en localStorage");
-    //     return null;
-    //   }
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
 
-    //   try {
-    //     const parsedUser = JSON.parse(user);
-    //     return parsedUser.token || null; // Retorna el token si existe
-    //   } catch (err) {
-    //     console.error("Error al parsear los datos del usuario:", err);
-    //     return null;
-    //   }
-    // };
+      try {
+        const parsedUser = JSON.parse(user);
+        return parsedUser.token || null; // Retorna el token si existe
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
 
-    // const token = getToken(); // Obtén el token desde localStorage
-    // if (!token) {
-    //   toast.error("No se encontró el token. Por favor, inicia sesión nuevamente.");
-    //   setLoading(false);
-    //   return;
-    // }
+    const token = getToken(); // Obtén el token desde localStorage
+    if (!token) {
+      toast.error("No se encontró el token. Por favor, inicia sesión nuevamente.");
+      setLoading(false);
+      return;
+    }
   
     fetch("https://valkiriasback.onrender.com/products", {
       method: "POST",
       body: formData,
-      // headers: {
-      //    Authorization: `Bearer ${token}`,
-      // },
+      headers: {
+         Authorization: `Bearer ${token}`,
+      },
     })
     .then((response) => {
         if (!response.ok) {
