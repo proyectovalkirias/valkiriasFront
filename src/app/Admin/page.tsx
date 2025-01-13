@@ -5,11 +5,14 @@ import axios from "axios";
 import Link from "next/link";
 import { User } from "@/interfaces/User";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-// import Reports from "@/components/Reports";
 import { useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
+import "react-toastify/dist/ReactToastify.css";
+import dynamic from "next/dynamic";
 
+const Reports = dynamic(() => import("@/components/Reports"), {
+  ssr: false,
+});
 function Admin() {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [users, setUsers] = useState<User[]>([]);
@@ -57,25 +60,139 @@ function Admin() {
       setLoading(false);
     }
   };
-
-  const fetchUsers = async () => {
+  const fetchUserAddress = async (userId: number) => {
     try {
+      const getToken = () => {
+        const user = localStorage.getItem("user");
+
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+        return;
+      }
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/users`
+        `https://valkiriasback.onrender.com/users/address/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      setUsers(response.data);
-      setFilteredUsers(response.data);
-    } catch {
-      toast.error("Error al obtener los usuarios");
+      return response.data;
+    } catch (error) {
+      console.error(
+        `Error al obtener la dirección para el usuario ${userId}:`,
+        error
+      );
+      return null;
     }
   };
+  // Ahora no necesitas agregar el encabezado manualmente en cada solicitud
+  const fetchUsers = async () => {
+    try {
+      if (typeof window === "undefined") {
+        console.error("No se puede acceder a localStorage en el servidor.");
+        return;
+      }
 
+      const getToken = () => {
+        const user = localStorage.getItem("user");
+
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+        return;
+      }
+
+      const response = await axios.get(
+        "https://valkiriasback.onrender.com/users",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const usersWithAddresses = await Promise.all(
+        response.data.map(async (user: User) => {
+          const newAddress = await fetchUserAddress(user.id);
+          return { ...user, address: newAddress || "Sin dirección" };
+        })
+      );
+
+      setUsers(usersWithAddresses);
+      setFilteredUsers(usersWithAddresses);
+    } catch (error) {
+      console.error("Error al obtener los usuarios:", error);
+      toast.error("Error al obtener los usuarios.");
+    }
+  };
+  console.log(users);
   const toggleUserStatus = async (id: number, activate: boolean) => {
+    const getToken = () => {
+      const user = localStorage.getItem("user");
+
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
+
+      try {
+        const parsedUser = JSON.parse(user);
+        return parsedUser.token || null; // Retorna el token si existe
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
+
+    // Ejemplo de uso:
+    const token = getToken();
+    if (token) {
+      console.log("Token extraído:", token);
+    } else {
+      console.log("No se encontró el token.");
+    }
     try {
       const url = activate
         ? `https://valkiriasback.onrender.com/users/${id}/activate`
         : `https://valkiriasback.onrender.com/users/${id}/deactivate`;
-      await axios.put(url);
+
+      await axios.put(url, null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       fetchUsers();
       toast.success(
         activate
@@ -87,26 +204,148 @@ function Admin() {
     }
   };
 
+  const handleToggleAdmin = async (id: number, newIsAdmin: boolean) => {
+    const getToken = () => {
+      const user = localStorage.getItem("user");
+
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
+
+      try {
+        const parsedUser = JSON.parse(user);
+        return parsedUser.token || null; // Retorna el token si existe
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
+
+    // Ejemplo de uso:
+    const token = getToken();
+    if (token) {
+      console.log("Token extraído:", token);
+    } else {
+      console.log("No se encontró el token.");
+    }
+    try {
+      const response = await axios.put(
+        `https://valkiriasback.onrender.com/users/changeIsAdmin/${id}`,
+        {
+          isAdmin: newIsAdmin,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const updatedUser = response.data;
+      toast.success("Estado de administrador cambiado con éxito");
+
+      // Actualiza el estado local con la respuesta del servidor
+      setFilteredUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === id ? { ...user, isAdmin: updatedUser.isAdmin } : user
+        )
+      );
+    } catch (error) {
+      console.error("Error al cambiar el estado de administrador:", error);
+      toast.error("Error al cambiar el estado de administrador.");
+    }
+  };
+  const handleDeleteUser = async (id: number) => {
+    const getToken = () => {
+      const user = localStorage.getItem("user");
+
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
+
+      try {
+        const parsedUser = JSON.parse(user);
+        return parsedUser.token || null; // Retorna el token si existe
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
+
+    // Ejemplo de uso:
+    const token = getToken();
+    if (token) {
+      console.log("Token extraído:", token);
+    } else {
+      console.log("No se encontró el token.");
+    }
+    try {
+      const response = await axios.delete(
+        `https://valkiriasback.onrender.com/users/${id}/delete`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      fetchUsers();
+      toast.success("Usuario eliminado con éxito");
+    } catch (error) {
+      console.error("Error al eliminar el usuario:", error);
+      toast.error("Error al eliminar el usuario.");
+    }
+  };
+
   const handleDelete = async (productId: string) => {
+    const getToken = () => {
+      const user = localStorage.getItem("user");
+
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
+
+      try {
+        const parsedUser = JSON.parse(user);
+        return parsedUser.token || null; // Retorna el token si existe
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
+
+    // Ejemplo de uso:
+    const token = getToken();
+    if (token) {
+      console.log("Token extraído:", token);
+    } else {
+      console.log("No se encontró el token.");
+    }
     if (!productId) {
       toast.error("Por favor, selecciona un producto válido.");
       return;
     }
 
     try {
-      const response = await fetch(
+      const response = await axios.delete(
         `https://valkiriasback.onrender.com/products/delete/${productId}`,
         {
-          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      if (!response.ok) {
+      if (response.status === 200) {
+        toast.success("El producto ha sido eliminado exitosamente.");
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product.id !== productId)
+        );
+      } else {
         throw new Error("Error al eliminar el producto");
       }
-
-      toast.success("El producto ha sido eliminado exitosamente.");
-      setProducts(products.filter((product) => product.id !== productId));
     } catch (error) {
       console.error("Error al eliminar el producto:", error);
       toast.error("Error al eliminar el producto.");
@@ -142,61 +381,52 @@ function Admin() {
     switch (activeTab) {
       case "dashboard":
         return (
-          <div className="bg-white min-h-screen p-6">
-            <div>
+          <div className="bg-white min-h-screen">
+            <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+              Lista de Productos
+            </h1>
+            <div className="mb-6 max-w-lg mx-auto">
               <Link href="/CreateProduct" aria-label="Crear Productos">
-                <button className="text-xl bg-valkyrie-purple text-white py-2 px-4 ml-6 mt-6 rounded-lg hover:bg-creativity-purple">
+                <button className=" mr-8 bg-valkyrie-purple text-white p-3   rounded-lg hover:bg-creativity-purple">
                   Crear Productos
                 </button>
               </Link>
-            </div>
-            <div className="p-6 min-h-screen w-full">
-              <h1 className="text-2xl font-bold mb-6 text-gray-800">
-                Lista de Productos
-              </h1>
+
               <input
                 type="text"
                 placeholder="Buscar por nombre o ID"
-                className="mb-4 p-2 border border-gray-300 text-gray-800 rounded w-full"
+                className="p-3 border border-gray-300 rounded-lg w-1/2 text-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-valkyrie-purple"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <table className="w-full table-auto border-collapse border border-gray-300">
+            </div>
+            <div className="text-center text-sm">
+              <table className="w-full border-collapse shadow-lg rounded-lg overflow-hidden">
                 <thead>
-                  <tr>
-                    <th className="border border-gray-300 p-2 text-gray-800">
-                      ID
-                    </th>
-                    <th className="border border-gray-300 p-2 text-gray-800">
-                      Nombre
-                    </th>
-                    <th className="border border-gray-300 p-2 text-gray-800">
-                      Precio
-                    </th>
-                    <th className="border border-gray-300 p-2 text-gray-800">
-                      Stock
-                    </th>
-                    <th className="border border-gray-300 p-2 text-gray-800">
-                      Acciones
-                    </th>
+                  <tr className="bg-gray-200 text-gray-700 text-left">
+                    <th className="p-4">ID</th>
+                    <th className="p-4">Nombre</th>
+                    <th className="p-4">Precio</th>
+                    <th className="p-4">Stock</th>
+                    <th className="p-4">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredProducts.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-100">
-                      <td className="border border-gray-300 p-2 text-gray-800">
+                      <td className="p-2 border-t text-gray-700">
                         {product.id}
                       </td>
-                      <td className="border border-gray-300 p-2 text-gray-800">
+                      <td className="p-2 border-t text-gray-700">
                         {product.name}
                       </td>
-                      <td className="border border-gray-300 p-2 text-gray-800">
+                      <td className="p-2 border-t text-gray-700">
                         {product.prices[0]?.price}
                       </td>
-                      <td className="border border-gray-300 p-2 text-gray-800">
+                      <td className="p-2 border-t text-gray-700">
                         {product.stock}
                       </td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="p-2 border-t text-center flex justify-center items-center align-middle text-gray-700">
                         <button
                           onClick={() => handleEdit(product.id)}
                           className="bg-custom-orange text-white py-1 px-2 mr-2 rounded-lg hover:bg-orange-400"
@@ -219,74 +449,99 @@ function Admin() {
         );
       case "users":
         return (
-          <div className="bg-white min-h-screen p-6">
-            <h1 className="text-3xl font-bold text-black mb-6 text-center">
+          <div className="bg-white min-h-screen">
+            <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
               Administrar Usuarios
             </h1>
-            <div className="mb-6">
+            <div className="mb-6 max-w-lg mx-auto">
               <input
                 type="text"
                 placeholder="Buscar por ID o Email"
-                className="p-3 border border-gray-300 rounded-lg w-full text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="p-3 border border-gray-300 rounded-lg w-full text-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-valkyrie-purple"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-200">
+            <div className="text-center text-sm">
+              <table className="w-full border-collapse shadow-lg rounded-lg overflow-hidden">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      ID
-                    </th>
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      Nombre
-                    </th>
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      Email
-                    </th>
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      Dirección
-                    </th>
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      Teléfono
-                    </th>
-                    <th className="border border-gray-300 p-3 text-left text-black">
-                      Acciones
-                    </th>
+                  <tr className="bg-gray-200 text-gray-700 text-left">
+                    <th className="p-4">ID</th>
+                    <th className="p-4">Nombre</th>
+                    <th className="p-4">Email</th>
+                    <th className="p-4">Dirección</th>
+                    <th className="p-4">Teléfono</th>
+                    <th className="p-4">Activo</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4">Admin</th>
+                    <th className="p-4">Acciones</th>
+                    <th className="p-4">Eliminar</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((user) => (
+                  {filteredUsers.map((user, index) => (
                     <tr
                       key={user.id}
-                      className="hover:bg-gray-50 transition-all"
+                      className={`${
+                        index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                      } hover:bg-gray-100 transition`}
                     >
-                      <td className="border border-gray-300 p-3">{user.id}</td>
-                      <td className="border border-gray-300 p-3">
+                      <td className="p-2 border-t text-gray-700">{user.id}</td>
+                      <td className="p-2 border-t text-gray-700">
                         {user.firstname}
                       </td>
-                      <td className="border border-gray-300 p-3">
-                        {user.email}
+                      <td className="  border-t text-gray-700">{user.email}</td>
+                      <td className="p-2 border-t text-gray-700 whitespace-normal break-words w-1/3">
+                        Calle: {user.address[0]?.street}
+                        <br />
+                        Provincia: {user.address[0]?.state}
+                        <br />
+                        CP: {user.address[0]?.postalCode}
                       </td>
-                      <td className="border border-gray-300 p-3">
-                        {user.address}
-                      </td>
-                      <td className="border border-gray-300 p-3">
+
+                      <td className="p-2 border-t text-gray-700">
                         {user.phone}
                       </td>
-                      <td className="border border-gray-300 p-3">
+                      <td className="p-2 border-t text-center text-gray-700">
+                        {user.active ? "Sí" : "No"}
+                      </td>
+                      <td className="p-2 border-t text-center">
                         <button
                           onClick={() =>
                             toggleUserStatus(user.id, !user.active)
                           }
-                          className={`$ {
+                          className={`${
                             user.active
-                              ? "bg-red-500 hover:bg-red-600"
-                              : "bg-green-500 hover:bg-green-600"
-                          } text-white py-2 px-4 rounded-md`}
+                              ? "bg-custom-orange hover:bg-orange-400"
+                              : "bg-valkyrie-purple hover:bg-creativity-purple"
+                          } text-white py-1 px-3 rounded-md`}
                         >
                           {user.active ? "Desactivar" : "Activar"}
+                        </button>
+                      </td>
+                      <td className="p-2 border-t text-center text-gray-700">
+                        {user.isAdmin ? "Sí" : "No"}
+                      </td>
+                      <td className="p-2 border-t space-y-2 text-center">
+                        <button
+                          onClick={() =>
+                            handleToggleAdmin(user.id, !user.isAdmin)
+                          }
+                          className={`${
+                            user.isAdmin
+                              ? "bg-custom-orange hover:bg-orange-400"
+                              : "bg-valkyrie-purple hover:bg-creativity-purple"
+                          } text-white py-1 px-3 rounded-md`}
+                        >
+                          {user.isAdmin ? "Desactivar" : "Activar"}
+                        </button>
+                      </td>
+                      <td className="p-2 border-t text-center">
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="bg-valkyrie-purple text-white py-1 px-3 rounded-md hover:bg-creativity-purple"
+                        >
+                          Eliminar
                         </button>
                       </td>
                     </tr>
@@ -297,51 +552,59 @@ function Admin() {
           </div>
         );
       case "reports":
-        // return <Reports />;
+        return <Reports />;
+      case "inbox":
+        return (
+          <div className="bg-white min-h-screen">
+            <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+              Mensajes
+            </h1>
+          </div>
+        );
       default:
         return <div>Selecciona una opción</div>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-valkyrie-purple p-6 text-white">
+    <div className="min-h-screen w-full bg-gray-50">
+      <header className="bg-valkyrie-purple p-4 text-white">
         <nav>
           <ul className="flex justify-around">
             <li
               onClick={() => setActiveTab("dashboard")}
               className={`cursor-pointer ${
-                activeTab === "dashboard" ? "text-yellow-400" : ""
+                activeTab === "dashboard" ? "border-b-2 border-white" : ""
               }`}
             >
-              <FaHome size={24} className="inline-block mr-2" />
+              <FaHome size={24} className="inline-block mr-2 mb-2" />
               Dashboard
             </li>
             <li
               onClick={() => setActiveTab("users")}
               className={`cursor-pointer ${
-                activeTab === "users" ? "text-yellow-400" : ""
+                activeTab === "users" ? "border-b-2 border-whitek" : ""
               }`}
             >
-              <FaUsers size={24} className="inline-block mr-2" />
+              <FaUsers size={24} className="inline-block mr-2 mb-2" />
               Usuarios
             </li>
             <li
               onClick={() => setActiveTab("reports")}
               className={`cursor-pointer ${
-                activeTab === "reports" ? "text-yellow-400" : ""
+                activeTab === "reports" ? "border-b-2 border-white" : ""
               }`}
             >
-              <FaChartBar size={24} className="inline-block mr-2" />
+              <FaChartBar size={24} className="inline-block mr-2 mb-2" />
               Reportes
             </li>
             <li
               onClick={() => setActiveTab("inbox")}
               className={`cursor-pointer ${
-                activeTab === "inbox" ? "text-yellow-400" : ""
+                activeTab === "inbox" ? "border-b-2 border-white" : ""
               }`}
             >
-              <FaInbox size={24} className="inline-block mr-2" />
+              <FaInbox size={24} className="inline-block mr-2 mb-2" />
               Bandeja de entrada
             </li>
           </ul>

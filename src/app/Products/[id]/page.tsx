@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
 import Image from "next/image";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 // Componente reutilizable para seleccionar estampados
 const PrintSelector = ({
@@ -76,23 +77,47 @@ const ProductDetail: React.FC = () => {
       return;
     }
 
-
     const fetchProduct = async () => {
       try {
         setLoading(true);
 
         const getProductById = async (id: string): Promise<Product> => {
-          const response = await fetch(
+          const getToken = () => {
+            const user = localStorage.getItem("user");
+
+            if (!user) {
+              console.error("No hay datos del usuario en localStorage");
+              return null;
+            }
+
+            try {
+              const parsedUser = JSON.parse(user);
+              return parsedUser.token || null; // Retorna el token si existe
+            } catch (err) {
+              console.error("Error al parsear los datos del usuario:", err);
+              return null;
+            }
+          };
+
+          const token = getToken();
+          if (!token) {
+            console.error("No se encontró el token.");
+          }
+          const response = await axios(
             `https://valkiriasback.onrender.com/products/${id}`,
             {
-              cache: "no-cache",
-              next: { revalidate: 1500 },
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
             }
           );
-          if (!response.ok) {
+
+          if (response.status !== 200) {
             throw new Error(`Failed to fetch product: ${response.statusText}`);
           }
-          return response.json() as Promise<Product>;
+
+          return response.data as Product;
         };
 
         const fetchedProduct = await getProductById(productId);
@@ -319,7 +344,7 @@ const ProductDetail: React.FC = () => {
           <input
             type="file"
             accept="image/*"
-            className="block w-full text-gray-800 mt-2 border p-2 rounded-lg"
+            className="block w-full text-gray-800 mt-2 p-2 rounded-lg "
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleImageUpload(file);
@@ -377,7 +402,7 @@ const ProductDetail: React.FC = () => {
           </p>
 
           <button
-            className="px-6 py-3 bg-purple-400 text-white font-medium rounded-lg hover:bg-purple-500"
+            className="bg-valkyrie-purple w-1/2  text-white p-2 rounded-lg hover:bg-creativity-purple"
             onClick={handleAddToCart}
             disabled={loading}
           >

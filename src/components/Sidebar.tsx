@@ -9,8 +9,7 @@ import { FiUser, FiUsers } from "react-icons/fi";
 import { FaShoppingCart, FaCog } from "react-icons/fa";
 import Link from "next/link";
 import { toast } from "react-toastify";
-
-
+import axios from "axios";
 
 const getUserData = () => {
   try {
@@ -101,7 +100,7 @@ const Sidebar: React.FC = () => {
         }
       }
       setIsModalOpen(false);
-      localStorage.clear();
+      localStorage.removeItem("user");
       setUser(null);
       setIsLoggedOut(true);
       handleNavigation("/Login");
@@ -112,9 +111,66 @@ const Sidebar: React.FC = () => {
   }, [handleNavigation]);
 
   useEffect(() => {
-    const userData = getUserData();
-    setUser(userData);
+    const loadUserData = async () => {
+      const userData = getUserData();
+
+      if (userData?.id) {
+        const userDetails = await fetchUserDetails(userData.id);
+
+        if (userDetails) {
+          setUser({
+            ...userData,
+            photoUrl: userDetails.photo || "/images/Avatar.png",
+          });
+        } else {
+          console.error("Error al obtener los detalles del usuario.");
+          setUser(userData); // Usa los datos locales si falla el fetch
+        }
+      } else {
+        setUser(userData);
+      }
+    };
+
+    loadUserData();
   }, [isLoggedOut]);
+
+  const fetchUserDetails = async (id: string) => {
+    try {
+      const getToken = () => {
+        const user = localStorage.getItem("user");
+
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+      }
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/users/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener los detalles del usuario:", error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -231,8 +287,11 @@ const Sidebar: React.FC = () => {
           </Link>
           <div className="p-4 flex items-center gap-4">
             <img
-              src={user.photoUrl}
+              src={user?.photoUrl || "/images/Avatar.png"}
               alt="Foto de perfil"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/images/Avatar.png";
+              }}
               className="rounded-full border-2 border-gray-500"
               style={{
                 width: isOpen ? "48px" : "32px",
@@ -252,7 +311,7 @@ const Sidebar: React.FC = () => {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h2 className="text-lg text-gray-800 font-bold mb-4">
               Cerrar Sesión

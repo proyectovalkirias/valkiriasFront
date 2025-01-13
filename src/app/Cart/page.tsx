@@ -4,7 +4,6 @@ import { CartItem } from "../../interfaces/Product";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,6 +31,7 @@ const Cart: React.FC = () => {
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartItems(storedCart);
+    console.log(storedCart);
   }, []);
 
   const handleOpenModal = (type: "clear" | "remove", index?: number) => {
@@ -67,13 +67,6 @@ const Cart: React.FC = () => {
     setIsModalOpen(true);
     setModalType(null);
 
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      console.error("El token no está disponible en el localStorage.");
-      return;
-    }
-
     try {
       const products = cartItems.map((item) => ({
         id: item.id,
@@ -81,7 +74,30 @@ const Cart: React.FC = () => {
         price: item.totalPrice,
         quantity: item.quantity,
       }));
+      const getToken = () => {
+        const user = localStorage.getItem("user");
 
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      // Ejemplo de uso:
+      const token = getToken();
+      if (token) {
+        console.log("Token extraído:", token);
+      } else {
+        console.log("No se encontró el token.");
+      }
       const response = await axios.post(
         `https://valkiriasback.onrender.com/order`,
         products,
