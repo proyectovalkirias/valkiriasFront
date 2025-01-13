@@ -4,9 +4,9 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 interface UserInfo {
-  picture: string;
-  name: string;
-  email: string;
+  given_name: string;  // Primer nombre
+  family_name: string; // Apellido
+  picture: string;     // Foto de perfil
 }
 
 const Landingoogle: React.FC = () => {
@@ -66,6 +66,10 @@ const Landingoogle: React.FC = () => {
       });
 
       const userInfo: UserInfo = await response.json();
+
+      // Console log para ver todos los datos de Google
+      console.log("Datos recibidos de Google:", userInfo);
+
       sendUserDataToBackend(userInfo, accessToken);
     } catch (error) {
       console.error("Error fetching user info:", error);
@@ -82,10 +86,10 @@ const Landingoogle: React.FC = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: userInfo.email,
-          name: userInfo.name,
-          picture: userInfo.picture,
-          accessToken: accessToken,
+          firstname: userInfo.given_name, // Primer nombre
+          lastname: userInfo.family_name, // Apellido
+          photo: userInfo.picture, // Foto de perfil
+          accessToken: accessToken, // Token de acceso de Google
         }),
       });
 
@@ -99,7 +103,6 @@ const Landingoogle: React.FC = () => {
         router.push("/");
       } else {
         // Si no está registrado, limpiar datos y redirigir
-
         toast.error(
           "Usuario no registrado en la base de datos, por favor regístrate para seguir comprando"
         );
