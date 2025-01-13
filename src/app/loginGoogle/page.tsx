@@ -43,6 +43,9 @@ const Landingoogle: React.FC = () => {
       const data = await response.json();
       if (data.access_token) {
         fetchUserInfo(data.access_token);
+      } else {
+        toast.error("No se pudo obtener el token de Google");
+        router.push("/Login");
       }
     } catch (error) {
       console.error("Error exchanging code:", error);
@@ -79,13 +82,15 @@ const Landingoogle: React.FC = () => {
       const data = await response.json();
 
       if (data.isRegistered) {
-        // Si el usuario está registrado, guardar datos en localStorage y redirigir
+        // Guardar los datos SOLO si el usuario está registrado
         localStorage.setItem("user_info", JSON.stringify(userInfo));
         localStorage.setItem("access_token", data.token); // Si el backend retorna un token
         toast.success("Bienvenido de nuevo");
         router.push("/");
       } else {
-        // Si no está registrado, mostrar error y redirigir a /Register
+        // Si no está registrado, limpiar datos y redirigir
+        localStorage.removeItem("user_info");
+        localStorage.removeItem("access_token");
         toast.error("Usuario no registrado en la base de datos");
         router.push("/Register");
       }
