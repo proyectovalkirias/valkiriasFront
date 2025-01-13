@@ -5,6 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import SidebarMini from "@/components/SidebarMini";
+import ChatComponent from "@/app/Valkibot/page";
 
 export const metadata: Metadata = {
   title: "Valkirias",
@@ -28,10 +29,12 @@ export default function RootLayout({
         <ToastContainer position="top-center" autoClose={3000} />
 
         {/* Contenedor global para Hot Toast */}
-        <Toaster />
+        <Toaster/>
 
         {/* Contenido principal */}
         <main className="flex-1 overflow-auto">{children}</main>
+
+        <ChatComponent/>
 
         {/* SidebarMini: visible solo en pantallas pequeñas */}
         <div className="block md:hidden">

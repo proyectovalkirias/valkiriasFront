@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Product } from "@/interfaces/Product";
 import { ProductPreview } from "@/components/ProductPreview";
 import { toast } from "react-hot-toast";
-import axios from "axios";
 
 const CreateProduct: React.FC = () => {
   const { register, handleSubmit, control, reset } = useForm<Product>();
@@ -14,11 +13,12 @@ const CreateProduct: React.FC = () => {
   const [smallPrints, setSmallPrints] = useState<File[]>([]);
   const [largePrints, setLargePrints] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isUniqueSize] = useState<boolean>(false);
+  const [isUniqueSize, setIsUniqueSize] = useState<boolean>(false);
   const [kidsSizes, setKidsSizes] = useState<string[]>([]);
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
+  const [isCustomizable, setIsCustomizable] = useState<boolean>(true);
   const [, setPrice] = useState<string[]>([]);
   const [stock, setStock] = useState<number | null>(null);
   const [sizePriceMapping, setSizePriceMapping] = useState<
@@ -30,103 +30,112 @@ const CreateProduct: React.FC = () => {
   const [smallPrintsPreview, setSmallPrintsPreview] = useState<string[]>([]);
   const [largePrintsPreview, setLargePrintsPreview] = useState<string[]>([]);
 
-  const onSubmit = async (data: Product) => {
+  const onSubmit = (data: Product) => {
     setLoading(true);
 
-    try {
-      const formData = new FormData();
-      formData.append("name", data.name);
-      formData.append("description", data.description);
-      formData.append("prices", JSON.stringify(sizePriceMapping));
-      console.log(sizePriceMapping, "prices");
-      formData.append("stock", data.stock.toString());
-      formData.append("color", data.color.join(",")); // Convierte el array de colores a una cadena separada por comas
-
-      formData.append("category", category);
-
-      const allSizes = [...kidsSizes, ...adultSizes];
-      if (isUniqueSize) {
-        allSizes.push("Talle Único");
-      }
-      formData.append("size", allSizes.join(",")); // Convierte el array de tamaños a una cadena separada por comas
-
-      console.log("sizes", allSizes);
-
-      photos.forEach((photo) => {
-        formData.append("photos", photo);
-      });
-
-      smallPrints.forEach((print) => {
-        formData.append("smallPrint", print);
-      });
-
-      largePrints.forEach((print) => {
-        formData.append("largePrint", print);
-      });
-      const getToken = () => {
-        const user = localStorage.getItem("user");
-
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
-
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
-      };
-
-      // Ejemplo de uso:
-      const token = getToken();
-      if (token) {
-        console.log("Token extraído:", token);
-      } else {
-        console.log("No se encontró el token.");
-      }
-      const response = await axios.post(
-        "https://valkiriasback.onrender.com/products",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`, // Token de autorización
-          },
-        }
-      );
-
-      // Manejo de la respuesta exitosa
-      toast.success("Producto creado exitosamente");
-      setLoading(false);
-      setIsModalVisible(true);
-
-      // Limpiar formulario y resetear estados después de un retraso
-      setTimeout(() => {
-        reset();
-        setSmallPrintsPreview([]);
-        setLargePrintsPreview([]);
-        setProductName("");
-        setProductDescription("");
-        setPhotos([]);
-        setPreviewImages([]);
-        setSmallPrints([]);
-        setLargePrints([]);
-        setKidsSizes([]);
-        setAdultSizes([]);
-        setPrice([]);
-        setStock(null);
-        setCategory("");
-        setColor([]);
-        setIsModalVisible(false);
-      }, 3000);
-    } catch (error) {
-      console.error("Error al crear el producto:", error);
-      toast.error("Error al crear el producto. Por favor, intente nuevamente.");
-      setLoading(false);
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("description", data.description);
+    formData.append("prices", JSON.stringify(sizePriceMapping));
+    console.log(sizePriceMapping, "prices");
+    formData.append("stock", data.stock.toString());
+    formData.append("color", data.color.join(","));
+    formData.append("category", category);
+    formData.append("isCustomizable", isCustomizable.toString());
+    const allSizes = [...kidsSizes, ...adultSizes];
+    if (isUniqueSize) {
+      allSizes.push("Talle Único");
     }
+    formData.append("size", allSizes.join(","));
+
+    console.log("size", allSizes);
+
+    photos.forEach((photo) => {
+      formData.append("photos", photo);
+    });
+
+    smallPrints.forEach((print) => {
+      formData.append("smallPrint", print);
+    });
+
+    largePrints.forEach((print) => {
+      formData.append("largePrint", print);
+    });
+
+    console.log("FormData values:");
+    for (const [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+    const getToken = () => {
+      const user = localStorage.getItem("user");
+
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
+
+      try {
+        const parsedUser = JSON.parse(user);
+        return parsedUser.token || null; // Retorna el token si existe
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
+
+    const token = getToken(); // Obtén el token desde localStorage
+    if (!token) {
+      toast.error(
+        "No se encontró el token. Por favor, inicia sesión nuevamente."
+      );
+      setLoading(false);
+      return;
+    }
+
+    fetch("https://valkiriasback.onrender.com/products", {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Error en la solicitud");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        toast.success("Producto creado exitosamente", data);
+        setLoading(false);
+        setIsModalVisible(true);
+
+        setTimeout(() => {
+          reset();
+          setSmallPrintsPreview([]);
+          setLargePrintsPreview([]);
+          setProductName("");
+          setProductDescription("");
+          setPhotos([]);
+          setPreviewImages([]);
+          setSmallPrints([]);
+          setLargePrints([]);
+          setKidsSizes([]);
+          setAdultSizes([]);
+          setPrice([]);
+          setStock(null);
+          setCategory("");
+          setColor([]);
+          setIsModalVisible(false);
+        }, 3000);
+      })
+      .catch((error) => {
+        console.error("Error al crear el producto:", error);
+        toast.error(
+          "Error al crear el producto. Por favor, intente nuevamente."
+        );
+        setLoading(false);
+      });
   };
 
   const handleChange = (
@@ -160,7 +169,6 @@ const CreateProduct: React.FC = () => {
         ...prevPreviews,
         ...newPhotos.map((file) => URL.createObjectURL(file)),
       ]);
-      toast.success(`${newPhotos.length} imagen(es) añadida(s).`);
     }
   };
 
@@ -190,7 +198,6 @@ const CreateProduct: React.FC = () => {
     setPreviewImages((prevPreviews) =>
       prevPreviews.filter((_, i) => i !== index)
     );
-    toast("Imagen eliminada.", { icon: "🗑️" });
   };
 
   const handleRemoveSmallPrint = (index: number) => {
@@ -201,6 +208,10 @@ const CreateProduct: React.FC = () => {
   const handleRemoveLargePrint = (index: number) => {
     setLargePrints((prev) => prev.filter((_, i) => i !== index));
     setLargePrintsPreview((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUniqueSizeChange = () => {
+    setIsUniqueSize(!isUniqueSize);
   };
 
   const handleSizeChange = (size: string | number, type: "kids" | "adults") => {
@@ -219,12 +230,10 @@ const CreateProduct: React.FC = () => {
         (entry) => entry.size === size
       );
       if (existingEntryIndex !== -1) {
-        // Actualiza el precio para la talla existente
         const updatedMapping = [...prevMapping];
         updatedMapping[existingEntryIndex].price = price;
         return updatedMapping;
       } else {
-        // Agrega una nueva entrada
         return [...prevMapping, { size, price }];
       }
     });
@@ -292,7 +301,6 @@ const CreateProduct: React.FC = () => {
           />
         </div>
 
-        {/* Campo Descripción */}
         <div className="mb-4">
           <label htmlFor="description" className="block text-sm font-medium">
             Descripción:
@@ -307,61 +315,74 @@ const CreateProduct: React.FC = () => {
           />
         </div>
 
-        {/* Precio y Stock */}
-        <div className="flex justify-items-stretch space-x-4 mb-4 text-black">
-          <div>
-            <h3>Tallas y Precios:</h3>
-            {[...kidsSizes, ...adultSizes].map((size, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <span>{size}</span>
-                <input
-                  type="number"
-                  placeholder={`Precio para ${size}`}
-                  onChange={(e) =>
-                    handleSizePriceChange(size, parseFloat(e.target.value) || 0)
-                  }
-                  className="border p-2"
-                />
-              </div>
-            ))}
-
-            {isUniqueSize && (
-              <div className="flex items-center space-x-2 mt-2">
-                <span>Talle Único</span>
-                <input
-                  type="number"
-                  placeholder="Precio para Talle Único"
-                  onChange={(e) =>
-                    handleSizePriceChange(
-                      "Talle Único",
-                      parseFloat(e.target.value) || 0
-                    )
-                  }
-                  className="border p-2"
-                />
-              </div>
-            )}
+        <div className="flex justify-items-stretch space-x-4 mb-4 text-white">
+          <div className="w-2/3">
+            <h3 className="text-lg font-semibold mb-2">Tallas y Precios:</h3>
+            <div className="space-y-2 bg-transparent p-4 rounded-lg shadow-lg">
+              {[
+                ...kidsSizes,
+                ...adultSizes,
+                ...(isUniqueSize ? ["Talle Único"] : []),
+              ].map((size, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between space-x-4"
+                >
+                  <span className="text-sm font-medium">{size}</span>
+                  <input
+                    type="number"
+                    placeholder={`Precio para ${size}`}
+                    onChange={(e) =>
+                      handleSizePriceChange(
+                        size,
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="border border-white rounded-md p-2 bg-transparent text-white focus:ring-2 "
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="w-1/3">
-            <label htmlFor="stock" className="block text-sm font-medium">
+            <label
+              htmlFor="stock"
+              className="block text-sm font-medium text-white mb-1"
+            >
               Stock:
             </label>
             <input
               id="stock"
               type="number"
               {...register("stock", { required: true })}
+              value={stock || ""}
               onChange={handleChange}
               placeholder="Stock"
-              className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              className="w-full border-b-2 border-white-300 bg-transparent p-2 text-white outline-none"
             />
           </div>
         </div>
 
-        {/* Tamaños */}
         <div className="flex space-x-8 mb-4">
           <div>
-            <label className="block text-sm font-medium">Talle Niños:</label>
+            <label className="block text-sm font-medium text-white">
+              Talle Único:
+            </label>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                value="Unique"
+                onChange={handleUniqueSizeChange}
+                checked={isUniqueSize}
+                className="mr-1"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-white">
+              Talle Niños:
+            </label>
             <div className="flex space-x-2">
               {[4, 6, 8, 10, 12, 14, 16].map((size) => (
                 <label key={size} className="flex items-center">
@@ -372,14 +393,16 @@ const CreateProduct: React.FC = () => {
                     checked={kidsSizes.includes(size.toString())}
                     className="mr-1"
                   />
-                  {size}
+                  <span className="text-white">{size}</span>
                 </label>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium">Talle Adultos:</label>
+            <label className="block text-sm font-medium text-white">
+              Talle Adultos:
+            </label>
             <div className="flex space-x-2">
               {["S", "M", "L", "XL", "XXL"].map((size) => (
                 <label key={size} className="flex items-center">
@@ -390,7 +413,7 @@ const CreateProduct: React.FC = () => {
                     checked={adultSizes.includes(size)}
                     className="mr-1"
                   />
-                  {size}
+                  <span className="text-white">{size}</span>
                 </label>
               ))}
             </div>
@@ -398,22 +421,29 @@ const CreateProduct: React.FC = () => {
         </div>
 
         <div className="mb-4 flex items-start gap-8">
-          {/* Colores */}
           <div>
             <label className="block text-sm font-medium mb-2">Colores:</label>
             <Controller
               name="color"
               control={control}
-              defaultValue={color} // color es ahora un arreglo de strings
+              defaultValue={color}
               render={({ field }) => (
                 <div className="flex space-x-4">
-                  {["#000000", "#f5f5ef", "#a6a6a6"].map((c) => (
+                  {[
+                    "#000000",
+                    "#f5f5ef",
+                    "#a6a6a6",
+                    "#d80032",
+                    "#05299e",
+                    "#f7e90f",
+                    "#00913f",
+                  ].map((c) => (
                     <div
                       key={c}
                       onClick={() => {
                         const newColorArray = color.includes(c)
-                          ? color.filter((selectedColor) => selectedColor !== c) // Elimina el color si ya está seleccionado
-                          : [...color, c]; // Agrega el color si no está seleccionado
+                          ? color.filter((selectedColor) => selectedColor !== c)
+                          : [...color, c];
                         field.onChange(newColorArray);
                         setColor(newColorArray);
                       }}
@@ -430,7 +460,6 @@ const CreateProduct: React.FC = () => {
             />
           </div>
 
-          {/* Categoría */}
           <div className="w-1/2">
             <label
               htmlFor="category"
@@ -457,22 +486,27 @@ const CreateProduct: React.FC = () => {
               <option value="Buzos" className="text-black hover:bg-violet-500">
                 Buzos
               </option>
-              <option value="Gorras" className="text-black hover:bg-violet-500">
-                Gorras
-              </option>
               <option
-                value="Gorros de lana"
+                value="Accesorios"
                 className="text-black hover:bg-violet-500"
               >
-                Gorros de Lana
+                Accesorios
               </option>
-              <option
-                value="Totebags"
-                className="text-black hover:bg-violet-500"
-              >
-                Totebags
+              <option value="Combos" className="text-black hover:bg-violet-500">
+                Combos
               </option>
             </select>
+          </div>
+          <div className="mt-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={isCustomizable}
+                onChange={() => setIsCustomizable((prev) => !prev)}
+                className="w-4 h-4 text-violet-500 border-gray-300 rounded focus:ring-violet-500"
+              />
+              <span className="text-sm font-medium">Personalizable</span>
+            </label>
           </div>
         </div>
 
