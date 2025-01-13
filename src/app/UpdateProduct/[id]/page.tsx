@@ -64,7 +64,7 @@ const UpdateProduct: React.FC = () => {
     setValue("stock", productData.stock);
     setValue("category", productData.category);
     setValue("color", productData.color);
-    setValue("size", productData.size);
+    setValue("sizes", productData.sizes);
     setProductName(productData.name);
     setProductDescription(productData.description);
     setStock(productData.stock);
