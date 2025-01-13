@@ -82,27 +82,6 @@ const UserPanel: React.FC = () => {
       return null;
     }
   };
-  const getToken = () => {
-    const user = localStorage.getItem("user");
-
-    if (!user) {
-      console.error("No hay datos del usuario en localStorage");
-      return null;
-    }
-
-    try {
-      const parsedUser = JSON.parse(user);
-      return parsedUser.token || null; // Retorna el token si existe
-    } catch (err) {
-      console.error("Error al parsear los datos del usuario:", err);
-      return null;
-    }
-  };
-
-  const token = getToken();
-  if (!token) {
-    console.error("No se encontró el token.");
-  }
 
   const handleDeleteOrder = async (orderId: string) => {
     const confirmation = window.confirm(
@@ -110,6 +89,27 @@ const UserPanel: React.FC = () => {
     );
     if (confirmation) {
       try {
+        const getToken = () => {
+          const user = localStorage.getItem("user");
+
+          if (!user) {
+            console.error("No hay datos del usuario en localStorage");
+            return null;
+          }
+
+          try {
+            const parsedUser = JSON.parse(user);
+            return parsedUser.token || null; // Retorna el token si existe
+          } catch (err) {
+            console.error("Error al parsear los datos del usuario:", err);
+            return null;
+          }
+        };
+
+        const token = getToken();
+        if (!token) {
+          console.error("No se encontró el token.");
+        }
         await axios.delete(
           `https://valkiriasback.onrender.com/order/${orderId}`,
           {
@@ -136,6 +136,27 @@ const UserPanel: React.FC = () => {
   // Obtener detalles adicionales del usuario desde la API
   const fetchUserDetails = async (id: string) => {
     try {
+      const getToken = () => {
+        const user = localStorage.getItem("user");
+
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+      }
       const response = await axios.get(
         `https://valkiriasback.onrender.com/users/${id}`,
         {
@@ -154,6 +175,27 @@ const UserPanel: React.FC = () => {
   // Obtener órdenes desde la API
   const fetchOrders = async () => {
     try {
+      const getToken = () => {
+        const user = localStorage.getItem("user");
+
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+      }
       const response = await axios.get(
         `https://valkiriasback.onrender.com/order/user/${user.id}`,
         {
@@ -194,6 +236,27 @@ const UserPanel: React.FC = () => {
     formData.append("photo", file); // La clave 'photo' debe coincidir con la esperada en la API.
 
     try {
+      const getToken = () => {
+        const user = localStorage.getItem("user");
+
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+      }
       const response = await axios.put(
         `https://valkiriasback.onrender.com/users/updateProfileImg/${user?.id}`,
         formData,
@@ -336,7 +399,27 @@ const UserPanel: React.FC = () => {
       }
 
       console.log("Usuario actualizado:", updatedUser); // Depuración
+      const getToken = () => {
+        const user = localStorage.getItem("user");
 
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+      }
       // Enviar datos al back-end
       const response = await axios.put(
         `https://valkiriasback.onrender.com/users/${user.id}`,

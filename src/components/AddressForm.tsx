@@ -21,28 +21,6 @@ const AddressForm = ({ userId }: { userId: string }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const getToken = () => {
-    const user = localStorage.getItem("user");
-
-    if (!user) {
-      console.error("No hay datos del usuario en localStorage");
-      return null;
-    }
-
-    try {
-      const parsedUser = JSON.parse(user);
-      return parsedUser.token || null; // Retorna el token si existe
-    } catch (err) {
-      console.error("Error al parsear los datos del usuario:", err);
-      return null;
-    }
-  };
-
-  const token = getToken();
-  if (!token) {
-    console.error("No se encontró el token.");
-  }
-
   const fetchCoordinates = async () => {
     try {
       setError("");
@@ -104,7 +82,27 @@ const AddressForm = ({ userId }: { userId: string }) => {
           },
         ],
       };
+      const getToken = () => {
+        const user = localStorage.getItem("user");
 
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+      }
       const response = await axios.put(
         `https://valkiriasback.onrender.com/users/${userId}`,
         payload,

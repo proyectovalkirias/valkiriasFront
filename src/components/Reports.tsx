@@ -16,34 +16,33 @@ const Reports: React.FC = () => {
     categorias: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio"], // Categorías iniciales
   });
 
-  const getToken = () => {
-    const user = localStorage.getItem("user");
-
-    if (!user) {
-      console.error("No hay datos del usuario en localStorage");
-      return null;
-    }
-
-    try {
-      const parsedUser = JSON.parse(user);
-      return parsedUser.token || null;
-    } catch (err) {
-      console.error("Error al parsear los datos del usuario:", err);
-      return null;
-    }
-  };
-
-  const token = getToken();
-
-  if (token) {
-    console.log("Token extraído:", token);
-  } else {
-    console.error("No se encontró el token.");
-  }
-
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const getToken = () => {
+          const user = localStorage.getItem("user");
+
+          if (!user) {
+            console.error("No hay datos del usuario en localStorage");
+            return null;
+          }
+
+          try {
+            const parsedUser = JSON.parse(user);
+            return parsedUser.token || null;
+          } catch (err) {
+            console.error("Error al parsear los datos del usuario:", err);
+            return null;
+          }
+        };
+
+        const token = getToken();
+
+        if (token) {
+          console.log("Token extraído:", token);
+        } else {
+          console.error("No se encontró el token.");
+        }
         const [ventasResponse, usuariosResponse, ingresosResponse] =
           await Promise.all([
             axios.get("https://valkiriasback.onrender.com/sale/by-month", {
@@ -75,7 +74,7 @@ const Reports: React.FC = () => {
     };
 
     fetchData();
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     if (
