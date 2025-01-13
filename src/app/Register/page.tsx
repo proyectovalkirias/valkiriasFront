@@ -68,7 +68,7 @@ const Register: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `${API_URL}/auth/singup`,
+        `${API_URL}/auth/signup`,
         {
           firstname: firstName,
           lastname: lastName,

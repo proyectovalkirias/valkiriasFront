@@ -94,6 +94,9 @@ const Login: React.FC = () => {
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
       router.push("/");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const errorData = err.response?.data;
@@ -115,22 +118,48 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleGoogleLogin2 = () => {
-    const clientID =
-      "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
-    const redirectURI = "https://valkiriasfront.onrender.com/loginGoogle";
-    const scope = "openid profile email";
-    const responseType = "code";
-
-    const googleAuthUrl =
-      `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${clientID}` +
-      `&redirect_uri=${encodeURIComponent(redirectURI)}` +
-      `&response_type=${responseType}` +
-      `&scope=${encodeURIComponent(scope)}`;
-
-    window.location.href = googleAuthUrl;
+  const handleGoogleLogin2 = async () => {
+    const emailInput = prompt(
+      "Por favor, ingresa tu correo electrónico antes de continuar:"
+    );
+  
+    if (!emailInput) {
+      alert("Es necesario ingresar un correo electrónico.");
+      return;
+    }
+  
+    try {
+      // Verificar si el correo está registrado
+      const userRes = await axios.get(
+        `https://valkiriasback.onrender.com/users/email/${emailInput}`
+      );
+  
+      if (userRes.data) {
+        // Si el usuario está registrado, redirigir a Google
+        const clientID =
+          "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
+        const redirectURI = "https://valkiriasfront.onrender.com/loginGoogle";
+        const scope = "openid profile email";
+        const responseType = "code";
+  
+        const googleAuthUrl =
+          `https://accounts.google.com/o/oauth2/v2/auth?` +
+          `client_id=${clientID}` +
+          `&redirect_uri=${encodeURIComponent(redirectURI)}` +
+          `&response_type=${responseType}` +
+          `&scope=${encodeURIComponent(scope)}`;
+  
+        window.location.href = googleAuthUrl;
+      }
+    } catch (error) {
+      console.error("Error al verificar el usuario:", error);
+  
+      // Si el usuario no está registrado, mostrar alerta y redirigir a /Register
+      alert("Ese usuario no está registrado. Por favor, regístrate.");
+      window.location.href = "/Register";
+    }
   };
+  
 
   const handleForgotPassword = async () => {
     toast.dismiss();
