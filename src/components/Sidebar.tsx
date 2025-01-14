@@ -109,6 +109,7 @@ const Sidebar: React.FC = () => {
       toast.error("Ocurrió un error al cerrar sesión");
     }
   }, [handleNavigation]);
+  
 
   useEffect(() => {
     const loadUserData = async () => {
