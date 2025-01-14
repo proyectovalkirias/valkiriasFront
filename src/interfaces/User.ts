@@ -1,9 +1,12 @@
 export interface Address {
+  id: string;
   street: string;
   number: number;
   city: string;
   state: string;
   postalCode: string;
+  longitude?: number;
+  latitude?: number;
 }
 
 export interface User {

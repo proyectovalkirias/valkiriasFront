@@ -6,14 +6,16 @@ import { toast } from "react-hot-toast";
 import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
+import { Address } from "@/interfaces/User";
 
 const AddressForm = dynamic(() => import("@/components/AddressForm"), {
   ssr: false,
 });
 const UserPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("profile");
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [user, setUser] = useState<{
-    id?: string;
+    id: string;
     firstname: string;
     lastname: string;
     email: string;
@@ -222,6 +224,28 @@ const UserPanel: React.FC = () => {
       toast.error("Error al obtener las compras.");
     }
   };
+  const fetchAddresses = async () => {
+    try {
+      const response = await fetch(
+        "https://valkiriasback.onrender.com/users/address/cf2bdb54-e854-42f7-88a7-5ec336a291af",
+        {
+          method: "GET",
+          headers: {
+            Accept: "*/*",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setAddresses(data); // Actualiza el estado con las direcciones
+    } catch (error) {
+      console.error("Error fetching addresses:", error);
+    }
+  };
 
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -335,6 +359,7 @@ const UserPanel: React.FC = () => {
   useEffect(() => {
     if (activeTab === "orders") fetchOrders();
     if (activeTab === "purchases") fetchPurchases();
+    if (activeTab === "profile") fetchAddresses();
   }, [activeTab]);
   const userFields: {
     label: string;
@@ -361,6 +386,22 @@ const UserPanel: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleDeleteAddress = async (addressId: string) => {
+    try {
+      const response = await axios.delete(
+        `https://valkiriasback.onrender.com/users/address/${addressId}`
+      );
+
+      if (response.status === 200) {
+        toast.success("Dirección eliminada con éxito.");
+      } else {
+        throw new Error("Error al eliminar la dirección");
+      }
+    } catch (error) {
+      console.error("Error eliminando la dirección:", error);
+      toast.error("No se pudo eliminar la dirección. Intenta nuevamente.");
+    }
+  };
   const handleSave = async () => {
     if (!modalField) {
       toast.error("No hay campo para guardar.");
@@ -444,12 +485,12 @@ const UserPanel: React.FC = () => {
       toast.error("Hubo un problema al guardar los cambios.");
     }
   };
-
+  console.log(user);
   const renderContent = () => {
     switch (activeTab) {
       case "profile":
         return (
-          <div className="bg-white min-h-screen p-6">
+          <div className="bg-white min-h-screen  p-6">
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
               Mi Perfil
             </h1>
@@ -512,7 +553,45 @@ const UserPanel: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <div className="">
+                <div className=" flex flex-wrap gap-6 p-4 items-center w-full justify-center">
+                  {addresses.length > 0 ? (
+                    addresses.map((address) => (
+                      <div
+                        key={address.id}
+                        className=" bg-white border border-gray-200 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200 flex flex-col"
+                      >
+                        <p className="text-lg  text-gray-700">
+                          <strong>Calle:</strong> {address.street}
+                        </p>
+                        <p className="text-lg text-gray-600">
+                          <strong>Número:</strong> {address.number}
+                        </p>
+                        <p className="text-lg text-gray-600">
+                          <strong>Código Postal:</strong> {address.postalCode}
+                        </p>
+                        <p className="text-lg text-gray-600">
+                          <strong>Ciudad:</strong> {address.city}
+                        </p>
+                        <p className="text-lg text-gray-600">
+                          <strong>Estado:</strong> {address.state}
+                        </p>
+
+                        <button
+                          onClick={() => handleDeleteAddress(address.id)}
+                          className="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors duration-200"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center w-full">
+                      No hay direcciones registradas.
+                    </p>
+                  )}
+                </div>
+
+                <div className="w-full">
                   <AddressForm userId={user?.id || ""} />
                 </div>
               </div>

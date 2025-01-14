@@ -58,7 +58,6 @@ const Login: React.FC = () => {
         const user = localStorage.getItem("user");
 
         if (!user) {
-          console.error("No hay datos del usuario en localStorage");
           return null;
         }
 
@@ -72,9 +71,6 @@ const Login: React.FC = () => {
       };
 
       const token = getToken();
-      if (!token) {
-        console.error("No se encontró el token.");
-      }
 
       const response = await axios.post(
         `${API_URL}/auth/login`,
@@ -94,6 +90,9 @@ const Login: React.FC = () => {
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
       router.push("/");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const errorData = err.response?.data;

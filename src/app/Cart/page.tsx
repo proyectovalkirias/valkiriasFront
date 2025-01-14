@@ -67,43 +67,56 @@ const Cart: React.FC = () => {
     setIsModalOpen(true);
     setModalType(null);
 
+    const getUserData = () => {
+      const user = localStorage.getItem("user");
+
+      if (!user) {
+        console.error("No hay datos del usuario en localStorage");
+        return null;
+      }
+
+      try {
+        const parsedUser = JSON.parse(user);
+
+        return {
+          token: parsedUser.token || null,
+          id: parsedUser.user?.id || null, // Acceso correcto al id del usuario
+        };
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        return null;
+      }
+    };
+
     try {
-      const products = cartItems.map((item) => ({
-        id: item.id,
-        name: item.name,
-        price: item.totalPrice,
-        quantity: item.quantity,
-      }));
-      const getToken = () => {
-        const user = localStorage.getItem("user");
+      const userData = getUserData();
+      if (!userData || !userData.token || !userData.id) {
+        // Validación también corregida
+        console.error("Datos del usuario incompletos.");
+        return;
+      }
 
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
+      const products = cartItems
+        .map((item) => {
+          return {
+            id: item.id,
+            size: item.size,
+            quantity: item.quantity,
+          };
+        })
+        .filter(Boolean);
 
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
+      const payload = {
+        userId: userData.id,
+        products,
       };
 
-      // Ejemplo de uso:
-      const token = getToken();
-      if (token) {
-        console.log("Token extraído:", token);
-      } else {
-        console.log("No se encontró el token.");
-      }
       const response = await axios.post(
         `https://valkiriasback.onrender.com/order`,
-        products,
+        payload,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${userData.token}`,
           },
         }
       );
@@ -121,7 +134,7 @@ const Cart: React.FC = () => {
   };
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.totalPrice, 0);
-
+  console.log(cartItems);
   return (
     <div className="min-h-screen bg-purple-200 py-8 px-4 text-black">
       <h1 className="text-3xl lg:text-4xl font-bold text-purple-dark mb-4">
@@ -137,7 +150,7 @@ const Cart: React.FC = () => {
             Agrega algunos productos y vuelve aquí para revisarlos.
           </p>
           <button
-            className="mt-6 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-700"
+            className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg  hover:bg-creativity-purple"
             onClick={() => (window.location.href = "/Products")}
           >
             Ir a la tienda
@@ -161,8 +174,8 @@ const Cart: React.FC = () => {
               )}
               <div className="flex flex-wrap items-start space-x-4">
                 <div className="flex-1">
-                  <h2 className="text-xl text-gray-900 font-bold mb-2">
-                    {item.name}
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {item.product.name || "Producto"}
                   </h2>
                   {item.selectedSize && (
                     <p className="text-sm text-gray-700 mb-1">
@@ -199,6 +212,19 @@ const Cart: React.FC = () => {
                       alt={`Estampa grande de ${item.name || "producto"}`}
                       className="w-20 h-20 rounded"
                     />
+                  )}
+                </div>
+                <div>
+                  {item.selectedSmallPrint && (
+                    <p className="text-sm text-gray-700 mb-1">
+                      <strong>Estampa Pequena:</strong>{" "}
+                      {item.selectedSmallPrint}
+                    </p>
+                  )}
+                  {item.selectedLargePrint && (
+                    <p className="text-sm text-gray-700 mb-1">
+                      <strong>Estampa Grande:</strong> {item.selectedLargePrint}
+                    </p>
                   )}
                 </div>
               </div>
