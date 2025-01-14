@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 
 interface UserInfo {
   picture: string;
@@ -10,11 +9,11 @@ interface UserInfo {
 }
 
 const Landingoogle: React.FC = () => {
-  const router = useRouter();
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
+
+    console.log("code:" + code);
 
     if (code) {
       exchangeCodeForToken(code);
@@ -41,16 +40,13 @@ const Landingoogle: React.FC = () => {
       });
 
       const data = await response.json();
+      console.log("Data fetch Token URL:", data);
+
       if (data.access_token) {
         fetchUserInfo(data.access_token);
-      } else {
-        toast.error("No se pudo obtener el token de Google");
-        router.push("/Login");
       }
     } catch (error) {
       console.error("Error exchanging code:", error);
-      toast.error("Error al procesar el inicio de sesión con Google");
-      router.push("/Login");
     }
   };
 
@@ -66,43 +62,39 @@ const Landingoogle: React.FC = () => {
       });
 
       const userInfo: UserInfo = await response.json();
-      validateUserEmail(userInfo);
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-      toast.error("Error al obtener información del usuario");
-      router.push("/Login");
-    }
-  };
+      console.log("UserInfo:", userInfo);
 
-  const validateUserEmail = async (userInfo: UserInfo) => {
-    try {
-      const response = await fetch(
+      // Verificar si el email existe en la base de datos
+      const checkEmailResponse = await fetch(
         `https://valkiriasback.onrender.com/users/email/${userInfo.email}`
       );
-      const data = await response.json();
 
-      if (data.isRegistered) {
-        // Guardar los datos SOLO si el usuario está registrado
+      if (checkEmailResponse.ok) {
+        // El usuario está registrado, guardar datos en localStorage
         localStorage.setItem("user_info", JSON.stringify(userInfo));
-        localStorage.setItem("access_token", data.token); // Si el backend retorna un token
-        toast.success("Bienvenido de nuevo");
-        router.push("/");
+        localStorage.setItem("access_token", accessToken);
+
+        // Mostrar el toast de bienvenida
+        toast.success(`Bienvenido, ${userInfo.name}!`);
+
+        // Redirigir al home
+        window.location.href = "/";
       } else {
-      
-        toast.error("Usuario no registrado en la base de datos, por favor registrate para poder seguir comprando");
-        router.push("/Register");
+        // El usuario no está registrado, mostrar mensaje de error y redirigir al registro
+        toast.error("Usuario no registrado en la base de datos, por favor regístrate.");
+        window.location.href = "/Register";
       }
     } catch (error) {
-      console.error("Error verificando el correo:", error);
-      toast.error("Error verificando el correo en la base de datos");
-      router.push("/Login");
+      console.error("Error fetching user info:", error);
     }
   };
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h1>Procesando Inicio de Sesión...</h1>
-      <p>Por favor, espera mientras procesamos tu inicio de sesión con Google.</p>
+      <p>
+        Por favor, espera mientras procesamos tu inicio de sesión con Google.
+      </p>
     </div>
   );
 };
