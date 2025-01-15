@@ -2,9 +2,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Importa useRouter
-import { toast } from "react-toastify"; // Importa react-hot-toast
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // Importa los íconos
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
 import axios from "axios";
 
 const Register: React.FC = () => {
@@ -18,11 +18,12 @@ const Register: React.FC = () => {
     confirmPassword: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false); // Estado para contraseña
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Estado para confirmar contraseña
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showPasswordHint, setShowPasswordHint] = useState(false);
   const [showPasswordHint1, setShowPasswordHint1] = useState(false);
-  const [passwordError, setPasswordError] = useState(""); // Estado para mensaje de error de contraseña
+  const [loading, setLoading] = useState(false);
+  const [passwordsMatch, setPasswordsMatch] = useState(true); // Estado para la validación de contraseñas
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
@@ -30,17 +31,21 @@ const Register: React.FC = () => {
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+    const { name, value } = e.target;
+    setFormData((prevData) => {
+      const newData = { ...prevData, [name]: value };
+      // Validar si las contraseñas coinciden mientras se escriben
+      if (name === "confirmPassword") {
+        setPasswordsMatch(value === formData.password);
+      }
+      return newData;
     });
   };
 
   const validatePassword = (password: string) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,15}$/; // Al menos 1 minúscula, 1 mayúscula, 8-15 caracteres
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,15}$/;
     return passwordRegex.test(password);
   };
-  // Suponiendo que usas toast para mostrar mensajes
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -48,29 +53,30 @@ const Register: React.FC = () => {
     const { firstName, lastName, email, password, confirmPassword } = formData;
 
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      toast.error("Todos los campos son obligatorios.", {});
+      toast.error("Todos los campos son obligatorios.");
       return;
     }
 
     if (!email.includes("@")) {
-      toast.error("El email debe contener '@'.", {});
+      toast.error("El email debe contener '@'.");
       return;
     }
 
     if (!validatePassword(password)) {
       toast.error(
-        "La contraseña debe tener entre 8 y 15 caracteres, al menos una mayúscula y una minúscula.",
-        {}
+        "La contraseña debe tener entre 8 y 15 caracteres, al menos una mayúscula y una minúscula."
       );
       return;
     }
 
     if (password !== confirmPassword) {
-      setPasswordError("Las contraseñas no coinciden.");
+      toast.error("Las contraseñas no coinciden.");
       return;
     } else {
       setPasswordError(""); // Limpiar el error si coinciden
     }
+
+    setLoading(true);
 
     try {
       const response = await axios.post(
@@ -90,16 +96,13 @@ const Register: React.FC = () => {
       );
       console.log("Respuesta de la API:", response.data);
       toast.success(
-        "Registro exitoso. Redirigiendo a la página de inicio de sesión...",
-        {}
+        "Registro exitoso. Redirigiendo a la página de inicio de sesión..."
       );
 
-      // Redirigir al usuario a la página de login
       setTimeout(() => {
         router.push("/Login");
       }, 2000);
 
-      // Limpiar el formulario
       setFormData({
         firstName: "",
         lastName: "",
@@ -109,22 +112,21 @@ const Register: React.FC = () => {
       });
     } catch (error: any) {
       if (error.response) {
-        // Errores de respuesta del servidor
         const errorMessage =
           error.response.data?.message || "Error al registrarse.";
         toast.error(errorMessage);
       } else {
-        // Errores de conexión u otros
-        toast.error("Hubo un problema al conectar con el servidor.", {});
+        toast.error("Hubo un problema al conectar con el servidor.");
       }
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex h-screen items-center justify-center bg-[#7b548b]">
       <div className="w-full max-w-4xl rounded-lg bg-[#7b548b] flex flex-col md:flex-row">
-        {/* Sección de la imagen */}
         <div className="w-full md:w-1/2 p-8 flex flex-col items-center justify-start text-center text-white">
           <Image
             src="/images/valkiriaslogo.jpg"
@@ -139,7 +141,6 @@ const Register: React.FC = () => {
           </p>
         </div>
 
-        {/* Sección del formulario */}
         <div className="w-full md:w-1/2 p-8 bg-[#7b548b] flex flex-col justify-center">
           <h2 className="mb-6 text-3xl font-bold text-white text-center">
             Registro
@@ -170,7 +171,6 @@ const Register: React.FC = () => {
               className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none"
             />
 
-            {/* Campo de contraseña */}
             <div className="relative mb-2">
               <input
                 type={showPassword ? "text" : "password"}
@@ -188,14 +188,13 @@ const Register: React.FC = () => {
                 className="absolute right-2 top-3"
               >
                 {showPassword ? (
-                  <FaEye className="text-purple-900" />
+                  <FaEye className="text-white" />
                 ) : (
-                  <FaEyeSlash className="text-purple-900" />
+                  <FaEyeSlash className="text-white" />
                 )}
               </button>
             </div>
 
-            {/* Cláusula de la contraseña */}
             {showPasswordHint && (
               <p className="text-xs text-gray-300 mb-2">
                 Debe contener entre 8 y 15 caracteres, una mayúscula y una
@@ -220,27 +219,34 @@ const Register: React.FC = () => {
                 className="absolute right-2 top-3"
               >
                 {showConfirmPassword ? (
-                  <FaEye className="text-purple-900" />
+                  <FaEye className="text-white" />
                 ) : (
-                  <FaEyeSlash className="text-purple-900" />
+                  <FaEyeSlash className="text-white" />
                 )}
               </button>
             </div>
+
             {showPasswordHint1 && (
               <p className="text-xs text-gray-300 mb-2">
                 Debe contener entre 8 y 15 caracteres, una mayúscula y una
                 minúscula.
               </p>
             )}
-            {passwordError && (
-              <p className="text-xs text-red-500">{passwordError}</p>
+
+            {/* Mostrar mensaje de error si las contraseñas no coinciden */}
+            {!passwordsMatch && (
+              <p className="text-xs text-red-200 mb-2">
+                Las contraseñas no coinciden.
+              </p>
             )}
 
             <button
               type="submit"
               className="rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
+              disabled={loading}
             >
-              Registrarse
+              {loading && <FaSpinner className="animate-spin mr-2" />}
+              {loading ? "Guardando datos..." : "Registrarse"}
             </button>
           </form>
           <p className="mt-4 text-sm text-white">

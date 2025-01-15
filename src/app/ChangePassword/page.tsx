@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { TbEyeHeart } from "react-icons/tb";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import axios from "axios";
 
@@ -12,6 +12,18 @@ const ChangePassword: React.FC = () => {
     newPassword: "",
     confirmPassword: "",
   });
+  const [showPasswords, setShowPasswords] = useState({
+    newPassword: false,
+    confirmPassword: false,
+  });
+  const [isLoading, setIsLoading] = useState(false); // Nuevo estado para manejar la carga
+
+  const togglePasswordVisibility = (field: "newPassword" | "confirmPassword") => {
+    setShowPasswords((prevState) => ({
+      ...prevState,
+      [field]: !prevState[field],
+    }));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,79 +53,91 @@ const ChangePassword: React.FC = () => {
       return;
     }
 
-    try {
-   
+    setIsLoading(true); // Inicia la carga
 
+    try {
       const response = await axios.put(
         `https://valkiriasback.onrender.com/auth/change-password`,
         {
+          email,
           password: newPassword,
           confirmPassword,
-        },
-        {
-          params: { email }, 
-          headers: {
-            "Content-Type": "application/json",
-          },
         }
       );
 
       toast.success("Contraseña cambiada exitosamente.");
-      setTimeout(() => router.push("/Login"), 2000);
-    } catch (error: any) {
-      if (error.response && error.response.data) {
-        // Manejo de errores del servidor
-        toast.error(
-          error.response.data.message || "Error al cambiar la contraseña."
-        );
+      router.push("/login");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const errorData = err.response?.data;
+        toast.error(errorData?.message || "Error al cambiar la contraseña.");
       } else {
-        // Error de conexión
         toast.error("Hubo un problema al conectar con el servidor.");
+        console.error("Error inesperado:", err);
       }
+    } finally {
+      setIsLoading(false); // Detiene la carga
     }
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-[#7b548b]">
-      <div className="flex w-full max-w-md rounded-lg bg-[#7b548b] p-8 sm:p-6 md:p-8 lg:p-10">
-        <div className="w-full flex flex-col justify-center text-center text-white">
-          <h2 className="text-2xl sm:text-3xl font-bold flex items-center justify-center mb-6">
-            Recuperar Contraseña{" "}
-            <TbEyeHeart className="ml-2 text-white" size={24} />
-          </h2>
-          <form className="flex flex-col" onSubmit={handleSubmit}>
+    <div className="flex h-screen items-center justify-center bg-[#7b548b] p-4">
+      <div className="w-full max-w-lg rounded-lg bg-[#7b548b] p-8 text-white">
+        <h2 className="text-3xl font-bold text-center mb-6">Cambiar Contraseña</h2>
+        {isLoading ? (
+          <div className="text-center text-white">Recuperando contraseña...</div> // Muestra el mensaje de carga
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col">
             <input
               type="email"
               name="email"
-              placeholder="Correo Electrónico"
+              placeholder="E-mail"
               value={formData.email}
               onChange={handleChange}
-              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
+              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none"
             />
-            <input
-              type="password"
-              name="newPassword"
-              placeholder="Nueva Contraseña"
-              value={formData.newPassword}
-              onChange={handleChange}
-              className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            />
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirmar Contraseña"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className="mb-6 border-b-2 border-white bg-transparent p-2 text-white outline-none w-full"
-            />
+            <div className="relative mb-4">
+              <input
+                type={showPasswords.newPassword ? "text" : "password"}
+                name="newPassword"
+                placeholder="Nueva contraseña"
+                value={formData.newPassword}
+                onChange={handleChange}
+                className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => togglePasswordVisibility("newPassword")}
+                className="absolute right-2 top-3 text-white"
+              >
+                {showPasswords.newPassword ? <FaEye /> : <FaEyeSlash />}
+              </button>
+            </div>
+            <div className="relative mb-6">
+              <input
+                type={showPasswords.confirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Confirmar contraseña"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => togglePasswordVisibility("confirmPassword")}
+                className="absolute right-2 top-3 text-white"
+              >
+                {showPasswords.confirmPassword ? <FaEye /> : <FaEyeSlash />}
+              </button>
+            </div>
             <button
               type="submit"
-              className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 w-full"
+              className="rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
             >
               Cambiar Contraseña
             </button>
           </form>
-        </div>
+        )}
       </div>
     </div>
   );

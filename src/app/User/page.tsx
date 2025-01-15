@@ -8,6 +8,11 @@ import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
 import { Address } from "@/interfaces/User";
 
+
+const API_URL =
+  process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
+
+
 const AddressForm = dynamic(() => import("@/components/AddressForm"), {
   ssr: false,
 });
@@ -57,36 +62,28 @@ const UserPanel: React.FC = () => {
 
   const getUserTokenId = (): { id: string; token: string } => {
     const user = localStorage.getItem("user");
-
+  
     if (!user) {
       console.error("No hay datos del usuario en localStorage");
-      return { id: "", token: "" }; // Retorna valores vacíos en lugar de `undefined`
+      return { id: "", token: "" };
     }
-
+  
     try {
-      const parsedUser = JSON.parse(user ?? "");
-      const id = parsedUser.id || parsedUser.user?.id || "";
-      let token = parsedUser.token || parsedUser.user?.token || "";
-
-      // Si el token no está disponible en los datos parseados, buscar en localStorage
-      if (!token) {
-        token = localStorage.getItem("access_token") || ""; // Asignar token desde localStorage
-      }
-
-      if (!id) {
-        console.error("El ID del usuario no está disponible");
-      }
-      if (!token) {
-        console.error("El token del usuario no está disponible");
-      }
-
+      const parsedUser = JSON.parse(user);
+      const id = parsedUser.id || parsedUser.user?.id || ""; // Acceso seguro
+      const token = parsedUser.token || parsedUser.accessToken || ""; // Token prioritario
+  
+      if (!id) console.warn("El ID del usuario no está disponible.");
+      if (!token) console.warn("El token del usuario no está disponible.");
+  
+      console.log("ID:", id, "Token:", token);
       return { id, token };
     } catch (err) {
       console.error("Error al parsear los datos del usuario:", err);
-      return { id: "", token: "" }; // Retorna valores vacíos en caso de error
+      return { id: "", token: "" };
     }
   };
-
+  
   const getUserData = () => {
     try {
       const storedUser = localStorage.getItem("user");
@@ -100,7 +97,10 @@ const UserPanel: React.FC = () => {
           lastname: parsedUser.lastname || parsedUser.user.lastname || "",
           email: parsedUser.email || parsedUser.user.email || "",
           photoUrl: parsedUser.photo || "/images/Avatar.png",
-          isAdmin: parsedUser.isAdmin || parsedUser.user.isAdmin || false,
+          isAdmin:
+            parsedUser.isAdmin ||
+            (parsedUser.user && parsedUser.user.isAdmin) ||
+            false,
           isGoogleUser: false,
         };
       } else if (storedGoogleUser) {
@@ -125,11 +125,13 @@ const UserPanel: React.FC = () => {
   };
   const fetchUserDetails = async (id: string) => {
     try {
+      const { token } = getUserTokenId();
+      console.log("Token obtenido:", token);
       const response = await axios.get(
         `https://valkiriasback.onrender.com/users/${id}`,
         {
           headers: {
-            Authorization: `Bearer ${getUserTokenId().token}`,
+            Authorization: `Bearer ${token}`, // Usamos el token directamente
           },
         }
       );
@@ -139,13 +141,14 @@ const UserPanel: React.FC = () => {
       return null;
     }
   };
+  
   useEffect(() => {
     if (user.id) fetchUserDetails(user.id);
   }, [user.id]);
   const fetchOrders = async () => {
     try {
       const response = await fetch(
-        `https://valkiriasback.onrender.com/order/user/${getUserTokenId().id}`,
+        `${API_URL}/order/user/${getUserTokenId().id}`,
         {
           method: "GET",
           headers: {
@@ -183,7 +186,7 @@ const UserPanel: React.FC = () => {
   const fetchAddresses = async (id: string) => {
     try {
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/users/address/${id}`,
+        `${API_URL}/users/address/${id}`,
         {
           headers: {
             Accept: "*/*",
@@ -213,9 +216,11 @@ const UserPanel: React.FC = () => {
     const formData = new FormData();
     formData.append("photo", file); // La clave 'photo' debe coincidir con la esperada en la API.
 
+    console.log(getUserTokenId().token, getUserTokenId().id)
+
     try {
       const response = await axios.put(
-        `https://valkiriasback.onrender.com/users/updateProfileImg/${
+        `${API_URL}/users/updateProfileImg/${
           getUserTokenId().id
         }`,
         formData,
@@ -251,7 +256,7 @@ const UserPanel: React.FC = () => {
   const deleteOrderById = async (orderId: string) => {
     try {
       const response = await fetch(
-        `https://valkiriasback.onrender.com/order/${orderId}`,
+        `${API_URL}/order/${orderId}`,
         {
           method: "DELETE",
           headers: {
@@ -276,7 +281,7 @@ const UserPanel: React.FC = () => {
   const deleteAddressById = async (addressId: string, userId: string) => {
     try {
       const response = await fetch(
-        `https://valkiriasback.onrender.com/users/${userId}/deleteAddress/${addressId}`,
+        `${API_URL}/users/${userId}/deleteAddress/${addressId}`,
         {
           method: "DELETE",
           headers: {
