@@ -6,6 +6,7 @@ import { Product } from "@/interfaces/Product";
 import toast from "react-hot-toast"; //
 import ProductPreview from "@/components/ProductPreview";
 import axios from "axios";
+import Link from "next/link";
 
 const UpdateProduct: React.FC = () => {
   const { register, handleSubmit, control, setValue } = useForm<Product>();
@@ -19,6 +20,7 @@ const UpdateProduct: React.FC = () => {
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
+  const [isCustomizable, setIsCustomizable] = useState<boolean>(true);
   const [, setPrice] = useState<string[]>([]);
   const [stock, setStock] = useState<number | null>(null);
   const [sizePriceMapping, setSizePriceMapping] = useState<
@@ -84,6 +86,7 @@ const UpdateProduct: React.FC = () => {
       formData.append("stock", data.stock.toString());
       formData.append("color", data.color.join(","));
       formData.append("category", category);
+      formData.append("isCustomizable", isCustomizable.toString());
 
       // Combinar tallas y añadirlas a FormData
       const allSizes = [...kidsSizes, ...adultSizes];
@@ -453,6 +456,17 @@ const UpdateProduct: React.FC = () => {
             </select>
           </div>
         </div>
+        <div className="mt-4">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={isCustomizable}
+              onChange={() => setIsCustomizable((prev) => !prev)}
+              className="w-4 h-4 text-violet-500 border-gray-300 rounded focus:ring-violet-500"
+            />
+            <span className="text-sm font-medium">Personalizable</span>
+          </label>
+        </div>
 
         <div className="mt-4">
           <label htmlFor="photos" className="block text-sm font-medium">
@@ -523,6 +537,14 @@ const UpdateProduct: React.FC = () => {
 
         {/* Botones de Acción */}
         <div className="flex justify-center items-center gap-4 mt-6">
+          <Link href="/Admin">
+            <button
+              type="button"
+              className=" bg-creativity-purple text-white  font-medium py-2 px-4 rounded-md"
+            >
+              Volver
+            </button>
+          </Link>
           <button
             type="submit"
             disabled={loading}

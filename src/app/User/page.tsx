@@ -6,14 +6,17 @@ import { toast } from "react-hot-toast";
 import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
+import { Address } from "@/interfaces/User";
+import OrderDetails from "@/components/OrderDetail";
 
 const AddressForm = dynamic(() => import("@/components/AddressForm"), {
   ssr: false,
 });
 const UserPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("profile");
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [user, setUser] = useState<{
-    id?: string;
+    id: string;
     firstname: string;
     lastname: string;
     email: string;
@@ -173,7 +176,7 @@ const UserPanel: React.FC = () => {
   };
 
   // Obtener órdenes desde la API
-  const fetchOrders = async () => {
+  const fetchOrders = async (id: string) => {
     try {
       const getToken = () => {
         const user = localStorage.getItem("user");
@@ -196,14 +199,16 @@ const UserPanel: React.FC = () => {
       if (!token) {
         console.error("No se encontró el token.");
       }
+
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/order/user/${user.id}`,
+        `https://valkiriasback.onrender.com/order/user/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+      console.log("Respuesta de la API:", response.data);
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
@@ -222,7 +227,45 @@ const UserPanel: React.FC = () => {
       toast.error("Error al obtener las compras.");
     }
   };
+  const fetchAddresses = async (id: string) => {
+    try {
+      const getToken = () => {
+        const user = localStorage.getItem("user");
 
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+      }
+
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/users/address/${id}`,
+        {
+          headers: {
+            Accept: "*/*",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setAddresses(response.data);
+    } catch (error) {
+      console.log("Error fetching addresses:", error);
+    }
+  };
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -333,8 +376,8 @@ const UserPanel: React.FC = () => {
 
   // Cargar órdenes o compras según la pestaña activa
   useEffect(() => {
-    if (activeTab === "orders") fetchOrders();
-    if (activeTab === "purchases") fetchPurchases();
+    if (activeTab === "orders") fetchOrders(user.id);
+    if (activeTab === "profile") fetchAddresses(user.id);
   }, [activeTab]);
   const userFields: {
     label: string;
@@ -360,7 +403,55 @@ const UserPanel: React.FC = () => {
     setModalField(field);
     setIsModalOpen(true);
   };
+  const getToken = (): string | null => {
+    const user = localStorage.getItem("user");
+    if (!user) {
+      console.error("No hay datos del usuario en localStorage");
+      return null;
+    }
 
+    try {
+      const parsedUser = JSON.parse(user);
+      return parsedUser.token || null;
+    } catch (err) {
+      console.error("Error al parsear los datos del usuario:", err);
+      return null;
+    }
+  };
+  const handleDeleteAddress = async (addressId: string, userId: string) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        toast.error(
+          "No se encontró el token. Intenta iniciar sesión nuevamente."
+        );
+        return;
+      }
+      console.log("adresesssss", addressId, "userID", userId);
+      const response = await axios.delete(
+        `http://localhost:3000/users/${userId}/deleteAddress/${addressId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("Dirección eliminada con éxito.");
+      } else {
+        throw new Error(
+          response.data?.message || "Error al eliminar la dirección"
+        );
+      }
+    } catch (error: any) {
+      console.error("Error eliminando la dirección:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "No se pudo eliminar la dirección. Intenta nuevamente."
+      );
+    }
+  };
   const handleSave = async () => {
     if (!modalField) {
       toast.error("No hay campo para guardar.");
@@ -449,7 +540,7 @@ const UserPanel: React.FC = () => {
     switch (activeTab) {
       case "profile":
         return (
-          <div className="bg-white min-h-screen p-6">
+          <div className="bg-white min-h-screen  p-6">
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
               Mi Perfil
             </h1>
@@ -512,7 +603,47 @@ const UserPanel: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <div className="">
+                <div className=" flex flex-wrap gap-6 p-4 items-center w-full justify-center">
+                  {addresses.length > 0 ? (
+                    addresses.map((address) => (
+                      <div
+                        key={address.id}
+                        className=" bg-white border border-gray-200 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200 flex flex-col"
+                      >
+                        <p className="text-lg  text-gray-700">
+                          <strong>Calle:</strong> {address.street}
+                        </p>
+                        <p className="text-lg text-gray-600">
+                          <strong>Número:</strong> {address.number}
+                        </p>
+                        <p className="text-lg text-gray-600">
+                          <strong>Código Postal:</strong> {address.postalCode}
+                        </p>
+                        <p className="text-lg text-gray-600">
+                          <strong>Ciudad:</strong> {address.city}
+                        </p>
+                        <p className="text-lg text-gray-600">
+                          <strong>Estado:</strong> {address.state}
+                        </p>
+
+                        <button
+                          onClick={() =>
+                            handleDeleteAddress(address.id, user.id)
+                          }
+                          className="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors duration-200"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center w-full">
+                      No hay direcciones registradas.
+                    </p>
+                  )}
+                </div>
+
+                <div className="w-full">
                   <AddressForm userId={user?.id || ""} />
                 </div>
               </div>
@@ -631,11 +762,10 @@ const UserPanel: React.FC = () => {
                         <strong>ID:</strong> {order.id}
                       </p>
                       <p className="text-lg text-gray-800">
-                        <strong>Fecha:</strong>{" "}
-                        {new Date(order.date).toLocaleDateString()}
+                        <strong>Fecha:</strong> {order.createdAt}
                       </p>
                       <p className="text-lg text-gray-800">
-                        <strong>Total:</strong> ${order.total}
+                        <strong>Status:</strong> {order.status}
                       </p>
                     </div>
                     <button
@@ -659,6 +789,7 @@ const UserPanel: React.FC = () => {
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
               Mis Compras
             </h1>
+
             <div className="space-y-4">
               {data.purchases.length > 0 ? (
                 data.purchases.map((purchase) => (

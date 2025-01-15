@@ -41,14 +41,15 @@ const Products: React.FC = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/products`, {
-          cache: "no-cache",
+        const res = await axios.get(`${API_URL}/products`, {
+          headers: { "Cache-Control": "no-cache" },
         });
-        if (!res.ok) {
-          console.log(res);
+
+        if (res.status !== 200) {
           throw new Error(`Failed to fetch products: ${res.statusText}`);
         }
-        const allProducts = (await res.json()) as Product[];
+
+        const allProducts = res.data as Product[];
         setProducts(allProducts);
 
         // Extraer categorías, colores y talles únicos
@@ -111,6 +112,7 @@ const Products: React.FC = () => {
   const groupedProducts = filteredProducts.reduce(
     (acc: Record<string, Product[]>, product) => {
       const category = product.category || "Sin categoría";
+
       if (!acc[category]) {
         acc[category] = [];
       }

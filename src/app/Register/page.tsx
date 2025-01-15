@@ -20,6 +20,9 @@ const Register: React.FC = () => {
 
   const [showPassword, setShowPassword] = useState(false); // Estado para contraseña
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Estado para confirmar contraseña
+  const [showPasswordHint, setShowPasswordHint] = useState(false);
+  const [showPasswordHint1, setShowPasswordHint1] = useState(false);
+
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
@@ -163,6 +166,8 @@ const Register: React.FC = () => {
               onChange={handleChange}
               className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none"
             />
+
+            {/* Campo de contraseña */}
             <div className="relative mb-2">
               <input
                 type={showPassword ? "text" : "password"}
@@ -170,6 +175,8 @@ const Register: React.FC = () => {
                 placeholder="Contraseña"
                 value={formData.password}
                 onChange={handleChange}
+                onFocus={() => setShowPasswordHint(true)}
+                onBlur={() => setShowPasswordHint(false)}
                 className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
               />
               <button
@@ -184,10 +191,15 @@ const Register: React.FC = () => {
                 )}
               </button>
             </div>
-            <p className="text-xs text-gray-300 mb-2">
-              Debe contener entre 8 y 15 caracteres, una mayúscula y una
-              minúscula.
-            </p>
+
+            {/* Cláusula de la contraseña */}
+            {showPasswordHint && (
+              <p className="text-xs text-gray-300 mb-2">
+                Debe contener entre 8 y 15 caracteres, una mayúscula y una
+                minúscula.
+              </p>
+            )}
+
             <div className="relative mb-6">
               <input
                 type={showConfirmPassword ? "text" : "password"}
@@ -195,6 +207,8 @@ const Register: React.FC = () => {
                 placeholder="Repetir contraseña"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                onFocus={() => setShowPasswordHint1(true)}
+                onBlur={() => setShowPasswordHint1(false)}
                 className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
               />
               <button
@@ -209,6 +223,13 @@ const Register: React.FC = () => {
                 )}
               </button>
             </div>
+            {showPasswordHint1 && (
+              <p className="text-xs text-gray-300 mb-2">
+                Debe contener entre 8 y 15 caracteres, una mayúscula y una
+                minúscula.
+              </p>
+            )}
+
             <button
               type="submit"
               className="rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
