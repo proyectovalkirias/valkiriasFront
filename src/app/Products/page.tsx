@@ -7,27 +7,20 @@ import Image from "next/image";
 import axios from "axios";
 
 const colorNameMap: Record<string, string> = {
-  "#ff0000": "Rojo",
-  "#00ff00": "Verde",
-  "#0000ff": "Azul",
-  "#ffffff": "Blanco",
   "#000000": "Negro",
-  "#ffff00": "Amarillo",
-  "#ff00ff": "Fucsia",
-  "#00ffff": "Cian",
+  "#f5f5ef": "Blanco",
   "#a6a6a6": "Gris",
-  "#f5f5ef": "Marfil",
-  "#d80032": "Violeta",
-  "#05299e": "Azul Marino",
+  "#d80032": "Rojo",
+  "#05299e": "Azul",
   "#f7e90f": "Amarillo",
-  "#00913f": "Verde Oliva",
+  "#00913f": "Verde Benetton",
 };
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
+const API_URL = `https://valkiriasback.onrender.com`;
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
@@ -36,6 +29,7 @@ const Products: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [isCustomizable, setIsCustomizable] = useState<boolean | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -51,6 +45,7 @@ const Products: React.FC = () => {
 
         const allProducts = res.data as Product[];
         setProducts(allProducts);
+        setFilteredProducts(allProducts);
 
         // Extraer categorías, colores y talles únicos
         const uniqueCategories = Array.from(
@@ -86,27 +81,39 @@ const Products: React.FC = () => {
     fetchProducts();
   }, []);
 
-  // Filtrar productos según los filtros seleccionados
-  const filteredProducts = products.filter((product) => {
-    const matchesCategory =
-      !selectedCategory ||
-      product.category?.toLowerCase() === selectedCategory.toLowerCase();
-    const matchesColor =
-      !selectedColor ||
-      product.color?.some(
-        (c) =>
-          colorNameMap[c.replace(/"|\[|\]/g, "")]?.toLowerCase() ===
-          selectedColor.toLowerCase()
-      );
-    const matchesSize =
-      !selectedSize ||
-      product.sizes?.some(
-        (s) =>
-          s.replace(/"|\[|\]/g, "").toLowerCase() === selectedSize.toLowerCase()
-      );
+  useEffect(() => {
+    const updateFilteredProducts = () => {
+      const filtered = products.filter((product) => {
+        const matchesCategory =
+          !selectedCategory ||
+          product.category?.toLowerCase() === selectedCategory.toLowerCase();
+        const matchesColor =
+          !selectedColor ||
+          product.color?.some(
+            (c) =>
+              colorNameMap[c.replace(/"|\[|\]/g, "")]?.toLowerCase() ===
+              selectedColor.toLowerCase()
+          );
+        const matchesSize =
+          !selectedSize ||
+          product.sizes?.some(
+            (s) =>
+              s.replace(/"|\[|\]/g, "").toLowerCase() ===
+              selectedSize.toLowerCase()
+          );
+        const matchesCustomizable =
+          isCustomizable === null || product.isCustomizable === isCustomizable;
 
-    return matchesCategory && matchesColor && matchesSize;
-  });
+        return (
+          matchesCategory && matchesColor && matchesSize && matchesCustomizable
+        );
+      });
+
+      setFilteredProducts(filtered);
+    };
+
+    updateFilteredProducts();
+  }, [selectedCategory, selectedColor, selectedSize, isCustomizable, products]);
 
   // Agrupar productos por categoría
   const groupedProducts = filteredProducts.reduce(
@@ -138,17 +145,17 @@ const Products: React.FC = () => {
     <div className="bg-purple-100 min-h-screen p-8">
       {/* Formulario de Filtros */}
       <div className="mb-8  p-4 rounded-lg">
-        <h2 className="text-lg text-gray-800 font-bold mb-4 text-center">
+        <h2 className="text-2xl text-gray-800 font-bold mb-4 text-center">
           Explora nuestra colección y encuentra el producto perfecto para ti.
         </h2>
         <div className="flex flex-wrap text-gray-800s gap-4 justify-center">
           {/* Filtro por Categoría */}
           <select
-            className="p-2 border rounded text-gray-600"
+            className="p-2 border rounded text-purple-dark"
             value={selectedCategory || ""}
             onChange={(e) => setSelectedCategory(e.target.value || null)}
           >
-            <option>Todas las categorías</option>
+            <option value="">Todas las categorías</option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -158,7 +165,7 @@ const Products: React.FC = () => {
 
           {/* Filtro por Color */}
           <select
-            className="p-2 border rounded text-gray-600"
+            className="p-2 border rounded text-purple-dark"
             value={selectedColor || ""}
             onChange={(e) => setSelectedColor(e.target.value || null)}
           >
@@ -172,7 +179,7 @@ const Products: React.FC = () => {
 
           {/* Filtro por Talle */}
           <select
-            className="p-2 border rounded text-gray-600"
+            className="p-2 border rounded text-purple-dark"
             value={selectedSize || ""}
             onChange={(e) => setSelectedSize(e.target.value || null)}
           >
@@ -183,6 +190,18 @@ const Products: React.FC = () => {
               </option>
             ))}
           </select>
+
+          {/* Filtro por Personalización */}
+          <label className="flex items-center gap-2 text-purple-dark">
+            <input
+              type="checkbox"
+              checked={isCustomizable === true}
+              onChange={(e) =>
+                setIsCustomizable(e.target.checked ? true : null)
+              }
+            />
+            Personalizable
+          </label>
         </div>
       </div>
 
@@ -252,10 +271,9 @@ const Products: React.FC = () => {
           ))
         ) : (
           <div className="flex flex-col items-center min-h-screen">
-            <p className="text-xl font-bold mb-4 text-white">
+            <p className="text-2xl font-bold mb-4 text-gray-800">
               No hay productos
             </p>
-            <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
       </div>

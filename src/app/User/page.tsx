@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { FaUser, FaShoppingCart, FaReceipt, FaTruck } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -7,8 +7,8 @@ import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
 import { Address } from "@/interfaces/User";
-import { parse } from "path";
-// import OrderDetails from "@/components/OrderDetail";
+
+const API_URL = "https://valkiriasback.onrender.com";
 
 const AddressForm = dynamic(() => import("@/components/AddressForm"), {
   ssr: false,
@@ -18,7 +18,12 @@ const UserPanel: React.FC = () => {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteModal1Open, setDeleteModal1Open] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null
+  );
+  const [addressUpdated, setAddressUpdated] = useState(false);
 
   const [user, setUser] = useState<{
     id: string;
@@ -53,21 +58,30 @@ const UserPanel: React.FC = () => {
     value: string | number;
   } | null>(null);
 
-  const getToken = (): string | null => {
+  const getUserTokenId = (): { id: string; token: string } => {
     const user = localStorage.getItem("user");
+
     if (!user) {
       console.error("No hay datos del usuario en localStorage");
-      return null;
+      return { id: "", token: "" };
     }
 
     try {
       const parsedUser = JSON.parse(user);
-      return parsedUser.token || null;
+      const id = parsedUser.id || parsedUser.user?.id || ""; // Acceso seguro
+      const token = parsedUser.token || parsedUser.accessToken || ""; // Token prioritario
+
+      if (!id) console.warn("El ID del usuario no está disponible.");
+      if (!token) console.warn("El token del usuario no está disponible.");
+
+      console.log("ID:", id, "Token:", token);
+      return { id, token };
     } catch (err) {
       console.error("Error al parsear los datos del usuario:", err);
-      return null;
+      return { id: "", token: "" };
     }
   };
+
   const getUserData = () => {
     try {
       const storedUser = localStorage.getItem("user");
@@ -81,7 +95,10 @@ const UserPanel: React.FC = () => {
           lastname: parsedUser.lastname || parsedUser.user.lastname || "",
           email: parsedUser.email || parsedUser.user.email || "",
           photoUrl: parsedUser.photo || "/images/Avatar.png",
-          isAdmin: parsedUser.isAdmin || parsedUser.user.isAdmin || false,
+          isAdmin:
+            parsedUser.isAdmin ||
+            (parsedUser.user && parsedUser.user.isAdmin) ||
+            false,
           isGoogleUser: false,
         };
       } else if (storedGoogleUser) {
@@ -106,11 +123,13 @@ const UserPanel: React.FC = () => {
   };
   const fetchUserDetails = async (id: string) => {
     try {
+      const { token } = getUserTokenId();
+      console.log("Token obtenido:", token);
       const response = await axios.get(
         `https://valkiriasback.onrender.com/users/${id}`,
         {
           headers: {
-            Authorization: `Bearer ${getToken()}`,
+            Authorization: `Bearer ${token}`, // Usamos el token directamente
           },
         }
       );
@@ -120,25 +139,18 @@ const UserPanel: React.FC = () => {
       return null;
     }
   };
+
   useEffect(() => {
     if (user.id) fetchUserDetails(user.id);
   }, [user.id]);
-  const fetchOrders = async (id: string) => {
+  const fetchOrders = async () => {
     try {
-      const token = getToken();
-      if (!token) {
-        console.error("No se encontró el token.");
-        toast.error("Por favor, inicia sesión nuevamente.");
-        return;
-      }
-
       const response = await fetch(
-        `https://valkiriasback.onrender.com/order/user/${id}`,
+        `${API_URL}/order/user/${getUserTokenId().id}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${getUserTokenId().token}`,
           },
         }
       );
@@ -152,47 +164,49 @@ const UserPanel: React.FC = () => {
       const data = await response.json();
       console.log("Respuesta de la API:", data);
 
-      setData((prev) => ({ ...prev, orders: data }));
+      if (data.length === 0) {
+        // Si no hay órdenes
+        toast("No hay órdenes disponibles.");
+      } else {
+        // Si hay órdenes, actualiza el estado
+        setData((prev) => ({ ...prev, orders: data }));
+      }
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
       toast.error("Error al obtener las órdenes.");
     }
   };
+
   useEffect(() => {
-    if (activeTab === "orders") fetchOrders(user.id);
+    if (activeTab === "orders") fetchOrders();
   }, [activeTab, user.id]);
-  const fetchPurchases = async () => {
-    try {
-      const response = await axios.get(
-        `https://valkiriasback.onrender.com/purchase/user/${user.id}`
-      );
-      setData((prev) => ({ ...prev, purchases: response.data }));
-    } catch {
-      toast.error("Error al obtener las compras.");
-    }
-  };
-  useEffect(() => {
-    if (activeTab === "purchases") fetchPurchases();
-  }, [activeTab]);
+
   const fetchAddresses = async (id: string) => {
     try {
+      const { token } = getUserTokenId() || {};
+      if (!token) {
+        console.error("No se encontró el token.");
+        return;
+      }
+
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/users/address/${id}`,
+        `https://valkiriasback.onrender.com/users/address/${
+          getUserTokenId().id
+        }`,
         {
           headers: {
             Accept: "*/*",
-            Authorization: `Bearer ${getToken()}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-
       setAddresses(response.data);
     } catch (error) {
-      console.log("Error fetching addresses:", error);
+      console.error("Error al obtener direcciones:", error);
     }
   };
   useEffect(() => {
-    if (user.id && activeTab === "profile") fetchAddresses(user.id);
+    if (user.id && activeTab === "profile") fetchAddresses(getUserTokenId().id);
   }, [user.id, activeTab]);
 
   const handleImageChange = async (
@@ -207,14 +221,16 @@ const UserPanel: React.FC = () => {
     const formData = new FormData();
     formData.append("photo", file); // La clave 'photo' debe coincidir con la esperada en la API.
 
+    console.log(getUserTokenId().token, getUserTokenId().id);
+
     try {
       const response = await axios.put(
-        `https://valkiriasback.onrender.com/users/updateProfileImg/${user.id}`,
+        `${API_URL}/users/updateProfileImg/${getUserTokenId().id}`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${getToken()}`,
+            Authorization: `Bearer ${getUserTokenId().token}`,
           },
         }
       );
@@ -242,15 +258,12 @@ const UserPanel: React.FC = () => {
   };
   const deleteOrderById = async (orderId: string) => {
     try {
-      const response = await fetch(
-        `https://valkiriasback.onrender.com/order/${orderId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${getToken()}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/order/${orderId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getUserTokenId().token}`,
+        },
+      });
 
       if (!response.ok) throw new Error("Error eliminando la orden.");
 
@@ -268,12 +281,12 @@ const UserPanel: React.FC = () => {
   const deleteAddressById = async (addressId: string, userId: string) => {
     try {
       const response = await fetch(
-        `https://valkiriasback.onrender.com/users/${userId}/deleteAddress/${addressId}`,
+        `${API_URL}/users/${userId}/deleteAddress/${addressId}`,
         {
           method: "DELETE",
           headers: {
             Accept: "*/*",
-            Authorization: `Bearer ${getToken()}`,
+            Authorization: `Bearer ${getUserTokenId().token}`,
           },
         }
       );
@@ -339,7 +352,7 @@ const UserPanel: React.FC = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${getToken()}`,
+            Authorization: `Bearer ${getUserTokenId().token}`,
           },
         }
       );
@@ -358,10 +371,10 @@ const UserPanel: React.FC = () => {
   };
   const handleDeleteOrder = (orderId: string) => {
     setSelectedOrderId(orderId);
-    setDeleteModalOpen(true);
+    setDeleteModal1Open(true);
   };
   const handleDeleteAddress = (addressId: string) => {
-    setSelectedOrderId(addressId); // Usa el mismo estado para simplicidad
+    setSelectedAddressId(addressId); // Usa el mismo estado para simplicidad
     setDeleteModalOpen(true);
   };
 
@@ -408,6 +421,21 @@ const UserPanel: React.FC = () => {
 
     fetchData();
   }, []);
+
+  const reloadAddresses = async () => {
+    try {
+      const { id } = getUserTokenId();
+      if (id) await fetchAddresses(id);
+    } catch (error) {
+      console.error("Error recargando las direcciones:", error);
+    }
+  };
+  useEffect(() => {
+    if (addressUpdated) {
+      reloadAddresses(); // Recarga las direcciones después de guardar
+      setAddressUpdated(false); // Resetea el flag
+    }
+  }, [addressUpdated]);
 
   const userFields: {
     label: string;
@@ -517,7 +545,7 @@ const UserPanel: React.FC = () => {
 
                         <button
                           onClick={() => handleDeleteAddress(address.id)}
-                          className="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors duration-200"
+                          className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple mt-2"
                         >
                           Eliminar
                         </button>
@@ -531,7 +559,10 @@ const UserPanel: React.FC = () => {
                 </div>
 
                 <div className="w-full">
-                  <AddressForm userId={user?.id || ""} />
+                  <AddressForm
+                    userId={user?.id || ""}
+                    onSaveSuccess={() => reloadAddresses()}
+                  />
                 </div>
               </div>
             ) : (
@@ -548,86 +579,108 @@ const UserPanel: React.FC = () => {
               Seguimiento de Pedidos
             </h1>
 
-            <div className="max-w-4xl mx-auto bg-gray-100 p-6 rounded-lg shadow-lg">
+            <div className="max-w-6xl mx-auto  p-4 rounded-lg shadow-lg flex flex-wrap gap-4">
               {/* Detalles del Pedido */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                  Detalles del Pedido
-                </h2>
-                <div className="text-lg text-gray-700 space-y-2">
-                  <p>
-                    <strong>ID del Pedido:</strong> #123456
-                  </p>
-                  <p>
-                    <strong>Fecha de Pedido:</strong> 05 de Enero de 2025
-                  </p>
-                  <p>
-                    <strong>Estado Actual:</strong> En Tránsito
-                  </p>
-                  <p>
-                    <strong>Entrega Estimada:</strong> 10 de Enero de 2025
-                  </p>
-                </div>
-              </div>
+              {data.orders.map((order) => {
+                // Definir la línea de tiempo dinámica basada en el estado
+                const timeline = [
+                  {
+                    id: `${order.id}-1`,
+                    title: "Pedido Realizado",
+                    date: new Date(order.createdAt).toLocaleDateString(),
+                    description:
+                      "Hemos recibido tu pedido y lo estamos procesando.",
+                    isCompleted: order.status !== "pendiente",
+                  },
+                  {
+                    id: `${order.id}-2`,
+                    title: "En Preparación",
+                    date: "Próximamente",
+                    description: "Tu pedido está siendo preparado.",
+                    isCompleted:
+                      order.status === "en preparacion" ||
+                      order.status === "en camino" ||
+                      order.status === "entregado",
+                  },
+                  {
+                    id: `${order.id}-3`,
+                    title: "En Camino",
+                    date: "Próximamente",
+                    description:
+                      "Tu pedido está en camino a la dirección indicada.",
+                    isCompleted:
+                      order.status === "en camino" ||
+                      order.status === "entregado",
+                  },
+                  {
+                    id: `${order.id}-4`,
+                    title: "Entregado",
+                    date: "Próximamente",
+                    description:
+                      "Tu pedido ha sido entregado. ¡Gracias por tu compra!",
+                    isCompleted: order.status === "entregado",
+                  },
+                ];
 
-              {/* Línea de Tiempo */}
-              <div className="relative border-l-4 border-purple-500">
-                {/* Evento: Pedido Realizado */}
-                <div className="mb-8 pl-6">
-                  <div className="absolute -left-4 top-0 bg-purple-500 rounded-full h-8 w-8 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">1</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800">
-                    Pedido Realizado
-                  </h3>
-                  <p className="text-gray-600">05 de Enero de 2025</p>
-                  <p className="text-gray-700">
-                    Hemos recibido tu pedido y lo estamos procesando.
-                  </p>
-                </div>
+                return (
+                  <div
+                    key={order.id}
+                    className="bg-white p-4 rounded-lg shadow-md flex-1 min-w-[300px] max-w-[400px]"
+                  >
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">
+                      Detalles del Pedido
+                    </h2>
+                    <div className="text-sm text-gray-700 space-y-1">
+                      <p>
+                        <strong>ID del Pedido:</strong> {order.id}
+                      </p>
+                      <p>
+                        <strong>Fecha de Pedido:</strong>{" "}
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </p>
+                      <p>
+                        <strong>Estado Actual:</strong> {order.status}
+                      </p>
+                      <p>
+                        <strong>Última Actualización:</strong>{" "}
+                        {new Date(order.updatedAt).toLocaleDateString()}
+                      </p>
+                    </div>
 
-                {/* Evento: Pedido Preparado */}
-                <div className="mb-8 pl-6">
-                  <div className="absolute -left-4 top-0 bg-purple-500 rounded-full h-8 w-8 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">2</span>
+                    {/* Línea de Tiempo */}
+                    <div className="mt-4 border-l-4 border-purple-500 pl-4">
+                      {timeline.map((event, index) => (
+                        <div className="mb-4" key={event.id}>
+                          <div
+                            className={`relative h-6 w-6 flex items-center justify-center rounded-full mb-2 ${
+                              event.isCompleted
+                                ? "bg-purple-500"
+                                : "bg-gray-300"
+                            }`}
+                          >
+                            <span
+                              className={`font-bold text-sm ${
+                                event.isCompleted
+                                  ? "text-white"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              {index + 1}
+                            </span>
+                          </div>
+                          <h3 className="text-sm font-bold text-gray-800">
+                            {event.title}
+                          </h3>
+                          <p className="text-xs text-gray-600">{event.date}</p>
+                          <p className="text-xs text-gray-700">
+                            {event.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800">
-                    Pedido Preparado
-                  </h3>
-                  <p className="text-gray-600">06 de Enero de 2025</p>
-                  <p className="text-gray-700">
-                    Tu pedido está listo para ser enviado.
-                  </p>
-                </div>
-
-                {/* Evento: En Tránsito */}
-                <div className="mb-8 pl-6">
-                  <div className="absolute -left-4 top-0 bg-purple-500 rounded-full h-8 w-8 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">3</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800">
-                    En Tránsito
-                  </h3>
-                  <p className="text-gray-600">07 de Enero de 2025</p>
-                  <p className="text-gray-700">
-                    Tu pedido está en camino a la dirección indicada.
-                  </p>
-                </div>
-
-                {/* Evento: Entregado */}
-                <div className="pl-6">
-                  <div className="absolute -left-4 top-0 bg-gray-300 rounded-full h-8 w-8 flex items-center justify-center">
-                    <span className="text-gray-500 font-bold text-lg">4</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800">Entregado</h3>
-                  <p className="text-gray-600">
-                    10 de Enero de 2025 (estimado)
-                  </p>
-                  <p className="text-gray-700">
-                    Tu pedido será entregado pronto. ¡Gracias por tu paciencia!
-                  </p>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
         );
@@ -657,7 +710,7 @@ const UserPanel: React.FC = () => {
                     </div>
                     <button
                       onClick={() => handleDeleteOrder(order.id)}
-                      className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600"
+                      className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
                     >
                       Eliminar
                     </button>
@@ -669,37 +722,7 @@ const UserPanel: React.FC = () => {
             </div>
           </div>
         );
-      case "purchases":
-        return (
-          <div className="bg-white min-h-screen p-6">
-            <h1 className="text-3xl font-bold text-black mb-6 text-center">
-              Mis Compras
-            </h1>
 
-            <div className="space-y-4">
-              {data.purchases.length > 0 ? (
-                data.purchases.map((purchase) => (
-                  <div
-                    key={purchase.id}
-                    className="p-4 bg-gray-100 rounded-lg shadow-md"
-                  >
-                    <p className="text-lg text-gray-800">
-                      <strong>Producto:</strong> {purchase.product}
-                    </p>
-                    <p className="text-lg text-gray-800">
-                      <strong>Cantidad:</strong> {purchase.quantity}
-                    </p>
-                    <p className="text-lg text-gray-800">
-                      <strong>Total:</strong> ${purchase.total}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-600">No tienes compras registradas.</p>
-              )}
-            </div>
-          </div>
-        );
       default:
         return <p>Seleccione una pestaña para ver el contenido.</p>;
     }
@@ -727,15 +750,7 @@ const UserPanel: React.FC = () => {
             <FaShoppingCart className="mr-2" />
             Órdenes
           </button>
-          <button
-            className={`p-2 flex items-center cursor-pointer ${
-              activeTab === "purchases" ? "border-b-2 border-white" : ""
-            }`}
-            onClick={() => setActiveTab("purchases")}
-          >
-            <FaReceipt className="mr-2" />
-            Compras
-          </button>
+
           <button
             className={`p-2 flex items-center cursor-pointer ${
               activeTab === "traking" ? "border-b-2 border-white" : ""
@@ -748,7 +763,7 @@ const UserPanel: React.FC = () => {
         </nav>
       </header>
       <main className="flex-1 bg-[#7b548b]">{renderContent()}</main>
-      {deleteModalOpen && (
+      {deleteModal1Open && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h2 className="text-lg font-bold text-gray-800 mb-4">
@@ -762,7 +777,7 @@ const UserPanel: React.FC = () => {
                 onClick={async () => {
                   if (selectedOrderId) {
                     await deleteOrderById(selectedOrderId);
-                    setDeleteModalOpen(false);
+                    setDeleteModal1Open(false);
                     setSelectedOrderId(null);
                   }
                 }}
@@ -772,7 +787,7 @@ const UserPanel: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  setDeleteModalOpen(false);
+                  setDeleteModal1Open(false);
                   setSelectedOrderId(null);
                 }}
                 className="bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
@@ -795,20 +810,20 @@ const UserPanel: React.FC = () => {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={async () => {
-                  if (selectedOrderId) {
-                    await deleteAddressById(selectedOrderId, user.id);
+                  if (selectedAddressId) {
+                    await deleteAddressById(selectedAddressId, user.id);
                     setDeleteModalOpen(false);
-                    setSelectedOrderId(null);
+                    setSelectedAddressId(null);
                   }
                 }}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
               >
                 Eliminar
               </button>
               <button
                 onClick={() => {
                   setDeleteModalOpen(false);
-                  setSelectedOrderId(null);
+                  setSelectedAddressId(null);
                 }}
                 className="bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
               >

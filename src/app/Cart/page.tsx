@@ -4,7 +4,10 @@ import { CartItem } from "../../interfaces/Product";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Address } from "@/interfaces/User";
-import { get } from "http";
+import dynamic from "next/dynamic";
+const AddressForm = dynamic(() => import("@/components/AddressForm"), {
+  ssr: false,
+});
 
 const Modal = ({
   isOpen,
@@ -46,6 +49,7 @@ const Cart: React.FC = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null
   );
+  const [addressUpdated, setAddressUpdated] = useState(false);
   const colorNameMap: Record<string, string> = {
     "#ff0000": "Rojo",
     "#00ff00": "Verde",
@@ -69,18 +73,42 @@ const Cart: React.FC = () => {
     setCartItems(storedCart);
   }, []);
 
-  const getTokenAndUserId = () => {
+  const getUserTokenId = (): { id: string; token: string } => {
     const user = localStorage.getItem("user");
-    if (!user) return null;
+
+    if (!user) {
+      console.error("No hay datos del usuario en localStorage");
+      return { id: "", token: "" };
+    }
 
     try {
       const parsedUser = JSON.parse(user);
-      return { token: parsedUser.token, id: parsedUser.user?.id };
+      const id = parsedUser.id || parsedUser.user?.id || ""; // Acceso seguro
+      const token = parsedUser.token || parsedUser.accessToken || ""; // Token prioritario
+
+      if (!id) console.warn("El ID del usuario no está disponible.");
+      if (!token) console.warn("El token del usuario no está disponible.");
+
+      console.log("ID:", id, "Token:", token);
+      return { id, token };
     } catch (err) {
       console.error("Error al parsear los datos del usuario:", err);
-      return null;
+      return { id: "", token: "" };
     }
   };
+
+  const reloadAddresses = async () => {
+    const userData = getUserTokenId();
+    if (userData?.id) {
+      await fetchAddresses(userData.id); // Ya existente
+    }
+  };
+  useEffect(() => {
+    if (addressUpdated) {
+      reloadAddresses(); // Recarga las direcciones después de guardar
+      setAddressUpdated(false); // Resetea el flag
+    }
+  }, [addressUpdated]);
 
   const handleOpenModal = (type: "clear" | "remove", index?: number) => {
     setModal({ isOpen: true, type, index });
@@ -107,14 +135,16 @@ const Cart: React.FC = () => {
 
   const fetchAddresses = async (id: string) => {
     try {
-      const { token } = getTokenAndUserId() || {};
+      const { token } = getUserTokenId() || {};
       if (!token) {
         console.error("No se encontró el token.");
         return;
       }
 
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/users/address/${id}`,
+        `https://valkiriasback.onrender.com/users/address/${
+          getUserTokenId().id
+        }`,
         {
           headers: {
             Accept: "*/*",
@@ -128,7 +158,7 @@ const Cart: React.FC = () => {
     }
   };
   useEffect(() => {
-    const userData = getTokenAndUserId();
+    const userData = getUserTokenId();
     if (userData?.id) {
       fetchAddresses(userData.id);
     }
@@ -136,7 +166,7 @@ const Cart: React.FC = () => {
 
   const handlePurchase = async () => {
     try {
-      const userData = getTokenAndUserId();
+      const userData = getUserTokenId();
       if (!userData || !userData.token || !userData.id) {
         console.error("Datos del usuario incompletos.");
         return;
@@ -188,7 +218,7 @@ const Cart: React.FC = () => {
       </h1>
 
       {cartItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+        <div className="flex flex-col items-center justify-center h-full p-6  text-center">
           <h2 className="text-2xl font-semibold text-gray-800">
             Tu carrito está vacío
           </h2>
@@ -196,7 +226,7 @@ const Cart: React.FC = () => {
             Agrega algunos productos y vuelve aquí para revisarlos.
           </p>
           <button
-            className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg hover:bg-creativity-purple"
+            className="bg-valkyrie-purple text-white py-1 px-2 mr-2 mt-4 rounded-lg hover:bg-creativity-purple"
             onClick={() => (window.location.href = "/Products")}
           >
             Ir a la tienda
@@ -217,26 +247,34 @@ const Cart: React.FC = () => {
                 />
               )}
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-2xl  font-semibold text-gray-900">
                   {item.product.name || "Producto"}
                 </h2>
                 {item.selectedSize && (
-                  <p className="text-sm text-gray-700">
-                    <strong>Tamaño:</strong> {item.selectedSize}
+                  <p className="text-lg text-gray-900">
+                    <strong>Tamaño: </strong> {item.selectedSize}
                   </p>
                 )}
                 {item.selectedColor && colorNameMap[item.selectedColor] && (
-                  <p className="text-sm text-gray-700">
-                    <strong>Color:</strong> {colorNameMap[item.selectedColor]}
+                  <p className="text-lg text-gray-900">
+                    <strong>Color: </strong> {colorNameMap[item.selectedColor]}
                   </p>
                 )}
-                <p>
+                <p className="text-lg text-gray-900">
                   <strong>Cantidad:</strong> {item.quantity}
                 </p>
                 <p className="text-lg font-bold text-gray-900">
                   Total: ${item.totalPrice}
                 </p>
               </div>
+              {item.clientIdeas && (
+                <div className="flex-1">
+                  <p className="text-lg text-gray-700">
+                    <strong>Ideas: </strong> {item.clientIdeas}
+                  </p>
+                </div>
+              )}
+
               <button
                 onClick={() => handleOpenModal("remove", index)}
                 className="absolute top-2 right-2 bg-valkyrie-purple text-white py-1 px-2 rounded-lg hover:bg-creativity-purple"
@@ -250,47 +288,58 @@ const Cart: React.FC = () => {
             Subtotal: ${subtotal.toFixed(2)}
           </p>
 
-          <div className=" flex flex-wrap gap-6 p-4 items-center w-full justify-center">
-            {addresses.length > 0 ? (
-              addresses.map((address) => (
-                <div
-                  key={address.id}
-                  className=" bg-white border border-gray-200 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200 flex flex-col"
-                >
-                  <p className="text-lg  text-gray-700">
-                    <strong>Calle:</strong> {address.street}
-                  </p>
-                  <p className="text-lg text-gray-600">
-                    <strong>Número:</strong> {address.number}
-                  </p>
-                  <p className="text-lg text-gray-600">
-                    <strong>Código Postal:</strong> {address.postalCode}
-                  </p>
-                  <p className="text-lg text-gray-600">
-                    <strong>Ciudad:</strong> {address.city}
-                  </p>
-                  <p className="text-lg text-gray-600">
-                    <strong>Estado:</strong> {address.state}
-                  </p>
-                  <button
-                    onClick={() => setSelectedAddressId(address.id)}
-                    className={`mt-4 py-1 px-2 rounded-lg ${
-                      selectedAddressId === address.id
-                        ? "bg-green-500"
-                        : "bg-valkyrie-purple"
-                    } text-white hover:bg-creativity-purple`}
+          <div className=" flex flex-col gap-6  items-center w-full justify-center">
+            <h2 className="text-2xl font-semibold">
+              Selecciona una direccion o agrega una para tu envio
+            </h2>
+            <AddressForm
+              userId={getUserTokenId()?.id}
+              onSaveSuccess={() => reloadAddresses()} // Recargar direcciones después de guardar
+            />
+            <br />
+            <h2 className="text-2xl font-semibold">Direcciones guardadas</h2>
+            <div className="flex flex-wrap gap-4">
+              {addresses.length > 0 ? (
+                addresses.map((address) => (
+                  <div
+                    key={address.id}
+                    className="bg-white border border-gray-200 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200 w-64"
                   >
-                    {selectedAddressId === address.id
-                      ? "Seleccionado"
-                      : "Seleccionar"}
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500 text-center w-full">
-                No hay direcciones registradas.
-              </p>
-            )}
+                    <p className="text-lg text-gray-700">
+                      <strong>Calle:</strong> {address.street}
+                    </p>
+                    <p className="text-lg text-gray-600">
+                      <strong>Número:</strong> {address.number}
+                    </p>
+                    <p className="text-lg text-gray-600">
+                      <strong>Código Postal:</strong> {address.postalCode}
+                    </p>
+                    <p className="text-lg text-gray-600">
+                      <strong>Ciudad:</strong> {address.city}
+                    </p>
+                    <p className="text-lg text-gray-600">
+                      <strong>Estado:</strong> {address.state}
+                    </p>
+                    <button
+                      onClick={() => setSelectedAddressId(address.id)}
+                      className={`mt-4 py-1 px-2 rounded-lg ${
+                        selectedAddressId === address.id
+                          ? "bg-custom-orange"
+                          : "bg-valkyrie-purple"
+                      } text-white hover:bg-creativity-purple`}
+                    >
+                      {selectedAddressId === address.id
+                        ? "Seleccionado"
+                        : "Seleccionar"}
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-center w-full">
+                  No hay direcciones registradas.
+                </p>
+              )}
+            </div>
           </div>
           <div className="flex gap-4 mt-4">
             <button

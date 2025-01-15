@@ -1,16 +1,14 @@
 "use client";
-
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/dist/client/link";
 import { toast } from "react-hot-toast";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
 const Login: React.FC = () => {
-  const API_URL =
-    process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
+  const API_URL = "https://valkiriasback.onrender.com";
 
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -205,18 +203,19 @@ const Login: React.FC = () => {
                 className="absolute right-2 top-3 text-white"
               >
                 {showPassword ? (
-                  <FaEye className="text-purple-900" />
+                  <FaEye className="text-white" />
                 ) : (
-                  <FaEyeSlash className="text-purple-900" />
+                  <FaEyeSlash className="text-white" />
                 )}
               </button>
             </div>
             <button
               type="submit"
-              className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
+              className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 flex items-center justify-center"
               disabled={loading}
             >
-              {loading ? "Cargando..." : "Iniciar Sesión"}
+              {loading && <FaSpinner className="animate-spin mr-2" />}
+              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </button>
           </form>
 
