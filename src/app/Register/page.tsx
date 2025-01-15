@@ -3,10 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation"; // Importa useRouter
-import { toast } from "react-hot-toast"; // Importa react-hot-toast
+import { toast } from "react-toastify"; // Importa react-hot-toast
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Importa los íconos
+import axios from "axios";
 
 const Register: React.FC = () => {
+  const API_URL =
+    process.env.NEXT_PUBLIC__URL || "https://valkiriasback.onrender.com";
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -17,11 +20,12 @@ const Register: React.FC = () => {
 
   const [showPassword, setShowPassword] = useState(false); // Estado para contraseña
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Estado para confirmar contraseña
+  const [showPasswordHint, setShowPasswordHint] = useState(false);
+  const [showPasswordHint1, setShowPasswordHint1] = useState(false);
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
-
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,6 +39,7 @@ const Register: React.FC = () => {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,15}$/; // Al menos 1 minúscula, 1 mayúscula, 8-15 caracteres
     return passwordRegex.test(password);
   };
+  // Suponiendo que usas toast para mostrar mensajes
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -42,76 +47,48 @@ const Register: React.FC = () => {
     const { firstName, lastName, email, password, confirmPassword } = formData;
 
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      toast.error("Todos los campos son obligatorios.", {
-        duration: 3000,
-      });
+      toast.error("Todos los campos son obligatorios.", {});
       return;
     }
 
     if (!email.includes("@")) {
-      toast.error("El email debe contener '@'.", {
-        duration: 3000,
-      });
+      toast.error("El email debe contener '@'.", {});
       return;
     }
 
     if (!validatePassword(password)) {
       toast.error(
         "La contraseña debe tener entre 8 y 15 caracteres, al menos una mayúscula y una minúscula.",
-        {
-          duration: 3000,
-        }
+        {}
       );
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("Las contraseñas no coinciden.", {
-        duration: 3000,
-      });
+      toast.error("Las contraseñas no coinciden.", {});
       return;
     }
 
     try {
-      const response = await fetch(
-        "https://valkiriasback.onrender.com//auth/singup",
+      const response = await axios.post(
+        `${API_URL}/auth/signup`,
         {
-          method: "POST",
+          firstname: firstName,
+          lastname: lastName,
+          email: email,
+          password: password,
+          confirmPassword: password,
+        },
+        {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            firstname: firstName,
-            lastname: lastName,
-            email: email,
-            password: password,
-            confirmPassword: password,
-          }),
         }
       );
-
-      const contentType = response.headers.get("Content-Type");
-
-      if (!response.ok) {
-        if (contentType?.includes("application/json")) {
-          const errorData = await response.json();
-          toast.error(errorData.message || "Error al registrarse.", {
-            duration: 3000,
-          });
-        } else {
-          const errorText = await response.text();
-          toast.error(errorText || "Error al registrarse.", {
-            duration: 3000,
-          });
-        }
-        return;
-      }
-
+      console.log("Respuesta de la API:", response.data);
       toast.success(
         "Registro exitoso. Redirigiendo a la página de inicio de sesión...",
-        {
-          duration: 3000,
-        }
+        {}
       );
 
       // Redirigir al usuario a la página de login
@@ -127,11 +104,17 @@ const Register: React.FC = () => {
         password: "",
         confirmPassword: "",
       });
-    } catch (err) {
-      toast.error("Hubo un problema al conectar con el servidor.", {
-        duration: 3000,
-      });
-      console.error(err);
+    } catch (error: any) {
+      if (error.response) {
+        // Errores de respuesta del servidor
+        const errorMessage =
+          error.response.data?.message || "Error al registrarse.";
+        toast.error(errorMessage);
+      } else {
+        // Errores de conexión u otros
+        toast.error("Hubo un problema al conectar con el servidor.", {});
+      }
+      console.error(error);
     }
   };
 
@@ -183,6 +166,8 @@ const Register: React.FC = () => {
               onChange={handleChange}
               className="mb-4 border-b-2 border-white bg-transparent p-2 text-white outline-none"
             />
+
+            {/* Campo de contraseña */}
             <div className="relative mb-2">
               <input
                 type={showPassword ? "text" : "password"}
@@ -190,6 +175,8 @@ const Register: React.FC = () => {
                 placeholder="Contraseña"
                 value={formData.password}
                 onChange={handleChange}
+                onFocus={() => setShowPasswordHint(true)}
+                onBlur={() => setShowPasswordHint(false)}
                 className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
               />
               <button
@@ -204,10 +191,15 @@ const Register: React.FC = () => {
                 )}
               </button>
             </div>
-            <p className="text-xs text-gray-300 mb-2">
-              Debe contener entre 8 y 15 caracteres, una mayúscula y una
-              minúscula.
-            </p>
+
+            {/* Cláusula de la contraseña */}
+            {showPasswordHint && (
+              <p className="text-xs text-gray-300 mb-2">
+                Debe contener entre 8 y 15 caracteres, una mayúscula y una
+                minúscula.
+              </p>
+            )}
+
             <div className="relative mb-6">
               <input
                 type={showConfirmPassword ? "text" : "password"}
@@ -215,6 +207,8 @@ const Register: React.FC = () => {
                 placeholder="Repetir contraseña"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                onFocus={() => setShowPasswordHint1(true)}
+                onBlur={() => setShowPasswordHint1(false)}
                 className="w-full border-b-2 border-white bg-transparent p-2 text-white outline-none"
               />
               <button
@@ -229,6 +223,13 @@ const Register: React.FC = () => {
                 )}
               </button>
             </div>
+            {showPasswordHint1 && (
+              <p className="text-xs text-gray-300 mb-2">
+                Debe contener entre 8 y 15 caracteres, una mayúscula y una
+                minúscula.
+              </p>
+            )}
+
             <button
               type="submit"
               className="rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"

@@ -14,7 +14,6 @@ import "react-toastify/dist/ReactToastify.css";
 export default function Home() {
   return (
     <div className="overflow-x-hidden">
-      {/* <Navbar/> */}
       <HomeSection1 />
       <HomeSection2 />
       <HomeSection3 />
@@ -25,7 +24,5 @@ export default function Home() {
       <HomeSection8 />
       <ToastContainer />
     </div>
-    
-  
   );
 }

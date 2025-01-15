@@ -5,14 +5,8 @@ import { Product } from "@/interfaces/Product";
 import { ProductPreview } from "@/components/ProductPreview";
 import { toast } from "react-hot-toast";
 
-
 const CreateProduct: React.FC = () => {
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-  } = useForm<Product>();
+  const { register, handleSubmit, control, reset } = useForm<Product>();
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -45,36 +39,36 @@ const CreateProduct: React.FC = () => {
     formData.append("prices", JSON.stringify(sizePriceMapping));
     console.log(sizePriceMapping, "prices");
     formData.append("stock", data.stock.toString());
-    formData.append("color", data.color.join(",")); 
+    formData.append("color", data.color.join(","));
     formData.append("category", category);
     formData.append("isCustomizable", isCustomizable.toString());
     const allSizes = [...kidsSizes, ...adultSizes];
     if (isUniqueSize) {
       allSizes.push("Talle Único");
     }
-    formData.append("size", allSizes.join(",")); 
+    formData.append("size", allSizes.join(","));
 
     console.log("size", allSizes);
 
     photos.forEach((photo) => {
       formData.append("photos", photo);
     });
-    
+
     smallPrints.forEach((print) => {
       formData.append("smallPrint", print);
     });
-    
+
     largePrints.forEach((print) => {
       formData.append("largePrint", print);
     });
-    
+
     console.log("FormData values:");
     for (const [key, value] of formData.entries()) {
       console.log(`${key}: ${value}`);
     }
     const getToken = () => {
       const user = localStorage.getItem("user");
-      
+
       if (!user) {
         console.error("No hay datos del usuario en localStorage");
         return null;
@@ -91,19 +85,21 @@ const CreateProduct: React.FC = () => {
 
     const token = getToken(); // Obtén el token desde localStorage
     if (!token) {
-      toast.error("No se encontró el token. Por favor, inicia sesión nuevamente.");
+      toast.error(
+        "No se encontró el token. Por favor, inicia sesión nuevamente."
+      );
       setLoading(false);
       return;
     }
-  
+
     fetch("https://valkiriasback.onrender.com/products", {
       method: "POST",
       body: formData,
       headers: {
-         Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     })
-    .then((response) => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error("Error en la solicitud");
         }
@@ -320,98 +316,109 @@ const CreateProduct: React.FC = () => {
         </div>
 
         <div className="flex justify-items-stretch space-x-4 mb-4 text-white">
-  <div className="w-2/3">
-    <h3 className="text-lg font-semibold mb-2">Tallas y Precios:</h3>
-    <div className="space-y-2 bg-transparent p-4 rounded-lg shadow-lg">
-      {[
-        ...kidsSizes,
-        ...adultSizes,
-        ...(isUniqueSize ? ["Talle Único"] : []),
-      ].map((size, index) => (
-        <div key={index} className="flex items-center justify-between space-x-4">
-          <span className="text-sm font-medium">{size}</span>
-          <input
-            type="number"
-            placeholder={`Precio para ${size}`}
-            onChange={(e) =>
-              handleSizePriceChange(size, parseFloat(e.target.value) || 0)
-            }
-            className="border border-white rounded-md p-2 bg-transparent text-white focus:ring-2 "
-          />
+          <div className="w-2/3">
+            <h3 className="text-lg font-semibold mb-2">Tallas y Precios:</h3>
+            <div className="space-y-2 bg-transparent p-4 rounded-lg shadow-lg">
+              {[
+                ...kidsSizes,
+                ...adultSizes,
+                ...(isUniqueSize ? ["Talle Único"] : []),
+              ].map((size, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between space-x-4"
+                >
+                  <span className="text-sm font-medium">{size}</span>
+                  <input
+                    type="number"
+                    placeholder={`Precio para ${size}`}
+                    onChange={(e) =>
+                      handleSizePriceChange(
+                        size,
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="border border-white rounded-md p-2 bg-transparent text-white focus:ring-2 "
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="w-1/3">
+            <label
+              htmlFor="stock"
+              className="block text-sm font-medium text-white mb-1"
+            >
+              Stock:
+            </label>
+            <input
+              id="stock"
+              type="number"
+              {...register("stock", { required: true })}
+              value={stock || ""}
+              onChange={handleChange}
+              placeholder="Stock"
+              className="w-full border-b-2 border-white-300 bg-transparent p-2 text-white outline-none"
+            />
+          </div>
         </div>
-      ))}
-    </div>
-  </div>
 
-  <div className="w-1/3">
-    <label
-      htmlFor="stock"
-      className="block text-sm font-medium text-white mb-1"
-    >
-      Stock:
-    </label>
-    <input
-      id="stock"
-      type="number"
-      {...register("stock", { required: true })}
-      value={stock || ""}
-      onChange={handleChange}
-      placeholder="Stock"
-      className="w-full border-b-2 border-white-300 bg-transparent p-2 text-white outline-none"
-    />
-  </div>
-</div>
+        <div className="flex space-x-8 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-white">
+              Talle Único:
+            </label>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                value="Unique"
+                onChange={handleUniqueSizeChange}
+                checked={isUniqueSize}
+                className="mr-1"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-white">
+              Talle Niños:
+            </label>
+            <div className="flex space-x-2">
+              {[4, 6, 8, 10, 12, 14, 16].map((size) => (
+                <label key={size} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value={size}
+                    onChange={() => handleSizeChange(size.toString(), "kids")}
+                    checked={kidsSizes.includes(size.toString())}
+                    className="mr-1"
+                  />
+                  <span className="text-white">{size}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
-<div className="flex space-x-8 mb-4">
-  <div>
-    <label className="block text-sm font-medium text-white">Talle Único:</label>
-    <div className="flex items-center">
-      <input
-        type="checkbox"
-        value="Unique"
-        onChange={handleUniqueSizeChange}
-        checked={isUniqueSize}
-        className="mr-1"
-      />
-    </div>
-  </div>
-  <div>
-    <label className="block text-sm font-medium text-white">Talle Niños:</label>
-    <div className="flex space-x-2">
-      {[4, 6, 8, 10, 12, 14, 16].map((size) => (
-        <label key={size} className="flex items-center">
-          <input
-            type="checkbox"
-            value={size}
-            onChange={() => handleSizeChange(size.toString(), "kids")}
-            checked={kidsSizes.includes(size.toString())}
-            className="mr-1"
-          />
-          <span className="text-white">{size}</span>
-        </label>
-      ))}
-    </div>
-  </div>
-
-  <div>
-    <label className="block text-sm font-medium text-white">Talle Adultos:</label>
-    <div className="flex space-x-2">
-      {["S", "M", "L", "XL", "XXL"].map((size) => (
-        <label key={size} className="flex items-center">
-          <input
-            type="checkbox"
-            value={size}
-            onChange={() => handleSizeChange(size, "adults")}
-            checked={adultSizes.includes(size)}
-            className="mr-1"
-          />
-          <span className="text-white">{size}</span>
-        </label>
-      ))}
-    </div>
-  </div>
-</div>
-
+          <div>
+            <label className="block text-sm font-medium text-white">
+              Talle Adultos:
+            </label>
+            <div className="flex space-x-2">
+              {["S", "M", "L", "XL", "XXL"].map((size) => (
+                <label key={size} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value={size}
+                    onChange={() => handleSizeChange(size, "adults")}
+                    checked={adultSizes.includes(size)}
+                    className="mr-1"
+                  />
+                  <span className="text-white">{size}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
 
         <div className="mb-4 flex items-start gap-8">
           <div>

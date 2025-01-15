@@ -27,6 +27,7 @@ export interface CartItem {
   id: string;
   name: string;
   quantity: number;
+  size: string;
   selectedColor: string;
   selectedSize: string;
   selectedLargePrint: string;

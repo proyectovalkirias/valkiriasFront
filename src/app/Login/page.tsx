@@ -5,20 +5,31 @@ import Image from "next/image";
 import Link from "next/dist/client/link";
 import { toast } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 const Login: React.FC = () => {
+  const API_URL =
+    process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
+
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const validateEmail = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
   };
 
   const togglePasswordVisibility = () => {
@@ -36,38 +47,81 @@ const Login: React.FC = () => {
       return;
     }
 
+    if (!validateEmail(email)) {
+      toast.error("El correo electrónico no es válido.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const response = await fetch(`https://valkiriasback.onrender.com/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const getToken = () => {
+        const user = localStorage.getItem("user");
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Error al iniciar sesión.");
-        return;
-      }
+        if (!user) {
+          return null;
+        }
 
-      const data = await response.json();
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+
+      const response = await axios.post(
+        `${API_URL}/auth/login`,
+        { email, password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data;
       toast.success("Inicio de sesión exitoso.");
       console.log("Datos del usuario:", data);
 
       localStorage.setItem("user", JSON.stringify({ id: data.id, ...data }));
 
-      window.location.href = "/"; // Redirige al dashboard
+      router.push("/");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (err) {
-      toast.error("Hubo un problema al conectar con el servidor.");
-      console.error(err);
+      if (axios.isAxiosError(err)) {
+        const errorData = err.response?.data;
+        if (err.response?.status === 400) {
+          toast.error(errorData?.message || "Credenciales inválidas.");
+        } else if (err.response?.status === 500) {
+          console.log("Error en el servidor:", err);
+          toast.error("Error en el servidor. Inténtalo más tarde.");
+        } else {
+          toast.error(errorData?.message || "Error al iniciar sesión.");
+          console.error("Error inesperado:", err);
+        }
+      } else {
+        toast.error("Hubo un problema al conectar con el servidor.");
+        console.error("Error inesperado:", err);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleLogin2 = () => {
     const clientID =
       "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
-    const redirectURI = "https://valkiriasfront.onrender.com/loginGoogle";
+    const redirectURI =
+      process.env.REACT_APP_GOOGLE_REDIRECT_URI ||
+      `https://valkiriasfront.onrender.com/loginGoogle`;
+    console.log(process.env.REACT_APP_GOOGLE_REDIRECT_URI);
     const scope = "openid profile email";
     const responseType = "code";
 
@@ -90,23 +144,19 @@ const Login: React.FC = () => {
     }
 
     try {
-      const response = await fetch(
-        `https://valkiriasback.onrender.com/auth/${encodeURIComponent(formData.email)}`,
-        {
-          method: "GET",
-        }
+      const response = await axios.get(
+        `${API_URL}/auth/${encodeURIComponent(formData.email)}`
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Error al recuperar la contraseña.");
-        return;
-      }
 
       toast.success("Se envió un enlace de recuperación a tu correo.");
     } catch (err) {
-      toast.error("Hubo un problema al conectar con el servidor.");
-      console.error(err);
+      if (axios.isAxiosError(err)) {
+        const errorData = err.response?.data;
+        toast.error(errorData?.message || "Error al recuperar la contraseña.");
+      } else {
+        toast.error("Hubo un problema al conectar con el servidor.");
+        console.error("Error inesperado:", err);
+      }
     }
   };
 
@@ -154,17 +204,19 @@ const Login: React.FC = () => {
                 onClick={togglePasswordVisibility}
                 className="absolute right-2 top-3 text-white"
               >
-                {showPassword ? 
-                <FaEye className="text-purple-900" /> :
-                <FaEyeSlash className="text-purple-900" />}
-
+                {showPassword ? (
+                  <FaEye className="text-purple-900" />
+                ) : (
+                  <FaEyeSlash className="text-purple-900" />
+                )}
               </button>
             </div>
             <button
               type="submit"
               className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
+              disabled={loading}
             >
-              Iniciar Sesión
+              {loading ? "Cargando..." : "Iniciar Sesión"}
             </button>
           </form>
 

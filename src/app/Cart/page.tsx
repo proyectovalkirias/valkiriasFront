@@ -3,13 +3,47 @@
 import { CartItem } from "../../interfaces/Product";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Address } from "@/interfaces/User";
+import { get } from "http";
 
+const Modal = ({
+  isOpen,
+  onClose,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        {children}
+        <button
+          onClick={onClose}
+          className="bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300 mt-4"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"clear" | "remove" | null>(null);
-  const [itemToRemoveIndex, setItemToRemoveIndex] = useState<number | null>(
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    type: "clear" | "remove" | null;
+    index?: number | null;
+  }>({
+    isOpen: false,
+    type: null,
+    index: null,
+  });
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null
   );
   const colorNameMap: Record<string, string> = {
@@ -31,26 +65,34 @@ const Cart: React.FC = () => {
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    console.log("Cart Items from localStorage:", storedCart);
     setCartItems(storedCart);
   }, []);
 
-  const handleOpenModal = (type: "clear" | "remove", index?: number) => {
-    setModalType(type);
-    if (type === "remove" && index !== undefined) {
-      setItemToRemoveIndex(index);
+  const getTokenAndUserId = () => {
+    const user = localStorage.getItem("user");
+    if (!user) return null;
+
+    try {
+      const parsedUser = JSON.parse(user);
+      return { token: parsedUser.token, id: parsedUser.user?.id };
+    } catch (err) {
+      console.error("Error al parsear los datos del usuario:", err);
+      return null;
     }
-    setIsModalOpen(true);
+  };
+
+  const handleOpenModal = (type: "clear" | "remove", index?: number) => {
+    setModal({ isOpen: true, type, index });
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setModalType(null);
-    setItemToRemoveIndex(null);
+    setModal({ isOpen: false, type: null, index: null });
   };
 
   const handleRemoveItem = () => {
-    if (itemToRemoveIndex !== null) {
-      const updatedCart = cartItems.filter((_, i) => i !== itemToRemoveIndex);
+    if (modal.index !== null) {
+      const updatedCart = cartItems.filter((_, i) => i !== modal.index);
       setCartItems(updatedCart);
       localStorage.setItem("cart", JSON.stringify(updatedCart));
       handleCloseModal();
@@ -63,31 +105,66 @@ const Cart: React.FC = () => {
     handleCloseModal();
   };
 
-  const handlePurchase = async () => {
-    setIsModalOpen(true);
-    setModalType(null);
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      console.error("El token no está disponible en el localStorage.");
-      return;
-    }
-
+  const fetchAddresses = async (id: string) => {
     try {
-      const products = cartItems.map((item) => ({
-        id: item.id,
-        name: item.name,
-        price: item.totalPrice,
-        quantity: item.quantity,
-      }));
+      const { token } = getTokenAndUserId() || {};
+      if (!token) {
+        console.error("No se encontró el token.");
+        return;
+      }
 
-      const response = await axios.post(
-        `https://valkiriasback.onrender.com/order`,
-        products,
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/users/address/${id}`,
         {
           headers: {
+            Accept: "*/*",
             Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setAddresses(response.data);
+    } catch (error) {
+      console.error("Error al obtener direcciones:", error);
+    }
+  };
+  useEffect(() => {
+    const userData = getTokenAndUserId();
+    if (userData?.id) {
+      fetchAddresses(userData.id);
+    }
+  }, []);
+
+  const handlePurchase = async () => {
+    try {
+      const userData = getTokenAndUserId();
+      if (!userData || !userData.token || !userData.id) {
+        console.error("Datos del usuario incompletos.");
+        return;
+      }
+
+      if (!selectedAddressId) {
+        console.error("No se ha seleccionado una dirección.");
+        return;
+      }
+
+      const products = cartItems.map((item) => ({
+        id: item.product.id,
+        size: item.selectedSize,
+        quantity: item.quantity,
+      }));
+      console.log("Productos en la compra:", products);
+      const payload = {
+        userId: userData.id,
+        products,
+        addressId: selectedAddressId,
+      };
+      console.log("payload:", payload);
+      const response = await axios.post(
+        `https://valkiriasback.onrender.com/order`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${userData.token}`,
           },
         }
       );
@@ -99,8 +176,6 @@ const Cart: React.FC = () => {
       }
     } catch (error) {
       console.error("Error al procesar la compra:", error);
-    } finally {
-      handleCloseModal();
     }
   };
 
@@ -121,7 +196,7 @@ const Cart: React.FC = () => {
             Agrega algunos productos y vuelve aquí para revisarlos.
           </p>
           <button
-            className="mt-6 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-700"
+            className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg hover:bg-creativity-purple"
             onClick={() => (window.location.href = "/Products")}
           >
             Ir a la tienda
@@ -135,58 +210,33 @@ const Cart: React.FC = () => {
               className="p-4 bg-white rounded-lg shadow-md flex flex-col md:flex-row items-center md:items-start gap-6 relative"
             >
               {item.product?.photos?.[0] && (
-                <div className="flex-shrink-0">
-                  <img
-                    src={item.product.photos[0]}
-                    alt={`Imagen de ${item.name || "producto"}`}
-                    className="w-32 h-32 rounded"
-                  />
-                </div>
+                <img
+                  src={item.product.photos[0]}
+                  alt={`Imagen de ${item.name || "producto"}`}
+                  className="w-32 h-32 rounded"
+                />
               )}
-              <div className="flex flex-wrap items-start space-x-4">
-                <div className="flex-1">
-                  <h2 className="text-xl text-gray-900 font-bold mb-2">
-                    {item.name}
-                  </h2>
-                  {item.selectedSize && (
-                    <p className="text-sm text-gray-700 mb-1">
-                      <strong>Tamaño:</strong> {item.selectedSize}
-                    </p>
-                  )}
-                  {item.selectedColor && colorNameMap[item.selectedColor] && (
-                    <p className="text-sm text-gray-700 mb-1">
-                      <strong>Color:</strong> {colorNameMap[item.selectedColor]}
-                    </p>
-                  )}
-                  {item.quantity && (
-                    <p className="text-sm text-gray-700 mb-1">
-                      <strong>Cantidad:</strong> {item.quantity}
-                    </p>
-                  )}
-                  {item.totalPrice && (
-                    <p className="text-lg font-bold text-gray-900">
-                      Total: ${item.totalPrice}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center">
-                  {item.selectedSmallPrint && (
-                    <img
-                      src={item.selectedSmallPrint}
-                      alt={`Estampa pequeña de ${item.name || "producto"}`}
-                      className="w-20 h-20 rounded mr-2"
-                    />
-                  )}
-                  {item.selectedLargePrint && (
-                    <img
-                      src={item.selectedLargePrint}
-                      alt={`Estampa grande de ${item.name || "producto"}`}
-                      className="w-20 h-20 rounded"
-                    />
-                  )}
-                </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {item.product.name || "Producto"}
+                </h2>
+                {item.selectedSize && (
+                  <p className="text-sm text-gray-700">
+                    <strong>Tamaño:</strong> {item.selectedSize}
+                  </p>
+                )}
+                {item.selectedColor && colorNameMap[item.selectedColor] && (
+                  <p className="text-sm text-gray-700">
+                    <strong>Color:</strong> {colorNameMap[item.selectedColor]}
+                  </p>
+                )}
+                <p>
+                  <strong>Cantidad:</strong> {item.quantity}
+                </p>
+                <p className="text-lg font-bold text-gray-900">
+                  Total: ${item.totalPrice}
+                </p>
               </div>
-
               <button
                 onClick={() => handleOpenModal("remove", index)}
                 className="absolute top-2 right-2 bg-valkyrie-purple text-white py-1 px-2 rounded-lg hover:bg-creativity-purple"
@@ -196,19 +246,62 @@ const Cart: React.FC = () => {
             </div>
           ))}
 
-          <p className="text-xl font-semibold mt-4">
+          <p className="text-xl font-semibold">
             Subtotal: ${subtotal.toFixed(2)}
           </p>
+
+          <div className=" flex flex-wrap gap-6 p-4 items-center w-full justify-center">
+            {addresses.length > 0 ? (
+              addresses.map((address) => (
+                <div
+                  key={address.id}
+                  className=" bg-white border border-gray-200 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200 flex flex-col"
+                >
+                  <p className="text-lg  text-gray-700">
+                    <strong>Calle:</strong> {address.street}
+                  </p>
+                  <p className="text-lg text-gray-600">
+                    <strong>Número:</strong> {address.number}
+                  </p>
+                  <p className="text-lg text-gray-600">
+                    <strong>Código Postal:</strong> {address.postalCode}
+                  </p>
+                  <p className="text-lg text-gray-600">
+                    <strong>Ciudad:</strong> {address.city}
+                  </p>
+                  <p className="text-lg text-gray-600">
+                    <strong>Estado:</strong> {address.state}
+                  </p>
+                  <button
+                    onClick={() => setSelectedAddressId(address.id)}
+                    className={`mt-4 py-1 px-2 rounded-lg ${
+                      selectedAddressId === address.id
+                        ? "bg-green-500"
+                        : "bg-valkyrie-purple"
+                    } text-white hover:bg-creativity-purple`}
+                  >
+                    {selectedAddressId === address.id
+                      ? "Seleccionado"
+                      : "Seleccionar"}
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-center w-full">
+                No hay direcciones registradas.
+              </p>
+            )}
+          </div>
           <div className="flex gap-4 mt-4">
             <button
               onClick={() => handleOpenModal("clear")}
-              className="bg-custom-orange text-white py-1 px-2 mr-2 rounded-lg hover:bg-orange-400"
+              className="bg-custom-orange text-white py-1 px-2 rounded-lg hover:bg-orange-400"
             >
               Vaciar Carrito
             </button>
             <button
               onClick={handlePurchase}
-              className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg  hover:bg-creativity-purple"
+              className="bg-valkyrie-purple text-white py-1 px-2 rounded-lg hover:bg-creativity-purple"
             >
               Realizar Compra
             </button>
@@ -216,9 +309,9 @@ const Cart: React.FC = () => {
         </div>
       )}
 
-      {isModalOpen && modalType === "clear" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+      <Modal isOpen={modal.isOpen} onClose={handleCloseModal}>
+        {modal.type === "clear" && (
+          <>
             <h2 className="text-lg font-semibold text-gray-800">
               ¿Vaciar carrito?
             </h2>
@@ -228,24 +321,15 @@ const Cart: React.FC = () => {
             <div className="flex justify-end mt-4">
               <button
                 onClick={handleClearCart}
-                className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg  hover:bg-creativity-purple"
+                className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg hover:bg-creativity-purple"
               >
                 Sí, vaciar
               </button>
-              <button
-                onClick={handleCloseModal}
-                className="bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
-              >
-                Cancelar
-              </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {isModalOpen && modalType === "remove" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          </>
+        )}
+        {modal.type === "remove" && (
+          <>
             <h2 className="text-lg font-semibold text-gray-800">
               ¿Eliminar producto?
             </h2>
@@ -255,20 +339,14 @@ const Cart: React.FC = () => {
             <div className="flex justify-end mt-4">
               <button
                 onClick={handleRemoveItem}
-                className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg  hover:bg-creativity-purple"
+                className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg hover:bg-creativity-purple"
               >
                 Sí, eliminar
               </button>
-              <button
-                onClick={handleCloseModal}
-                className="bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
-              >
-                Cancelar
-              </button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   );
 };

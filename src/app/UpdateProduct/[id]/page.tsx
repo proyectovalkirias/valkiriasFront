@@ -3,13 +3,13 @@ import { useForm, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Product } from "@/interfaces/Product";
-
-import toast from "react-hot-toast"; // Importamos react-hot-toast
+import toast from "react-hot-toast"; //
 import ProductPreview from "@/components/ProductPreview";
+import axios from "axios";
+import Link from "next/link";
 
 const UpdateProduct: React.FC = () => {
   const { register, handleSubmit, control, setValue } = useForm<Product>();
-
   const [photos, setPhotos] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [smallPrints, setSmallPrints] = useState<File[]>([]);
@@ -20,6 +20,7 @@ const UpdateProduct: React.FC = () => {
   const [adultSizes, setAdultSizes] = useState<string[]>([]);
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
+  const [isCustomizable, setIsCustomizable] = useState<boolean>(true);
   const [, setPrice] = useState<string[]>([]);
   const [stock, setStock] = useState<number | null>(null);
   const [sizePriceMapping, setSizePriceMapping] = useState<
@@ -29,14 +30,9 @@ const UpdateProduct: React.FC = () => {
   const [category, setCategory] = useState<string>("");
   const [smallPrintsPreview, setSmallPrintsPreview] = useState<string[]>([]);
   const [largePrintsPreview, setLargePrintsPreview] = useState<string[]>([]);
-
   const router = useRouter();
   const params = useParams();
   const productId = Array.isArray(params?.id) ? params.id[0] : params.id;
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || `https://valkiriasback.onrender.com`;
-  const LOCAL_URL =
-    process.env.NEXT_PUBLIC_LOCAL_URL || `http://localhost:3000`;
 
   useEffect(() => {
     if (productId) {
@@ -46,12 +42,15 @@ const UpdateProduct: React.FC = () => {
 
   const fetchProduct = async (id: string) => {
     try {
-      const response = await fetch(`${API_URL || LOCAL_URL}/products/${id}`);
-      if (!response.ok) {
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/products/${id}`
+      );
+
+      if (response.status === 200) {
+        prefillForm(response.data);
+      } else {
         throw new Error("Error fetching product");
       }
-      const data = await response.json();
-      prefillForm(data);
     } catch (error) {
       console.error("Error fetching product:", error);
       toast.error("Error al obtener el producto");
@@ -79,6 +78,7 @@ const UpdateProduct: React.FC = () => {
     setLoading(true);
 
     try {
+      // Crear el objeto FormData
       const formData = new FormData();
       formData.append("name", data.name);
       formData.append("description", data.description);
@@ -86,42 +86,65 @@ const UpdateProduct: React.FC = () => {
       formData.append("stock", data.stock.toString());
       formData.append("color", data.color.join(","));
       formData.append("category", category);
+      formData.append("isCustomizable", isCustomizable.toString());
 
+      // Combinar tallas y añadirlas a FormData
       const allSizes = [...kidsSizes, ...adultSizes];
       if (isUniqueSize) {
         allSizes.push("Talle Único");
       }
       formData.append("size", allSizes.join(","));
 
-      photos.forEach((photo) => {
-        formData.append("photos", photo);
-      });
+      // Añadir fotos y otros datos al FormData
+      photos.forEach((photo) => formData.append("photos", photo));
+      smallPrints.forEach((print) => formData.append("smallPrint", print));
+      largePrints.forEach((print) => formData.append("largePrint", print));
+      const getToken = () => {
+        const user = localStorage.getItem("user");
 
-      smallPrints.forEach((print) => {
-        formData.append("smallPrint", print);
-      });
-
-      largePrints.forEach((print) => {
-        formData.append("largePrint", print);
-      });
-
-      const response = await fetch(
-        `${API_URL || LOCAL_URL}/products/update/${productId}`,
-        {
-          method: "PUT",
-          body: formData,
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
         }
-      );
 
-      if (!response.ok) {
-        toast.error("Error al actualizar el producto");
-        throw new Error("Error updating product");
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null;
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (token) {
+        console.log("Token extraído:", token);
+      } else {
+        console.log("No se encontró el token.");
       }
 
-      toast.success("Producto actualizado exitosamente");
-      router.push("/Admin");
+      // Realizar la solicitud PUT con Axios incluyendo el token
+      const response = await axios.put(
+        `https://valkiriasback.onrender.com/products/update/${productId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response);
+
+      // Manejo de respuesta exitosa
+      if (response.status === 200) {
+        toast.success("Producto actualizado exitosamente");
+        router.push("/Admin");
+      } else {
+        throw new Error("Error inesperado en la actualización del producto");
+      }
     } catch (error) {
-      console.error("Error updating product:", error);
+      console.error("Error al actualizar el producto:", error);
       toast.error("Error al actualizar el producto");
     } finally {
       setLoading(false);
@@ -433,6 +456,17 @@ const UpdateProduct: React.FC = () => {
             </select>
           </div>
         </div>
+        <div className="mt-4">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={isCustomizable}
+              onChange={() => setIsCustomizable((prev) => !prev)}
+              className="w-4 h-4 text-violet-500 border-gray-300 rounded focus:ring-violet-500"
+            />
+            <span className="text-sm font-medium">Personalizable</span>
+          </label>
+        </div>
 
         <div className="mt-4">
           <label htmlFor="photos" className="block text-sm font-medium">
@@ -503,6 +537,14 @@ const UpdateProduct: React.FC = () => {
 
         {/* Botones de Acción */}
         <div className="flex justify-center items-center gap-4 mt-6">
+          <Link href="/Admin">
+            <button
+              type="button"
+              className=" bg-creativity-purple text-white  font-medium py-2 px-4 rounded-md"
+            >
+              Volver
+            </button>
+          </Link>
           <button
             type="submit"
             disabled={loading}

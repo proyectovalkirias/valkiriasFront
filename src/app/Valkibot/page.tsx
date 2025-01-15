@@ -1,121 +1,152 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import io from "socket.io-client";
+import { motion } from "framer-motion";
+import LiveChatComponent from "@/app/Valkibot/livechat/page"; // Importación del componente LiveChatComponent
 
 const ChatComponent = () => {
-  const [messages, setMessages] = useState<
-    { sender: string; content: string }[]
-  >([]);
+  const [messages, setMessages] = useState<{ sender: string; content: string }[]>([]);
   const [input, setInput] = useState("");
-  const [socket, setSocket] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [userId, setUserId] = useState<string>("");
-  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [isBotActive, setIsBotActive] = useState(false); // Inicialmente cerrado
+  const [isLiveChatActive, setIsLiveChatActive] = useState(false); // Estado para LiveChatComponent
+  const [botResponse, setBotResponse] = useState<{
+    reply: string;
+    options?: { id: string; label: string }[];
+  }>({
+    reply: "",
+    options: [],
+  });
 
-  const getUserAdminStatus = (): boolean => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        return parsedUser.user.isAdmin || false;
-      } catch (error) {
-        console.error(
-          "Error al parsear el objeto user de localStorage:",
-          error
-        );
-        return false;
-      }
-    }
-    return false;
-  };
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const adminStatus = getUserAdminStatus();
-      const storedUser = localStorage.getItem("user");
-      const userIdStored = storedUser
-        ? JSON.parse(storedUser).user.id
-        : "guest";
-
-      setIsAdmin(adminStatus);
-      setUserId(userIdStored);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isAdmin !== null) {
-      const socketUrl = `wss://valkiriasback.onrender.com/?isAdmin=${isAdmin}`;
-      const newSocket = io(socketUrl);
-      setSocket(newSocket);
-
-      newSocket.on("chatToClient", (message) => {
-        const normalizedMessage = message.message ? message.message : message;
-        setMessages((prev) => [...prev, normalizedMessage]);
+  // Lógica de respuestas del bot
+  const fetchBotResponse = async (message: string) => {
+    try {
+      const response = await fetch("https://valkiriasback.onrender.com/valkibot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
       });
-
-      return () => {
-        newSocket.disconnect();
-      };
-    }
-  }, [isAdmin]);
-
-  const sendMessage = () => {
-    if (socket && input.trim()) {
-      const message = { sender: isAdmin ? "Admin" : "Usuario", content: input };
-      socket.emit("chatToServer", message);
-      setMessages((prev) => [...prev, message]);
-      setInput("");
+      const data = await response.json();
+      setBotResponse(data);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "Bot", content: data.reply },
+      ]);
+    } catch (error) {
+      console.error("Error fetching bot response:", error);
     }
   };
 
-  if (isAdmin === null) {
-    return <div>Cargando...</div>;
-  }
+  // Se ejecuta cuando el estado del bot es activado
+  useEffect(() => {
+    if (isBotActive) {
+      fetchBotResponse("inicio"); // Se envía un mensaje inicial al bot
+    }
+  }, [isBotActive]);
+
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
+    setMessages((prev) => [...prev, { sender: "User", content: input }]);
+    await fetchBotResponse(input); // Respuesta automática del bot con el mensaje del usuario
+    setInput(""); // Limpiar el campo de entrada
+  };
+
+  const handleBotOptionClick = async (optionId: string) => {
+    if (optionId === "chat") {
+      setIsBotActive(false); // Cierra el chatbot
+      setIsLiveChatActive(true); // Abre el LiveChatComponent
+    } else {
+      setMessages((prev) => [...prev, { sender: "User", content: optionId }]);
+      await fetchBotResponse(optionId); // Respuesta automática del bot con la opción seleccionada
+    }
+  };
 
   return (
-    <div className="relative flex items-center justify-center h-screen">
-      {/* Logo siempre visible para alternar el chat */}
-      <img
+    <div className="fixed bottom-5 right-5 z-50">
+      <motion.img
         src="https://res.cloudinary.com/dwuxvipza/image/upload/v1736369135/Valki_yqz720.png"
-        alt="Logo Valki"
-        className="fixed bottom-5 right-5 w-20 h-20 cursor-pointer z-50"
-        onClick={() => setIsChatOpen((prev) => !prev)}
+        alt="Logo"
+        className="w-16 h-16 cursor-pointer fixed bottom-5 right-5 z-50"
+        onClick={() => {
+          setIsBotActive((prev) => !prev); // Alternar visibilidad del bot
+          setIsLiveChatActive(false); // Cierra el LiveChatComponent si está abierto
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
       />
+      {!isBotActive && !isLiveChatActive && (
+        <motion.div
+          className="absolute bottom-20 right-5 bg-[#3e1a4d] text-white py-2 px-5 rounded-full shadow-lg text-sm text-center w-52"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          Hola, soy Valki y estoy para ayudarte
+        </motion.div>
+      )}
 
-      {/* Ventana de chat */}
-      {isChatOpen && (
-       <div className="fixed bottom-32 right-5 flex flex-col h-96 w-80 border border-purple-dark rounded-3xl z-40 shadow-lg overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-4 bg-purple-100 flex flex-col">
+      {isBotActive && (
+        <motion.div
+          className="flex flex-col w-[350px] h-[500px] bg-[#F3E8FF] rounded-2xl shadow-lg overflow-hidden fixed bottom-24 right-5 z-50"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-2 bg-[#F3E8FF] flex flex-col justify-end">
             {messages.map((msg, index) => (
-              <div
+              <motion.div
                 key={index}
-                className={`my-2 p-2 rounded-md max-w-[70%] ${
-                  msg.sender === (isAdmin ? "Admin" : userId)
-                    ? "self-end bg-[#a080b1]"
-                    : "self-start bg-[#b093bf]"
+                className={`my-2 p-2 rounded-xl max-w-[70%] break-words ${
+                  msg.sender === "User"
+                    ? "self-end bg-[#5d306f] text-white text-left rounded-br-none"
+                    : "self-start bg-[#3e1a4d] text-white text-left rounded-bl-none"
                 }`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: index * 0.2, duration: 0.5 }}
               >
                 <strong>{msg.sender}:</strong> {msg.content}
-              </div>
+              </motion.div>
             ))}
+
+            {/* Bot options */}
+            {botResponse.options && (
+              <div className="flex flex-col space-y-2">
+                {botResponse.options.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => handleBotOptionClick(option.id)}
+                    className="py-1 px-3 bg-[#3e1a4d] text-white rounded-md text-sm"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          <div className="flex border-t border-purple-dark p-2 bg-purple-100 text-black">
+
+          {/* Input box at the bottom */}
+          <div className="flex border-t border-gray-300 p-2 bg-[#F3E8FF]">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Escribe un mensaje..."
-              className="flex-1 px-3 py-2 border border-purple-dark rounded-md mr-2 bg-purple-100 "
+              className="flex-1 p-1 border border-gray-300 rounded-md mr-2 text-black text-sm"
             />
             <button
-              onClick={sendMessage}
-              className="px-4 py-2 bg-purple-dark text-white rounded-md"
+              onClick={handleSendMessage}
+              className="py-1 px-3 bg-[#3e1a4d] text-white rounded-md text-sm"
             >
               Enviar
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
+
+      {/* Mostrar el componente LiveChatComponent si está activo */}
+      {isLiveChatActive && <LiveChatComponent />}
     </div>
   );
 };

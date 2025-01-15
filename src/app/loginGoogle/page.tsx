@@ -1,12 +1,17 @@
 "use client";
+import axios from "axios";
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 
 interface UserInfo {
   picture: string;
-  name: string;
+  given_name: string;
   email: string;
+  family_name: string;
 }
+
+const API_URL =
+  process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
 
 const Landingoogle: React.FC = () => {
   useEffect(() => {
@@ -21,10 +26,10 @@ const Landingoogle: React.FC = () => {
   }, []);
 
   const exchangeCodeForToken = async (code: string) => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
-    const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI!;
-    const tokenUrl = process.env.TOKEN_URL!;
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID!;
+    const clientSecret = process.env.REACT_APP_GOOGLE_CLIENT_SECRET!;
+    const redirectUri = process.env.REACT_APP_GOOGLE_REDIRECT_URI!;
+    const tokenUrl = process.env.REACT_APP_TOKEN_URL!;
     const body = new URLSearchParams();
     body.append("code", code);
     body.append("client_id", clientId);
@@ -61,7 +66,6 @@ const Landingoogle: React.FC = () => {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-
       console.log("Response FetchuserInfo" + response);
 
       const userInfo: UserInfo = await response.json();
@@ -69,6 +73,16 @@ const Landingoogle: React.FC = () => {
 
       console.log("UserInfo: " + userInfo);
       showToast(userInfo);
+      const res = await axios.post(`${API_URL}/auth/google-login`, {
+        email: userInfo.email,
+        firstname: userInfo.given_name,
+        lastname: userInfo.family_name,
+        photo: userInfo.picture,
+        accessToken,
+      });
+      console.log(res);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      window.location.href = "/";
     } catch (error) {
       console.error("Error fetching user info:", error);
     }
@@ -82,7 +96,6 @@ const Landingoogle: React.FC = () => {
         } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
         onClick={() => {
           toast.dismiss(t.id);
-          window.location.href = "/";
         }}
       >
         <div className="flex-1 w-0 p-4">
@@ -91,12 +104,12 @@ const Landingoogle: React.FC = () => {
               <img
                 className="h-10 w-10 rounded-full"
                 src={userInfo.picture}
-                alt={userInfo.name}
+                alt={userInfo.given_name}
               />
             </div>
             <div className="ml-3 flex-1">
               <p className="text-sm font-medium text-gray-900">
-                {userInfo.name}
+                {userInfo.given_name}
               </p>
               <p className="mt-1 text-sm text-gray-500">{userInfo.email}</p>
             </div>
@@ -118,7 +131,7 @@ const Landingoogle: React.FC = () => {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
+    <div className="flex flex-col items-center justify-center h-screen bg-purple-200">
       <h1>Procesando Inicio de Sesión...</h1>
       <p>
         Por favor, espera mientras procesamos tu inicio de sesión con Google.
