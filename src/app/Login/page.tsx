@@ -1,10 +1,9 @@
-"use client";
-
+"use client"
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/dist/client/link";
 import { toast } from "react-hot-toast";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
@@ -213,10 +212,11 @@ const Login: React.FC = () => {
             </div>
             <button
               type="submit"
-              className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
+              className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 flex items-center justify-center"
               disabled={loading}
             >
-              {loading ? "Cargando..." : "Iniciar Sesión"}
+              {loading && <FaSpinner className="animate-spin mr-2" />}
+              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </button>
           </form>
 

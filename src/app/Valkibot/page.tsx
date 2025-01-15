@@ -3,8 +3,14 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import LiveChatComponent from "@/app/Valkibot/livechat/page"; // Importación del componente LiveChatComponent
 
+const API_URL =
+    process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
+
+
 const ChatComponent = () => {
-  const [messages, setMessages] = useState<{ sender: string; content: string }[]>([]);
+  const [messages, setMessages] = useState<
+    { sender: string; content: string }[]
+  >([]);
   const [input, setInput] = useState("");
   const [isBotActive, setIsBotActive] = useState(false); // Inicialmente cerrado
   const [isLiveChatActive, setIsLiveChatActive] = useState(false); // Estado para LiveChatComponent
@@ -19,17 +25,17 @@ const ChatComponent = () => {
   // Lógica de respuestas del bot
   const fetchBotResponse = async (message: string) => {
     try {
-      const response = await fetch("https://valkiriasback.onrender.com/valkibot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
+      const response = await fetch(
+        `${API_URL}/valkibot`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message }),
+        }
+      );
       const data = await response.json();
       setBotResponse(data);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "Bot", content: data.reply },
-      ]);
+      setMessages((prev) => [...prev, { sender: "Bot", content: data.reply }]);
     } catch (error) {
       console.error("Error fetching bot response:", error);
     }
@@ -64,18 +70,20 @@ const ChatComponent = () => {
       <motion.img
         src="https://res.cloudinary.com/dwuxvipza/image/upload/v1736369135/Valki_yqz720.png"
         alt="Logo"
-        className="w-16 h-16 cursor-pointer fixed bottom-5 right-5 z-50"
+        className="w-24 h-24 cursor-pointer fixed bottom-5 right-5 z-50" // Imagen más grande
         onClick={() => {
-          setIsBotActive((prev) => !prev); // Alternar visibilidad del bot
-          setIsLiveChatActive(false); // Cierra el LiveChatComponent si está abierto
+          setIsBotActive((prev) => !prev);
+          setIsLiveChatActive(false);
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
       />
+
+      {/* Globito de bienvenida */}
       {!isBotActive && !isLiveChatActive && (
         <motion.div
-          className="absolute bottom-20 right-5 bg-[#3e1a4d] text-white py-2 px-5 rounded-full shadow-lg text-sm text-center w-52"
+          className="absolute bottom-28 right-5 bg-[#3e1a4d] text-white py-2 px-5 rounded-full shadow-lg text-sm text-center w-52 mt-4" // Añadí mt-4 para separar del bot
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -86,13 +94,13 @@ const ChatComponent = () => {
 
       {isBotActive && (
         <motion.div
-          className="flex flex-col w-[350px] h-[500px] bg-[#F3E8FF] rounded-2xl shadow-lg overflow-hidden fixed bottom-24 right-5 z-50"
+          className="flex flex-col w-[350px] h-[500px] bg-[#F3E8FF] rounded-2xl shadow-lg overflow-hidden fixed bottom-36 right-5 z-50" // Ajusté la posición con bottom-36
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Messages */}
+          {/* Mensajes */}
           <div className="flex-1 overflow-y-auto p-2 bg-[#F3E8FF] flex flex-col justify-end">
             {messages.map((msg, index) => (
               <motion.div
@@ -110,7 +118,7 @@ const ChatComponent = () => {
               </motion.div>
             ))}
 
-            {/* Bot options */}
+            {/* Opciones del bot */}
             {botResponse.options && (
               <div className="flex flex-col space-y-2">
                 {botResponse.options.map((option) => (
@@ -126,7 +134,7 @@ const ChatComponent = () => {
             )}
           </div>
 
-          {/* Input box at the bottom */}
+          {/* Caja de entrada en la parte inferior */}
           <div className="flex border-t border-gray-300 p-2 bg-[#F3E8FF]">
             <input
               type="text"
