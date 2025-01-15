@@ -60,7 +60,7 @@ function Admin() {
       setLoading(false);
     }
   };
-  const fetchUserAddress = async (userId: number) => {
+  const fetchUserAddress = async (userId: string) => {
     try {
       const getToken = () => {
         const user = localStorage.getItem("user");
@@ -157,7 +157,7 @@ function Admin() {
     }
   };
   console.log(users);
-  const toggleUserStatus = async (id: number, activate: boolean) => {
+  const toggleUserStatus = async (id: string, activate: boolean) => {
     const getToken = () => {
       const user = localStorage.getItem("user");
 
@@ -204,7 +204,7 @@ function Admin() {
     }
   };
 
-  const handleToggleAdmin = async (id: number, newIsAdmin: boolean) => {
+  const handleToggleAdmin = async (id: string, newIsAdmin: boolean) => {
     const getToken = () => {
       const user = localStorage.getItem("user");
 
@@ -248,7 +248,7 @@ function Admin() {
       // Actualiza el estado local con la respuesta del servidor
       setFilteredUsers((prevUsers) =>
         prevUsers.map((user) =>
-          user.id === id ? { ...user, isAdmin: updatedUser.isAdmin } : user
+          user.id ? { ...user, isAdmin: updatedUser.isAdmin } : user
         )
       );
     } catch (error) {
@@ -256,7 +256,7 @@ function Admin() {
       toast.error("Error al cambiar el estado de administrador.");
     }
   };
-  const handleDeleteUser = async (id: number) => {
+  const handleDeleteUser = async (id: string) => {
     const getToken = () => {
       const user = localStorage.getItem("user");
 
