@@ -271,7 +271,7 @@ const ProductDetail: React.FC = () => {
           <p className="text-lg text-gray-600 text-center mt-2">
             {product.description}
           </p>
-          <p className="text-xl font-bold text-gray-800 mt-4">
+          <p className="text-xl font-bold text-center text-gray-800 mt-4">
             Precio: $
             {Array.isArray(product.prices) && product.prices.length > 0
               ? Math.min(...product.prices.map((priceObj) => priceObj.price))
@@ -279,44 +279,48 @@ const ProductDetail: React.FC = () => {
           </p>
 
           {!product.isCustomizable && (
-            <div className="mt-4">
-              <label className="block text-gray-800 font-semibold">
-                Cantidad:
-              </label>
-              <input
-                type="number"
-                value={quantity}
-                onChange={(e) => handleQuantityChange(Number(e.target.value))}
-                className="w-24 border border-gray-300 rounded-md py-2 px-4 mt-2"
-              />
+            <>
+              <div className="mt-4 flex space-x-4">
+                <label className="block text-gray-800 mt-4 font-semibold">
+                  Cantidad:
+                </label>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => handleQuantityChange(Number(e.target.value))}
+                  className="w-24 h-12 border border-gray-300 rounded-md text-gray-800 py-2 px-4 mt-2"
+                />
 
-              <label className="block text-gray-800 font-semibold mt-4">
-                Tamaño:
-              </label>
-              <select
-                className="w-full p-3 border rounded-lg mt-2 text-gray-800"
-                value={selectedSize}
-                onChange={(e) => setSelectedSize(e.target.value)}
-              >
-                <option value="">Selecciona un tamaño</option>
-                {product.sizes.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-              <p className="text-2xl font-bold text-gray-800">
-                Precio Total: ${totalPrice.toFixed(2)}
-              </p>
-
-              <button
-                className="bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg hover:bg-creativity-purple mt-4"
-                onClick={handleAddToCart}
-                disabled={loading}
-              >
-                {loading ? "Cargando..." : "Añadir al carrito"}
-              </button>
-            </div>
+                <label className="block text-gray-800 font-semibold mt-4">
+                  Tamaño:
+                </label>
+                <select
+                  className="h-12 p-3 border rounded-lg mt-2 text-gray-800"
+                  value={selectedSize}
+                  onChange={(e) => setSelectedSize(e.target.value)}
+                >
+                  <option value="">Selecciona un tamaño</option>
+                  {product.sizes.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col items-center">
+                {" "}
+                <p className="text-2xl font-bold text-gray-800">
+                  Precio Total: ${totalPrice.toFixed(2)}
+                </p>
+                <button
+                  className="bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg hover:bg-creativity-purple mt-4"
+                  onClick={handleAddToCart}
+                  disabled={loading}
+                >
+                  {loading ? "Cargando..." : "Añadir al carrito"}
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>

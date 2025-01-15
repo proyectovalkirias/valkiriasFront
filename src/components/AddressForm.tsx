@@ -5,7 +5,13 @@ import axios from "axios";
 import Map from "./Map";
 import toast from "react-hot-toast";
 
-const AddressForm = ({ userId }: { userId: string }) => {
+const AddressForm = ({
+  userId,
+  onSaveSuccess,
+}: {
+  userId: string;
+  onSaveSuccess: () => void;
+}) => {
   const [address, setAddress] = useState({
     street: "",
     number: "",
@@ -113,6 +119,7 @@ const AddressForm = ({ userId }: { userId: string }) => {
         }
       );
       toast.success("Dirección guardada exitosamente.");
+      onSaveSuccess();
       console.log("Dirección guardada: ", response.data);
     } catch (error: any) {
       const errorMessage =

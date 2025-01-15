@@ -22,6 +22,7 @@ const Register: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Estado para confirmar contraseña
   const [showPasswordHint, setShowPasswordHint] = useState(false);
   const [showPasswordHint1, setShowPasswordHint1] = useState(false);
+  const [passwordError, setPasswordError] = useState(""); // Estado para mensaje de error de contraseña
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
@@ -65,8 +66,10 @@ const Register: React.FC = () => {
     }
 
     if (password !== confirmPassword) {
-      toast.error("Las contraseñas no coinciden.", {});
+      setPasswordError("Las contraseñas no coinciden.");
       return;
+    } else {
+      setPasswordError(""); // Limpiar el error si coinciden
     }
 
     try {
@@ -228,6 +231,9 @@ const Register: React.FC = () => {
                 Debe contener entre 8 y 15 caracteres, una mayúscula y una
                 minúscula.
               </p>
+            )}
+            {passwordError && (
+              <p className="text-xs text-red-500">{passwordError}</p>
             )}
 
             <button

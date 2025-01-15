@@ -163,7 +163,13 @@ const UserPanel: React.FC = () => {
       const data = await response.json();
       console.log("Respuesta de la API:", data);
 
-      setData((prev) => ({ ...prev, orders: data }));
+      if (data.length === 0) {
+        // Si no hay órdenes
+        toast("No hay órdenes disponibles.");
+      } else {
+        // Si hay órdenes, actualiza el estado
+        setData((prev) => ({ ...prev, orders: data }));
+      }
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
       toast.error("Error al obtener las órdenes.");
@@ -173,19 +179,7 @@ const UserPanel: React.FC = () => {
   useEffect(() => {
     if (activeTab === "orders") fetchOrders();
   }, [activeTab, user.id]);
-  // const fetchPurchases = async () => {
-  //   try {
-  //     const response = await axios.get(
-  //       `https://valkiriasback.onrender.com/order/user/${getUserTokenId().id}`
-  //     );
-  //     setData((prev) => ({ ...prev, purchases: response.data }));
-  //   } catch {
-  //     toast.error("Error al obtener las compras.");
-  //   }
-  // };
-  // useEffect(() => {
-  //   if (activeTab === "purchases") fetchPurchases();
-  // }, [activeTab]);
+
   const fetchAddresses = async (id: string) => {
     try {
       const response = await axios.get(
@@ -422,6 +416,24 @@ const UserPanel: React.FC = () => {
 
     fetchData();
   }, []);
+  const getTokenAndUserId = () => {
+    const user = localStorage.getItem("user");
+    if (!user) return null;
+
+    try {
+      const parsedUser = JSON.parse(user);
+      return { token: parsedUser.token, id: parsedUser.user?.id };
+    } catch (err) {
+      console.error("Error al parsear los datos del usuario:", err);
+      return null;
+    }
+  };
+  const reloadAddresses = async () => {
+    const userData = getTokenAndUserId();
+    if (userData?.id) {
+      await fetchAddresses(userData.id); // Ya existente
+    }
+  };
 
   const userFields: {
     label: string;
@@ -545,7 +557,10 @@ const UserPanel: React.FC = () => {
                 </div>
 
                 <div className="w-full">
-                  <AddressForm userId={user?.id || ""} />
+                  <AddressForm
+                    userId={user?.id || ""}
+                    onSaveSuccess={() => reloadAddresses()}
+                  />
                 </div>
               </div>
             ) : (
