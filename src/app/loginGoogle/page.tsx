@@ -7,11 +7,11 @@ interface UserInfo {
   picture: string;
   given_name: string;
   email: string;
-  family_name:string
+  family_name: string;
 }
 
 const API_URL =
-process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
+  process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
 
 const Landingoogle: React.FC = () => {
   useEffect(() => {
@@ -73,10 +73,14 @@ const Landingoogle: React.FC = () => {
 
       console.log("UserInfo: " + userInfo);
       showToast(userInfo);
-      const res = await axios.post(
-        `${API_URL}/auth/google-login`, { email:userInfo.email, firstname:userInfo.given_name, lastname:userInfo.family_name, photo:userInfo.picture, accessToken }
-      );
-      console.log(res)
+      const res = await axios.post(`${API_URL}/auth/google-login`, {
+        email: userInfo.email,
+        firstname: userInfo.given_name,
+        lastname: userInfo.family_name,
+        photo: userInfo.picture,
+        accessToken,
+      });
+      console.log(res);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       window.location.href = "/";
     } catch (error) {
@@ -127,7 +131,7 @@ const Landingoogle: React.FC = () => {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
+    <div className="flex flex-col items-center justify-center h-screen bg-purple-200">
       <h1>Procesando Inicio de Sesión...</h1>
       <p>
         Por favor, espera mientras procesamos tu inicio de sesión con Google.
@@ -136,4 +140,4 @@ const Landingoogle: React.FC = () => {
   );
 };
 
-export default Landingoogle;
+export default Landingoogle;
