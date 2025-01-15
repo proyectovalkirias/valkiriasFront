@@ -24,6 +24,7 @@ const Register: React.FC = () => {
   const [showPasswordHint1, setShowPasswordHint1] = useState(false);
   const [loading, setLoading] = useState(false);
   const [passwordsMatch, setPasswordsMatch] = useState(true); // Estado para la validación de contraseñas
+  const [passwordError, setPasswordError] = useState("");
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
