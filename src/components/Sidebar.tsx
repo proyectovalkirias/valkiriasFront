@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
@@ -11,45 +10,13 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import axios from "axios";
 
-const getUserData = () => {
-  try {
-    const storedUser = localStorage.getItem("user");
-    const storedGoogleUser = localStorage.getItem("user_info");
-
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      return {
-        id: parsedUser.user.id,
-        firstname: parsedUser.user.firstname || "",
-        lastname: parsedUser.user.lastname || "",
-        email: parsedUser.user.email || "",
-        photoUrl: parsedUser.user.photo || "/images/Avatar.png",
-        isAdmin: parsedUser.user.isAdmin || false,
-        isGoogleUser: false,
-      };
-    } else if (storedGoogleUser) {
-      const googleUser = JSON.parse(storedGoogleUser);
-      return {
-        firstname: googleUser.given_name || "",
-        lastname: googleUser.family_name || "",
-        email: googleUser.email || "",
-        photoUrl: googleUser.picture || "/images/Avatar.png",
-        isGoogleUser: true,
-        dni: googleUser.dni || null,
-        phone: googleUser.phone || null,
-      };
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Error al obtener los datos del usuario:", error);
-    return null;
-  }
-};
 
 const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
+  const [isLoggedOut, setIsLoggedOut] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
   const [user, setUser] = useState<{
     id?: string;
     firstname: string;
@@ -61,9 +28,41 @@ const Sidebar: React.FC = () => {
     phone?: string | null;
     isAdmin?: boolean;
   } | null>(null);
-  const [isLoggedOut, setIsLoggedOut] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
+  const getUserData = () => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      const storedGoogleUser = localStorage.getItem("user_info");
+
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        return {
+          id: parsedUser.id || parsedUser.user.id || "",
+          firstname: parsedUser.firstname || parsedUser.user.firstname || "",
+          lastname: parsedUser.lastname || parsedUser.user.lastname || "",
+          email: parsedUser.email || parsedUser.user.email || "",
+          photoUrl: parsedUser.photo || "/images/Avatar.png",
+          isAdmin: parsedUser.isAdmin || (parsedUser.user && parsedUser.user.isAdmin) || false,
+          isGoogleUser: false,
+        };
+      } else if (storedGoogleUser) {
+        const googleUser = JSON.parse(storedGoogleUser);
+        return {
+          firstname: googleUser.given_name || "",
+          lastname: googleUser.family_name || "",
+          email: googleUser.email || "",
+          photoUrl: googleUser.picture || "/images/Avatar.png", // Asegúrate de que esta propiedad esté configurada correctamente
+          isGoogleUser: true,
+          dni: googleUser.dni || null,
+          phone: googleUser.phone || null,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error al obtener los datos del usuario:", error);
+      return null;
+    }
+  };
 
   const handleNavigation = useCallback(
     (path: string) => {
@@ -71,6 +70,32 @@ const Sidebar: React.FC = () => {
     },
     [router]
   );
+  useEffect(() => {
+    const loadUserData = async () => {
+      const userData = getUserData();
+
+      if (!userData) {
+        setUser(null);
+        return;
+      }
+
+      if (userData.id) {
+        const userDetails = await fetchUserDetails(userData.id);
+        setUser(
+          userDetails
+            ? {
+                ...userData,
+                photoUrl: userDetails.photo || "/images/Avatar.png",
+              }
+            : userData
+        );
+      } else {
+        setUser(userData);
+      }
+    };
+
+    loadUserData();
+  }, [isLoggedOut]);
 
   const toggleSidebar = useCallback(() => {
     setIsOpen((prevState) => !prevState);
@@ -100,7 +125,8 @@ const Sidebar: React.FC = () => {
         }
       }
       setIsModalOpen(false);
-      localStorage.removeItem("user");
+      localStorage.clear();
+
       setUser(null);
       setIsLoggedOut(true);
       handleNavigation("/Login");
@@ -109,7 +135,6 @@ const Sidebar: React.FC = () => {
       toast.error("Ocurrió un error al cerrar sesión");
     }
   }, [handleNavigation]);
-  
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -141,7 +166,6 @@ const Sidebar: React.FC = () => {
         const user = localStorage.getItem("user");
 
         if (!user) {
-          console.error("No hay datos del usuario en localStorage");
           return null;
         }
 
@@ -149,14 +173,12 @@ const Sidebar: React.FC = () => {
           const parsedUser = JSON.parse(user);
           return parsedUser.token || null; // Retorna el token si existe
         } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
           return null;
         }
       };
 
       const token = getToken();
       if (!token) {
-        console.error("No se encontró el token.");
       }
       const response = await axios.get(
         `https://valkiriasback.onrender.com/users/${id}`,
@@ -168,7 +190,6 @@ const Sidebar: React.FC = () => {
       );
       return response.data;
     } catch (error) {
-      console.error("Error al obtener los detalles del usuario:", error);
       return null;
     }
   };

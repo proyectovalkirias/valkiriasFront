@@ -10,11 +10,16 @@ const LiveChatComponent = () => {
   const [firstname, setFirstname] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
 
+  const API_URL =
+  process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
+
+
   const getUserDetails = () => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+        console.log(parsedUser)
         return {
           isAdmin: parsedUser.user.isAdmin || false,
           firstname: parsedUser.user.firstname || "guest",
@@ -33,14 +38,35 @@ const LiveChatComponent = () => {
     setIsAdmin(userDetails.isAdmin);
     setFirstname(userDetails.firstname);
     setUserId(userDetails.userId);
-  }, []);
+  
 
-  useEffect(() => {
-    if (isAdmin !== null && firstname) {
-      const socketUrl = `ws://localhost:3000/?isAdmin=${isAdmin}&firstname=${encodeURIComponent(firstname)}`;
+  
+    if (userDetails) {
+      const socketUrl = `wss://valkiriasback.onrender.com/?isAdmin=${userDetails.isAdmin}&firstname=${encodeURIComponent(userDetails.firstname)}&userId=${userDetails.userId}`;
       const newSocket = io(socketUrl);
 
       setSocket(newSocket);
+
+      const fetchMessages = async () => {
+        try {
+          const response = await fetch(`${API_URL}/valkibot/messages/${userDetails.userId}`);
+          const data = await response.json();
+          console.log("Mensajes anteriores:", data);
+
+          const messagesArray = data[0]?.messages || [];
+
+          const mappedMessages = messagesArray.map((message: any) => ({
+            sender: message.sender,
+            content: message.content, 
+          }));
+
+          setMessages(mappedMessages);  
+        } catch (error) {
+          console.error("Error al obtener los mensajes:", error);
+        }
+      };
+    
+      fetchMessages();
 
       newSocket.on("chatToClient", (message) => {
           console.log("Mensaje recibido del servidor:", message);
@@ -54,7 +80,7 @@ const LiveChatComponent = () => {
         newSocket.disconnect();
       };
     }
-  }, [isAdmin, firstname]);
+  }, []);
 
   const sendMessage = () => {
     if (socket && input.trim()) {
