@@ -1,10 +1,9 @@
 "use client";
-
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/dist/client/link";
 import { toast } from "react-hot-toast";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
@@ -118,8 +117,10 @@ const Login: React.FC = () => {
   const handleGoogleLogin2 = () => {
     const clientID =
       "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
-    const redirectURI=process.env.REACT_APP_GOOGLE_REDIRECT_URI || `https://valkiriasfront.onrender.com/loginGoogle`;
-    console.log(process.env.REACT_APP_GOOGLE_REDIRECT_URI)
+    const redirectURI =
+      process.env.REACT_APP_GOOGLE_REDIRECT_URI ||
+      `https://valkiriasfront.onrender.com/loginGoogle`;
+    console.log(process.env.REACT_APP_GOOGLE_REDIRECT_URI);
     const scope = "openid profile email";
     const responseType = "code";
 
@@ -211,10 +212,11 @@ const Login: React.FC = () => {
             </div>
             <button
               type="submit"
-              className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400"
+              className="mb-4 rounded-md bg-purple-300 px-4 py-2 text-white hover:bg-purple-400 flex items-center justify-center"
               disabled={loading}
             >
-              {loading ? "Cargando..." : "Iniciar Sesión"}
+              {loading && <FaSpinner className="animate-spin mr-2" />}
+              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </button>
           </form>
 
