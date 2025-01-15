@@ -131,7 +131,7 @@ const Landingoogle: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-purple-200">
+    <div className="flex flex-col items-center justify-center h-screen bg-[#65317c]">
       <h1>Procesando Inicio de Sesión...</h1>
       <p>
         Por favor, espera mientras procesamos tu inicio de sesión con Google.

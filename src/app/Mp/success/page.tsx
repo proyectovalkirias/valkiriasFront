@@ -8,7 +8,7 @@ export default function SuccessMp() {
         Gracias por tu compra. Hemos recibido tu pago correctamente.
       </p>
       <Link href="/">
-        <button className="px-4 py-2 bg-custom-orange text-white rounded border-2 border-valkyrie-purple hover:bg-green-700">
+        <button className="px-4 py-2 bg-purple-dark text-white rounded border-2">
           Volver al inicio
         </button>
       </Link>
