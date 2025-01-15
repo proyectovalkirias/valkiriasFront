@@ -8,10 +8,7 @@ import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
 import { Address } from "@/interfaces/User";
 
-
-const API_URL =
-  process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
-
+const API_URL = "https://valkiriasback.onrender.com";
 
 const AddressForm = dynamic(() => import("@/components/AddressForm"), {
   ssr: false,
@@ -26,6 +23,7 @@ const UserPanel: React.FC = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null
   );
+  const [addressUpdated, setAddressUpdated] = useState(false);
 
   const [user, setUser] = useState<{
     id: string;
@@ -62,20 +60,20 @@ const UserPanel: React.FC = () => {
 
   const getUserTokenId = (): { id: string; token: string } => {
     const user = localStorage.getItem("user");
-  
+
     if (!user) {
       console.error("No hay datos del usuario en localStorage");
       return { id: "", token: "" };
     }
-  
+
     try {
       const parsedUser = JSON.parse(user);
       const id = parsedUser.id || parsedUser.user?.id || ""; // Acceso seguro
       const token = parsedUser.token || parsedUser.accessToken || ""; // Token prioritario
-  
+
       if (!id) console.warn("El ID del usuario no está disponible.");
       if (!token) console.warn("El token del usuario no está disponible.");
-  
+
       console.log("ID:", id, "Token:", token);
       return { id, token };
     } catch (err) {
@@ -83,7 +81,7 @@ const UserPanel: React.FC = () => {
       return { id: "", token: "" };
     }
   };
-  
+
   const getUserData = () => {
     try {
       const storedUser = localStorage.getItem("user");
@@ -141,7 +139,7 @@ const UserPanel: React.FC = () => {
       return null;
     }
   };
-  
+
   useEffect(() => {
     if (user.id) fetchUserDetails(user.id);
   }, [user.id]);
@@ -185,19 +183,26 @@ const UserPanel: React.FC = () => {
 
   const fetchAddresses = async (id: string) => {
     try {
+      const { token } = getUserTokenId() || {};
+      if (!token) {
+        console.error("No se encontró el token.");
+        return;
+      }
+
       const response = await axios.get(
-        `${API_URL}/users/address/${id}`,
+        `https://valkiriasback.onrender.com/users/address/${
+          getUserTokenId().id
+        }`,
         {
           headers: {
             Accept: "*/*",
-            Authorization: `Bearer ${getUserTokenId().token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-
       setAddresses(response.data);
     } catch (error) {
-      console.log("Error fetching addresses:", error);
+      console.error("Error al obtener direcciones:", error);
     }
   };
   useEffect(() => {
@@ -216,13 +221,11 @@ const UserPanel: React.FC = () => {
     const formData = new FormData();
     formData.append("photo", file); // La clave 'photo' debe coincidir con la esperada en la API.
 
-    console.log(getUserTokenId().token, getUserTokenId().id)
+    console.log(getUserTokenId().token, getUserTokenId().id);
 
     try {
       const response = await axios.put(
-        `${API_URL}/users/updateProfileImg/${
-          getUserTokenId().id
-        }`,
+        `${API_URL}/users/updateProfileImg/${getUserTokenId().id}`,
         formData,
         {
           headers: {
@@ -255,15 +258,12 @@ const UserPanel: React.FC = () => {
   };
   const deleteOrderById = async (orderId: string) => {
     try {
-      const response = await fetch(
-        `${API_URL}/order/${orderId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${getUserTokenId().token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/order/${orderId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getUserTokenId().token}`,
+        },
+      });
 
       if (!response.ok) throw new Error("Error eliminando la orden.");
 
@@ -421,24 +421,21 @@ const UserPanel: React.FC = () => {
 
     fetchData();
   }, []);
-  const getTokenAndUserId = () => {
-    const user = localStorage.getItem("user");
-    if (!user) return null;
 
-    try {
-      const parsedUser = JSON.parse(user);
-      return { token: parsedUser.token, id: parsedUser.user?.id };
-    } catch (err) {
-      console.error("Error al parsear los datos del usuario:", err);
-      return null;
-    }
-  };
   const reloadAddresses = async () => {
-    const userData = getTokenAndUserId();
-    if (userData?.id) {
-      await fetchAddresses(userData.id); // Ya existente
+    try {
+      const { id } = getUserTokenId();
+      if (id) await fetchAddresses(id);
+    } catch (error) {
+      console.error("Error recargando las direcciones:", error);
     }
   };
+  useEffect(() => {
+    if (addressUpdated) {
+      reloadAddresses(); // Recarga las direcciones después de guardar
+      setAddressUpdated(false); // Resetea el flag
+    }
+  }, [addressUpdated]);
 
   const userFields: {
     label: string;
@@ -582,7 +579,7 @@ const UserPanel: React.FC = () => {
               Seguimiento de Pedidos
             </h1>
 
-            <div className="max-w-6xl mx-auto bg-gray-100 p-4 rounded-lg shadow-lg flex flex-wrap gap-4">
+            <div className="max-w-6xl mx-auto  p-4 rounded-lg shadow-lg flex flex-wrap gap-4">
               {/* Detalles del Pedido */}
               {data.orders.map((order) => {
                 // Definir la línea de tiempo dinámica basada en el estado
@@ -725,39 +722,7 @@ const UserPanel: React.FC = () => {
             </div>
           </div>
         );
-      case "purchases":
-        return (
-          <div className="bg-white min-h-screen p-6">
-            <h1 className="text-3xl font-bold text-black mb-6 text-center">
-              Mis Compras
-            </h1>
 
-            <div className="space-y-4">
-              {data.orders.length > 0 ? (
-                data.orders
-                  .filter((order) => order.status === "entregado") // Filtrar por status "entregado"
-                  .map((order) => (
-                    <div
-                      key={order.id}
-                      className="p-4 bg-gray-100 rounded-lg shadow-md"
-                    >
-                      <p className="text-lg text-gray-800">
-                        <strong>Id:</strong> {order.id}
-                      </p>
-                      <p className="text-lg text-gray-800">
-                        <strong>Estado:</strong> {order.status}
-                      </p>
-                      <p className="text-lg text-gray-800">
-                        <strong>Total:</strong> ${order.total}
-                      </p>
-                    </div>
-                  ))
-              ) : (
-                <p className="text-gray-600">No tienes compras registradas.</p>
-              )}
-            </div>
-          </div>
-        );
       default:
         return <p>Seleccione una pestaña para ver el contenido.</p>;
     }
@@ -785,15 +750,7 @@ const UserPanel: React.FC = () => {
             <FaShoppingCart className="mr-2" />
             Órdenes
           </button>
-          <button
-            className={`p-2 flex items-center cursor-pointer ${
-              activeTab === "purchases" ? "border-b-2 border-white" : ""
-            }`}
-            onClick={() => setActiveTab("purchases")}
-          >
-            <FaReceipt className="mr-2" />
-            Compras
-          </button>
+
           <button
             className={`p-2 flex items-center cursor-pointer ${
               activeTab === "traking" ? "border-b-2 border-white" : ""
@@ -859,7 +816,7 @@ const UserPanel: React.FC = () => {
                     setSelectedAddressId(null);
                   }
                 }}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
               >
                 Eliminar
               </button>

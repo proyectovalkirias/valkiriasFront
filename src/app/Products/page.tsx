@@ -16,8 +16,7 @@ const colorNameMap: Record<string, string> = {
   "#00913f": "Verde Benetton",
 };
 
-const API_URL =
-  process.env.REACT_APP_API_URL || `https://valkiriasback.onrender.com`;
+const API_URL = `https://valkiriasback.onrender.com`;
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);

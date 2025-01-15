@@ -82,33 +82,36 @@ const ProductDetail: React.FC = () => {
         setLoading(true);
 
         const getProductById = async (id: string): Promise<Product> => {
-          const getToken = () => {
+          const getUserTokenId = (): { id: string; token: string } => {
             const user = localStorage.getItem("user");
 
             if (!user) {
               console.error("No hay datos del usuario en localStorage");
-              return null;
+              return { id: "", token: "" };
             }
 
             try {
               const parsedUser = JSON.parse(user);
-              return parsedUser.token || null; // Retorna el token si existe
+              const id = parsedUser.id || parsedUser.user?.id || ""; // Acceso seguro
+              const token = parsedUser.token || parsedUser.accessToken || ""; // Token prioritario
+
+              if (!id) console.warn("El ID del usuario no está disponible.");
+              if (!token)
+                console.warn("El token del usuario no está disponible.");
+
+              console.log("ID:", id, "Token:", token);
+              return { id, token };
             } catch (err) {
               console.error("Error al parsear los datos del usuario:", err);
-              return null;
+              return { id: "", token: "" };
             }
           };
-
-          const token = getToken();
-          if (!token) {
-            console.error("No se encontró el token.");
-          }
           const response = await axios(
             `https://valkiriasback.onrender.com/products/${id}`,
             {
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${getUserTokenId().token}`,
               },
             }
           );

@@ -73,20 +73,32 @@ const Cart: React.FC = () => {
     setCartItems(storedCart);
   }, []);
 
-  const getTokenAndUserId = () => {
+  const getUserTokenId = (): { id: string; token: string } => {
     const user = localStorage.getItem("user");
-    if (!user) return null;
+
+    if (!user) {
+      console.error("No hay datos del usuario en localStorage");
+      return { id: "", token: "" };
+    }
 
     try {
       const parsedUser = JSON.parse(user);
-      return { token: parsedUser.token, id: parsedUser.user?.id };
+      const id = parsedUser.id || parsedUser.user?.id || ""; // Acceso seguro
+      const token = parsedUser.token || parsedUser.accessToken || ""; // Token prioritario
+
+      if (!id) console.warn("El ID del usuario no está disponible.");
+      if (!token) console.warn("El token del usuario no está disponible.");
+
+      console.log("ID:", id, "Token:", token);
+      return { id, token };
     } catch (err) {
       console.error("Error al parsear los datos del usuario:", err);
-      return null;
+      return { id: "", token: "" };
     }
   };
+
   const reloadAddresses = async () => {
-    const userData = getTokenAndUserId();
+    const userData = getUserTokenId();
     if (userData?.id) {
       await fetchAddresses(userData.id); // Ya existente
     }
@@ -123,14 +135,16 @@ const Cart: React.FC = () => {
 
   const fetchAddresses = async (id: string) => {
     try {
-      const { token } = getTokenAndUserId() || {};
+      const { token } = getUserTokenId() || {};
       if (!token) {
         console.error("No se encontró el token.");
         return;
       }
 
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/users/address/${id}`,
+        `https://valkiriasback.onrender.com/users/address/${
+          getUserTokenId().id
+        }`,
         {
           headers: {
             Accept: "*/*",
@@ -144,7 +158,7 @@ const Cart: React.FC = () => {
     }
   };
   useEffect(() => {
-    const userData = getTokenAndUserId();
+    const userData = getUserTokenId();
     if (userData?.id) {
       fetchAddresses(userData.id);
     }
@@ -152,7 +166,7 @@ const Cart: React.FC = () => {
 
   const handlePurchase = async () => {
     try {
-      const userData = getTokenAndUserId();
+      const userData = getUserTokenId();
       if (!userData || !userData.token || !userData.id) {
         console.error("Datos del usuario incompletos.");
         return;
@@ -279,7 +293,7 @@ const Cart: React.FC = () => {
               Selecciona una direccion o agrega una para tu envio
             </h2>
             <AddressForm
-              userId={getTokenAndUserId()?.id}
+              userId={getUserTokenId()?.id}
               onSaveSuccess={() => reloadAddresses()} // Recargar direcciones después de guardar
             />
             <br />

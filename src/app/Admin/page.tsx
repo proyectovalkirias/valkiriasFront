@@ -43,6 +43,30 @@ function Admin() {
     );
   }, [searchTerm, users]);
 
+  const getUserTokenId = (): { id: string; token: string } => {
+    const user = localStorage.getItem("user");
+
+    if (!user) {
+      console.error("No hay datos del usuario en localStorage");
+      return { id: "", token: "" };
+    }
+
+    try {
+      const parsedUser = JSON.parse(user);
+      const id = parsedUser.id || parsedUser.user?.id || ""; // Acceso seguro
+      const token = parsedUser.token || parsedUser.accessToken || ""; // Token prioritario
+
+      if (!id) console.warn("El ID del usuario no está disponible.");
+      if (!token) console.warn("El token del usuario no está disponible.");
+
+      console.log("ID:", id, "Token:", token);
+      return { id, token };
+    } catch (err) {
+      console.error("Error al parsear los datos del usuario:", err);
+      return { id: "", token: "" };
+    }
+  };
+
   const fetchProducts = async () => {
     try {
       const response = await fetch(
@@ -60,30 +84,8 @@ function Admin() {
       setLoading(false);
     }
   };
-  const fetchUserAddress = async (userId: string) => {
+  const fetchUserAddress = async (userId: string, token: string) => {
     try {
-      const getToken = () => {
-        const user = localStorage.getItem("user");
-
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
-
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
-      };
-
-      const token = getToken();
-      if (!token) {
-        console.error("No se encontró el token.");
-        return;
-      }
       const response = await axios.get(
         `https://valkiriasback.onrender.com/users/address/${userId}`,
         {
@@ -95,68 +97,81 @@ function Admin() {
       return response.data;
     } catch (error) {
       console.error(
-        `Error al obtener la dirección para el usuario ${userId}:`,
+        `Error al obtener la dirección del usuario ${userId}:`,
         error
       );
-      return null;
+      return "Sin dirección"; // Devuelve un valor predeterminado en caso de error
     }
   };
-  // Ahora no necesitas agregar el encabezado manualmente en cada solicitud
+
   const fetchUsers = async () => {
+    const { id, token } = getUserTokenId(); // Obtén el token y el ID del usuario autenticado
+    console.log("Token e ID obtenidos:", { id, token });
+
+    if (!token) {
+      console.error("No se encontró el token del usuario.");
+      toast.error(
+        "Error de autenticación. Por favor, inicia sesión nuevamente."
+      );
+      return;
+    }
+
     try {
-      if (typeof window === "undefined") {
-        console.error("No se puede acceder a localStorage en el servidor.");
-        return;
-      }
-
-      const getToken = () => {
-        const user = localStorage.getItem("user");
-
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
-
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
-      };
-
-      const token = getToken();
-      if (!token) {
-        console.error("No se encontró el token.");
-        return;
-      }
-
+      // Realiza la solicitud GET a la API
       const response = await axios.get(
         "https://valkiriasback.onrender.com/users",
         {
           headers: {
+            Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, // Incluye el token en las cabeceras
           },
         }
       );
 
-      const usersWithAddresses = await Promise.all(
-        response.data.map(async (user: User) => {
-          const newAddress = await fetchUserAddress(user.id);
-          return { ...user, address: newAddress || "Sin dirección" };
-        })
-      );
+      // Verifica si la respuesta es válida
+      if (response.status === 200 && Array.isArray(response.data)) {
+        // Procesa las direcciones de cada usuario
+        const usersWithAddresses = await Promise.all(
+          response.data.map(async (user: User) => {
+            try {
+              const address = await fetchUserAddress(user.id, token);
+              return { ...user, address };
+            } catch (error) {
+              console.warn(
+                `No se pudo obtener la dirección para el usuario ${user.id}:`,
+                error
+              );
+              return { ...user, address: "Sin dirección" };
+            }
+          })
+        );
 
-      setUsers(usersWithAddresses);
-      setFilteredUsers(usersWithAddresses);
-    } catch (error) {
-      console.error("Error al obtener los usuarios:", error);
-      toast.error("Error al obtener los usuarios.");
+        setUsers(usersWithAddresses);
+        setFilteredUsers(usersWithAddresses);
+        toast.success("Usuarios cargados correctamente.");
+      } else {
+        throw new Error(
+          `Respuesta inesperada de la API: ${response.status} ${response.statusText}`
+        );
+      }
+    } catch (error: any) {
+      console.error("Error al obtener los usuarios:", error.message || error);
+      if (error.response) {
+        console.error("Detalles del error:", error.response.data);
+        toast.error(
+          `Error ${error.response.status}: ${
+            error.response.data.message || "al obtener los usuarios"
+          }`
+        );
+      } else {
+        toast.error(
+          "Error al obtener los usuarios. Por favor, intenta nuevamente."
+        );
+      }
     }
   };
-  console.log(users);
+
   const toggleUserStatus = async (id: string, activate: boolean) => {
     const getToken = () => {
       const user = localStorage.getItem("user");
@@ -299,30 +314,6 @@ function Admin() {
   };
 
   const handleDelete = async (productId: string) => {
-    const getToken = () => {
-      const user = localStorage.getItem("user");
-
-      if (!user) {
-        console.error("No hay datos del usuario en localStorage");
-        return null;
-      }
-
-      try {
-        const parsedUser = JSON.parse(user);
-        return parsedUser.token || null; // Retorna el token si existe
-      } catch (err) {
-        console.error("Error al parsear los datos del usuario:", err);
-        return null;
-      }
-    };
-
-    // Ejemplo de uso:
-    const token = getToken();
-    if (token) {
-      console.log("Token extraído:", token);
-    } else {
-      console.log("No se encontró el token.");
-    }
     if (!productId) {
       toast.error("Por favor, selecciona un producto válido.");
       return;
@@ -333,7 +324,7 @@ function Admin() {
         `https://valkiriasback.onrender.com/products/delete/${productId}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${getUserTokenId().token}`,
           },
         }
       );
