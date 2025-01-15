@@ -4,7 +4,10 @@ import { CartItem } from "../../interfaces/Product";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Address } from "@/interfaces/User";
-import { get } from "http";
+import dynamic from "next/dynamic";
+const AddressForm = dynamic(() => import("@/components/AddressForm"), {
+  ssr: false,
+});
 
 const Modal = ({
   isOpen,
@@ -188,7 +191,7 @@ const Cart: React.FC = () => {
       </h1>
 
       {cartItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+        <div className="flex flex-col items-center justify-center h-full p-6  text-center">
           <h2 className="text-2xl font-semibold text-gray-800">
             Tu carrito está vacío
           </h2>
@@ -196,7 +199,7 @@ const Cart: React.FC = () => {
             Agrega algunos productos y vuelve aquí para revisarlos.
           </p>
           <button
-            className="bg-valkyrie-purple text-white py-1 px-2 mr-2 rounded-lg hover:bg-creativity-purple"
+            className="bg-valkyrie-purple text-white py-1 px-2 mr-2 mt-4 rounded-lg hover:bg-creativity-purple"
             onClick={() => (window.location.href = "/Products")}
           >
             Ir a la tienda
@@ -237,6 +240,12 @@ const Cart: React.FC = () => {
                   Total: ${item.totalPrice}
                 </p>
               </div>
+              <div className="flex-1">
+                <p className="text-sm text-gray-700">
+                  <strong>Ideas: </strong> {item.clientIdeas}
+                </p>
+              </div>
+
               <button
                 onClick={() => handleOpenModal("remove", index)}
                 className="absolute top-2 right-2 bg-valkyrie-purple text-white py-1 px-2 rounded-lg hover:bg-creativity-purple"
@@ -250,7 +259,9 @@ const Cart: React.FC = () => {
             Subtotal: ${subtotal.toFixed(2)}
           </p>
 
-          <div className=" flex flex-wrap gap-6 p-4 items-center w-full justify-center">
+          <div className=" flex flex-col gap-6  items-center w-full justify-center">
+            <AddressForm userId={getTokenAndUserId()?.id} />
+            <br />
             {addresses.length > 0 ? (
               addresses.map((address) => (
                 <div
@@ -276,7 +287,7 @@ const Cart: React.FC = () => {
                     onClick={() => setSelectedAddressId(address.id)}
                     className={`mt-4 py-1 px-2 rounded-lg ${
                       selectedAddressId === address.id
-                        ? "bg-green-500"
+                        ? "bg-custom-orange"
                         : "bg-valkyrie-purple"
                     } text-white hover:bg-creativity-purple`}
                   >

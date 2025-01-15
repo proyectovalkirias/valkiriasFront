@@ -4,8 +4,7 @@ import { motion } from "framer-motion";
 import LiveChatComponent from "@/app/Valkibot/livechat/page"; // Importación del componente LiveChatComponent
 
 const API_URL =
-    process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
-
+  process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
 
 const ChatComponent = () => {
   const [messages, setMessages] = useState<
@@ -25,14 +24,11 @@ const ChatComponent = () => {
   // Lógica de respuestas del bot
   const fetchBotResponse = async (message: string) => {
     try {
-      const response = await fetch(
-        `${API_URL}/valkibot`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message }),
-        }
-      );
+      const response = await fetch(`${API_URL}/valkibot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
       const data = await response.json();
       setBotResponse(data);
       setMessages((prev) => [...prev, { sender: "Bot", content: data.reply }]);

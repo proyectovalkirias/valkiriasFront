@@ -3,7 +3,9 @@ import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 
 const LiveChatComponent = () => {
-  const [messages, setMessages] = useState<{ sender: string; content: string }[]>([]);
+  const [messages, setMessages] = useState<
+    { sender: string; content: string }[]
+  >([]);
   const [input, setInput] = useState("");
   const [socket, setSocket] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -41,9 +43,11 @@ const LiveChatComponent = () => {
       setFirstname(userDetails.firstname);
       setUserId(userDetails.userId);
 
-      const socketUrl = `wss://valkiriasback.onrender.com/?isAdmin=${userDetails.isAdmin}&firstname=${encodeURIComponent(
-        userDetails.firstname
-      )}&userId=${userDetails.userId}`;
+      const socketUrl = `wss://valkiriasback.onrender.com/?isAdmin=${
+        userDetails.isAdmin
+      }&firstname=${encodeURIComponent(userDetails.firstname)}&userId=${
+        userDetails.userId
+      }`;
       const newSocket = io(socketUrl);
 
       setSocket(newSocket);
@@ -61,7 +65,11 @@ const LiveChatComponent = () => {
           }));
 
           setMessages([
-            { sender: "Sistema", content: "¡Te estamos derivando al chat en vivo para que hables con un humano! 💬 Nuestro equipo está listo para ayudarte. 🙌" },
+            {
+              sender: "Sistema",
+              content:
+                "¡Te estamos derivando al chat en vivo para que hables con un humano! 💬 Nuestro equipo está listo para ayudarte. 🙌",
+            },
             ...mappedMessages,
           ]);
         } catch (error) {
@@ -83,7 +91,11 @@ const LiveChatComponent = () => {
       };
     } else {
       setMessages([
-        { sender: "Sistema", content: "Inicia sesión o regístrate para comunicarte con un miembro del equipo." },
+        {
+          sender: "Sistema",
+          content:
+            "Inicia sesión o regístrate para comunicarte con un miembro del equipo.",
+        },
       ]);
     }
   }, []);
