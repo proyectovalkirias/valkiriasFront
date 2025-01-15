@@ -42,7 +42,7 @@ const ChangePassword: React.FC = () => {
     }
 
     try {
-      // Token de autorización (puede venir del estado o contexto)
+   
 
       const response = await axios.put(
         `https://valkiriasback.onrender.com/auth/change-password`,
@@ -51,7 +51,7 @@ const ChangePassword: React.FC = () => {
           confirmPassword,
         },
         {
-          params: { email }, // Para enviar el email como query param
+          params: { email }, 
           headers: {
             "Content-Type": "application/json",
           },
