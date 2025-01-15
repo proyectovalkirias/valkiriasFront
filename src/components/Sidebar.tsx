@@ -10,7 +10,6 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import axios from "axios";
 
-
 const Sidebar: React.FC = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);

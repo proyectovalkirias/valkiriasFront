@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { FaUser, FaShoppingCart, FaReceipt, FaTruck } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -7,7 +7,8 @@ import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
 import { Address } from "@/interfaces/User";
-import OrderDetails from "@/components/OrderDetail";
+import { parse } from "path";
+// import OrderDetails from "@/components/OrderDetail";
 
 const AddressForm = dynamic(() => import("@/components/AddressForm"), {
   ssr: false,
@@ -15,6 +16,10 @@ const AddressForm = dynamic(() => import("@/components/AddressForm"), {
 const UserPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("profile");
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
   const [user, setUser] = useState<{
     id: string;
     firstname: string;
@@ -42,16 +47,27 @@ const UserPanel: React.FC = () => {
     orders: [],
     purchases: [],
   });
-
-  const [, setLoading] = useState<boolean>(true);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalField, setModalField] = useState<{
     key: string;
     label: string;
     value: string | number;
   } | null>(null);
 
-  // Obtener datos del usuario desde el almacenamiento local
+  const getToken = (): string | null => {
+    const user = localStorage.getItem("user");
+    if (!user) {
+      console.error("No hay datos del usuario en localStorage");
+      return null;
+    }
+
+    try {
+      const parsedUser = JSON.parse(user);
+      return parsedUser.token || null;
+    } catch (err) {
+      console.error("Error al parsear los datos del usuario:", err);
+      return null;
+    }
+  };
   const getUserData = () => {
     try {
       const storedUser = localStorage.getItem("user");
@@ -60,111 +76,41 @@ const UserPanel: React.FC = () => {
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
         return {
-          id: parsedUser.user.id,
-          firstname: parsedUser.user.firstname || "",
-          lastname: parsedUser.user.lastname || "",
-          email: parsedUser.user.email || "",
-          photo: parsedUser.user.photo || "/images/Avatar.png",
+          id: parsedUser.id || parsedUser.user.id || "",
+          firstname: parsedUser.firstname || parsedUser.user.firstname || "",
+          lastname: parsedUser.lastname || parsedUser.user.lastname || "",
+          email: parsedUser.email || parsedUser.user.email || "",
+          photoUrl: parsedUser.photo || "/images/Avatar.png",
+          isAdmin: parsedUser.isAdmin || parsedUser.user.isAdmin || false,
           isGoogleUser: false,
         };
       } else if (storedGoogleUser) {
         const googleUser = JSON.parse(storedGoogleUser);
         return {
+          id: googleUser.id || "",
           firstname: googleUser.given_name || "",
           lastname: googleUser.family_name || "",
           email: googleUser.email || "",
-          photo: googleUser.picture || "/images/Avatar.png",
-          dni: googleUser.dni || 0,
-          phone: googleUser.phone || "",
+          photoUrl: googleUser.picture || "/images/Avatar.png",
           isGoogleUser: true,
+          dni: googleUser.dni || null,
+          phone: googleUser.phone || null,
         };
       }
+
       return null;
     } catch (error) {
       console.error("Error al obtener los datos del usuario:", error);
       return null;
     }
   };
-
-  const handleDeleteOrder = async (orderId: string) => {
-    const confirmation = window.confirm(
-      "¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer."
-    );
-    if (confirmation) {
-      try {
-        const getToken = () => {
-          const user = localStorage.getItem("user");
-
-          if (!user) {
-            console.error("No hay datos del usuario en localStorage");
-            return null;
-          }
-
-          try {
-            const parsedUser = JSON.parse(user);
-            return parsedUser.token || null; // Retorna el token si existe
-          } catch (err) {
-            console.error("Error al parsear los datos del usuario:", err);
-            return null;
-          }
-        };
-
-        const token = getToken();
-        if (!token) {
-          console.error("No se encontró el token.");
-        }
-        await axios.delete(
-          `https://valkiriasback.onrender.com/order/${orderId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        setData((prevData) => ({
-          ...prevData,
-          orders: prevData.orders.filter((order) => order.id !== orderId),
-        }));
-        toast.success("Orden eliminada con éxito.");
-      } catch (error) {
-        console.error("Error eliminando la orden:", error);
-        toast.error(
-          "Hubo un problema al eliminar la orden. Inténtalo nuevamente."
-        );
-      }
-    }
-  };
-
-  // Obtener detalles adicionales del usuario desde la API
   const fetchUserDetails = async (id: string) => {
     try {
-      const getToken = () => {
-        const user = localStorage.getItem("user");
-
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
-
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
-      };
-
-      const token = getToken();
-      if (!token) {
-        console.error("No se encontró el token.");
-      }
       const response = await axios.get(
         `https://valkiriasback.onrender.com/users/${id}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${getToken()}`,
           },
         }
       );
@@ -174,49 +120,47 @@ const UserPanel: React.FC = () => {
       return null;
     }
   };
-
-  // Obtener órdenes desde la API
+  useEffect(() => {
+    if (user.id) fetchUserDetails(user.id);
+  }, [user.id]);
   const fetchOrders = async (id: string) => {
     try {
-      const getToken = () => {
-        const user = localStorage.getItem("user");
-
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
-
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
-      };
-
       const token = getToken();
       if (!token) {
         console.error("No se encontró el token.");
+        toast.error("Por favor, inicia sesión nuevamente.");
+        return;
       }
 
-      const response = await axios.get(
+      const response = await fetch(
         `https://valkiriasback.onrender.com/order/user/${id}`,
         {
+          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
-      console.log("Respuesta de la API:", response.data);
-      setData((prev) => ({ ...prev, orders: response.data }));
+
+      if (!response.ok) {
+        throw new Error(
+          `Error en la respuesta del servidor: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      console.log("Respuesta de la API:", data);
+
+      setData((prev) => ({ ...prev, orders: data }));
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
       toast.error("Error al obtener las órdenes.");
     }
   };
-
-  // Obtener compras desde la API
+  useEffect(() => {
+    if (activeTab === "orders") fetchOrders(user.id);
+  }, [activeTab, user.id]);
   const fetchPurchases = async () => {
     try {
       const response = await axios.get(
@@ -227,36 +171,17 @@ const UserPanel: React.FC = () => {
       toast.error("Error al obtener las compras.");
     }
   };
+  useEffect(() => {
+    if (activeTab === "purchases") fetchPurchases();
+  }, [activeTab]);
   const fetchAddresses = async (id: string) => {
     try {
-      const getToken = () => {
-        const user = localStorage.getItem("user");
-
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
-
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
-      };
-
-      const token = getToken();
-      if (!token) {
-        console.error("No se encontró el token.");
-      }
-
       const response = await axios.get(
         `https://valkiriasback.onrender.com/users/address/${id}`,
         {
           headers: {
             Accept: "*/*",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${getToken()}`,
           },
         }
       );
@@ -266,6 +191,10 @@ const UserPanel: React.FC = () => {
       console.log("Error fetching addresses:", error);
     }
   };
+  useEffect(() => {
+    if (user.id && activeTab === "profile") fetchAddresses(user.id);
+  }, [user.id, activeTab]);
+
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -279,34 +208,13 @@ const UserPanel: React.FC = () => {
     formData.append("photo", file); // La clave 'photo' debe coincidir con la esperada en la API.
 
     try {
-      const getToken = () => {
-        const user = localStorage.getItem("user");
-
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
-
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
-      };
-
-      const token = getToken();
-      if (!token) {
-        console.error("No se encontró el token.");
-      }
       const response = await axios.put(
-        `https://valkiriasback.onrender.com/users/updateProfileImg/${user?.id}`,
+        `https://valkiriasback.onrender.com/users/updateProfileImg/${user.id}`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${getToken()}`,
           },
         }
       );
@@ -323,7 +231,7 @@ const UserPanel: React.FC = () => {
         toast.success("Imagen de perfil actualizada con éxito.");
         setTimeout(() => {
           window.location.reload();
-        }, 1000);
+        }, 500);
       } else {
         toast.error("Error al actualizar la imagen.");
       }
@@ -332,118 +240,51 @@ const UserPanel: React.FC = () => {
       toast.error("Hubo un error al subir la imagen.");
     }
   };
-
-  // Cargar datos iniciales del usuario
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userData = getUserData();
-        if (userData) {
-          setUser({
-            id: userData.id,
-            firstname: userData.firstname,
-            lastname: userData.lastname,
-            email: userData.email,
-            photo: userData.photo,
-            dni: userData.dni,
-            phone: userData.phone,
-          });
-
-          // Si no es usuario de Google, obtener detalles adicionales
-          if (!userData.isGoogleUser) {
-            const details = await fetchUserDetails(userData.id);
-            if (details) {
-              setUser((prevState) => ({
-                ...prevState,
-                ...details, // Combina los detalles adicionales
-              }));
-            }
-          }
-        } else {
-          toast.error("Por favor, inicie sesión para acceder a esta página.");
-          window.location.href = "/Login";
-        }
-      } catch (error) {
-        console.error("Error al cargar los datos del usuario:", error);
-        toast.error("Hubo un problema al cargar los datos del usuario.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Cargar órdenes o compras según la pestaña activa
-  useEffect(() => {
-    if (activeTab === "orders") fetchOrders(user.id);
-    if (activeTab === "profile") fetchAddresses(user.id);
-  }, [activeTab]);
-  const userFields: {
-    label: string;
-    value: string | number;
-    key: string;
-  }[] = [
-    { label: "Nombre", value: `${user.firstname || "N/A"} `, key: "firstname" },
-    { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "lastname" },
-    { label: "Email", value: user.email || "N/A", key: "email" },
-    {
-      label: "Teléfono",
-      value: user.phone || "Agregar",
-      key: "phone",
-    },
-    { label: "DNI", value: user.dni || "Agregar", key: "dni" },
-  ];
-
-  const handleEdit = (field: {
-    key: string;
-    label: string;
-    value: string | number;
-  }) => {
-    setModalField(field);
-    setIsModalOpen(true);
-  };
-  const getToken = (): string | null => {
-    const user = localStorage.getItem("user");
-    if (!user) {
-      console.error("No hay datos del usuario en localStorage");
-      return null;
-    }
-
+  const deleteOrderById = async (orderId: string) => {
     try {
-      const parsedUser = JSON.parse(user);
-      return parsedUser.token || null;
-    } catch (err) {
-      console.error("Error al parsear los datos del usuario:", err);
-      return null;
-    }
-  };
-  const handleDeleteAddress = async (addressId: string, userId: string) => {
-    try {
-      const token = getToken();
-      if (!token) {
-        toast.error(
-          "No se encontró el token. Intenta iniciar sesión nuevamente."
-        );
-        return;
-      }
-      console.log("adresesssss", addressId, "userID", userId);
-      const response = await axios.delete(
-        `http://localhost:3000/users/${userId}/deleteAddress/${addressId}`,
+      const response = await fetch(
+        `https://valkiriasback.onrender.com/order/${orderId}`,
         {
+          method: "DELETE",
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${getToken()}`,
           },
         }
       );
 
-      if (response.status === 200) {
-        toast.success("Dirección eliminada con éxito.");
-      } else {
-        throw new Error(
-          response.data?.message || "Error al eliminar la dirección"
-        );
-      }
+      if (!response.ok) throw new Error("Error eliminando la orden.");
+
+      // Actualizar la lista de órdenes después de eliminar
+      setData((prevData) => ({
+        ...prevData,
+        orders: prevData.orders.filter((order) => order.id !== orderId),
+      }));
+      toast.success("Orden eliminada con éxito.");
+    } catch (error) {
+      console.error("Error eliminando la orden:", error);
+      toast.error("Hubo un problema al eliminar la orden.");
+    }
+  };
+  const deleteAddressById = async (addressId: string, userId: string) => {
+    try {
+      const response = await fetch(
+        `https://valkiriasback.onrender.com/users/${userId}/deleteAddress/${addressId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Accept: "*/*",
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Error eliminando la dirección.");
+
+      // Actualizar la lista de direcciones después de eliminar
+      setAddresses((prevAddresses) =>
+        prevAddresses.filter((address) => address.id !== addressId)
+      );
+      toast.success("Dirección eliminada con éxito.");
     } catch (error: any) {
       console.error("Error eliminando la dirección:", error);
       toast.error(
@@ -490,27 +331,7 @@ const UserPanel: React.FC = () => {
       }
 
       console.log("Usuario actualizado:", updatedUser); // Depuración
-      const getToken = () => {
-        const user = localStorage.getItem("user");
 
-        if (!user) {
-          console.error("No hay datos del usuario en localStorage");
-          return null;
-        }
-
-        try {
-          const parsedUser = JSON.parse(user);
-          return parsedUser.token || null; // Retorna el token si existe
-        } catch (err) {
-          console.error("Error al parsear los datos del usuario:", err);
-          return null;
-        }
-      };
-
-      const token = getToken();
-      if (!token) {
-        console.error("No se encontró el token.");
-      }
       // Enviar datos al back-end
       const response = await axios.put(
         `https://valkiriasback.onrender.com/users/${user.id}`,
@@ -518,7 +339,7 @@ const UserPanel: React.FC = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${getToken()}`,
           },
         }
       );
@@ -535,6 +356,74 @@ const UserPanel: React.FC = () => {
       toast.error("Hubo un problema al guardar los cambios.");
     }
   };
+  const handleDeleteOrder = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    setDeleteModalOpen(true);
+  };
+  const handleDeleteAddress = (addressId: string) => {
+    setSelectedOrderId(addressId); // Usa el mismo estado para simplicidad
+    setDeleteModalOpen(true);
+  };
+
+  const handleEdit = (field: {
+    key: string;
+    label: string;
+    value: string | number;
+  }) => {
+    setModalField(field);
+    setIsModalOpen(true);
+  };
+  // Cargar datos iniciales del usuario
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userData = getUserData();
+        if (userData) {
+          setUser({
+            id: userData.id,
+            firstname: userData.firstname,
+            lastname: userData.lastname,
+            email: userData.email,
+            photo: userData.photoUrl,
+            dni: userData.dni,
+            phone: userData.phone,
+          });
+
+          // Si no es usuario de Google, obtener detalles adicionales
+          if (!userData.isGoogleUser) {
+            const details = await fetchUserDetails(userData.id);
+            if (details) {
+              setUser((prevState) => ({
+                ...prevState,
+                ...details, // Combina los detalles adicionales
+              }));
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error al cargar los datos del usuario:", error);
+        toast.error("Hubo un problema al cargar los datos del usuario.");
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const userFields: {
+    label: string;
+    value: string | number;
+    key: string;
+  }[] = [
+    { label: "Nombre", value: `${user.firstname || "N/A"} `, key: "firstname" },
+    { label: "Apellido", value: `${user.lastname || "N/A"}`, key: "lastname" },
+    { label: "Email", value: user.email || "N/A", key: "email" },
+    { label: "DNI", value: user.dni || "Agregar", key: "dni" },
+    {
+      label: "Teléfono",
+      value: user.phone || "Agregar",
+      key: "phone",
+    },
+  ];
 
   const renderContent = () => {
     switch (activeTab) {
@@ -627,9 +516,7 @@ const UserPanel: React.FC = () => {
                         </p>
 
                         <button
-                          onClick={() =>
-                            handleDeleteAddress(address.id, user.id)
-                          }
+                          onClick={() => handleDeleteAddress(address.id)}
                           className="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors duration-200"
                         >
                           Eliminar
@@ -783,7 +670,6 @@ const UserPanel: React.FC = () => {
           </div>
         );
       case "purchases":
-        // fetchPurchases();
         return (
           <div className="bg-white min-h-screen p-6">
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
@@ -862,7 +748,76 @@ const UserPanel: React.FC = () => {
         </nav>
       </header>
       <main className="flex-1 bg-[#7b548b]">{renderContent()}</main>
-
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
+              ¿Estás seguro de que deseas eliminar esta orden?
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={async () => {
+                  if (selectedOrderId) {
+                    await deleteOrderById(selectedOrderId);
+                    setDeleteModalOpen(false);
+                    setSelectedOrderId(null);
+                  }
+                }}
+                className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
+              >
+                Eliminar
+              </button>
+              <button
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setSelectedOrderId(null);
+                }}
+                className="bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
+              ¿Estás seguro de que deseas eliminar esta dirección?
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={async () => {
+                  if (selectedOrderId) {
+                    await deleteAddressById(selectedOrderId, user.id);
+                    setDeleteModalOpen(false);
+                    setSelectedOrderId(null);
+                  }
+                }}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+              >
+                Eliminar
+              </button>
+              <button
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setSelectedOrderId(null);
+                }}
+                className="bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {isModalOpen && modalField && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">

@@ -118,8 +118,10 @@ const Login: React.FC = () => {
   const handleGoogleLogin2 = () => {
     const clientID =
       "634423829747-32kn123g67grqggkm2v14f6agaiiu6hp.apps.googleusercontent.com";
-    const redirectURI=process.env.REACT_APP_GOOGLE_REDIRECT_URI || `https://valkiriasfront.onrender.com/loginGoogle`;
-    console.log(process.env.REACT_APP_GOOGLE_REDIRECT_URI)
+    const redirectURI =
+      process.env.REACT_APP_GOOGLE_REDIRECT_URI ||
+      `https://valkiriasfront.onrender.com/loginGoogle`;
+    console.log(process.env.REACT_APP_GOOGLE_REDIRECT_URI);
     const scope = "openid profile email";
     const responseType = "code";
 
