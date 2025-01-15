@@ -1,7 +1,10 @@
 interface Order {
   id: string;
-  date: string; // Fecha como string (ISO 8601)
+  createdAt: string;
   total: number;
-  }
+  orderDetail: string;
+  status: string;
+  updatedAt: string;
+}
 
-  export default Order;
+export default Order;

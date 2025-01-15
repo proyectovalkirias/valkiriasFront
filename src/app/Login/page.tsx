@@ -92,7 +92,7 @@ const Login: React.FC = () => {
       router.push("/");
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 500);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const errorData = err.response?.data;

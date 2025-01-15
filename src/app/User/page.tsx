@@ -7,6 +7,7 @@ import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
 import { Address } from "@/interfaces/User";
+import OrderDetails from "@/components/OrderDetail";
 
 const AddressForm = dynamic(() => import("@/components/AddressForm"), {
   ssr: false,
@@ -175,7 +176,7 @@ const UserPanel: React.FC = () => {
   };
 
   // Obtener órdenes desde la API
-  const fetchOrders = async () => {
+  const fetchOrders = async (id: string) => {
     try {
       const getToken = () => {
         const user = localStorage.getItem("user");
@@ -198,14 +199,16 @@ const UserPanel: React.FC = () => {
       if (!token) {
         console.error("No se encontró el token.");
       }
+
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/order/user/${user.id}`,
+        `https://valkiriasback.onrender.com/order/user/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+      console.log("Respuesta de la API:", response.data);
       setData((prev) => ({ ...prev, orders: response.data }));
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
@@ -224,29 +227,45 @@ const UserPanel: React.FC = () => {
       toast.error("Error al obtener las compras.");
     }
   };
-  const fetchAddresses = async () => {
+  const fetchAddresses = async (id: string) => {
     try {
-      const response = await fetch(
-        "https://valkiriasback.onrender.com/users/address/cf2bdb54-e854-42f7-88a7-5ec336a291af",
+      const getToken = () => {
+        const user = localStorage.getItem("user");
+
+        if (!user) {
+          console.error("No hay datos del usuario en localStorage");
+          return null;
+        }
+
+        try {
+          const parsedUser = JSON.parse(user);
+          return parsedUser.token || null; // Retorna el token si existe
+        } catch (err) {
+          console.error("Error al parsear los datos del usuario:", err);
+          return null;
+        }
+      };
+
+      const token = getToken();
+      if (!token) {
+        console.error("No se encontró el token.");
+      }
+
+      const response = await axios.get(
+        `https://valkiriasback.onrender.com/users/address/${id}`,
         {
-          method: "GET",
           headers: {
             Accept: "*/*",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setAddresses(data); // Actualiza el estado con las direcciones
+      setAddresses(response.data);
     } catch (error) {
-      console.error("Error fetching addresses:", error);
+      console.log("Error fetching addresses:", error);
     }
   };
-
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -357,9 +376,8 @@ const UserPanel: React.FC = () => {
 
   // Cargar órdenes o compras según la pestaña activa
   useEffect(() => {
-    if (activeTab === "orders") fetchOrders();
-    if (activeTab === "purchases") fetchPurchases();
-    if (activeTab === "profile") fetchAddresses();
+    if (activeTab === "orders") fetchOrders(user.id);
+    if (activeTab === "profile") fetchAddresses(user.id);
   }, [activeTab]);
   const userFields: {
     label: string;
@@ -385,21 +403,53 @@ const UserPanel: React.FC = () => {
     setModalField(field);
     setIsModalOpen(true);
   };
+  const getToken = (): string | null => {
+    const user = localStorage.getItem("user");
+    if (!user) {
+      console.error("No hay datos del usuario en localStorage");
+      return null;
+    }
 
-  const handleDeleteAddress = async (addressId: string) => {
     try {
+      const parsedUser = JSON.parse(user);
+      return parsedUser.token || null;
+    } catch (err) {
+      console.error("Error al parsear los datos del usuario:", err);
+      return null;
+    }
+  };
+  const handleDeleteAddress = async (addressId: string, userId: string) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        toast.error(
+          "No se encontró el token. Intenta iniciar sesión nuevamente."
+        );
+        return;
+      }
+      console.log("adresesssss", addressId, "userID", userId);
       const response = await axios.delete(
-        `https://valkiriasback.onrender.com/users/address/${addressId}`
+        `http://localhost:3000/users/${userId}/deleteAddress/${addressId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (response.status === 200) {
         toast.success("Dirección eliminada con éxito.");
       } else {
-        throw new Error("Error al eliminar la dirección");
+        throw new Error(
+          response.data?.message || "Error al eliminar la dirección"
+        );
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error eliminando la dirección:", error);
-      toast.error("No se pudo eliminar la dirección. Intenta nuevamente.");
+      toast.error(
+        error.response?.data?.message ||
+          "No se pudo eliminar la dirección. Intenta nuevamente."
+      );
     }
   };
   const handleSave = async () => {
@@ -485,7 +535,7 @@ const UserPanel: React.FC = () => {
       toast.error("Hubo un problema al guardar los cambios.");
     }
   };
-  console.log(user);
+
   const renderContent = () => {
     switch (activeTab) {
       case "profile":
@@ -577,7 +627,9 @@ const UserPanel: React.FC = () => {
                         </p>
 
                         <button
-                          onClick={() => handleDeleteAddress(address.id)}
+                          onClick={() =>
+                            handleDeleteAddress(address.id, user.id)
+                          }
                           className="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors duration-200"
                         >
                           Eliminar
@@ -710,11 +762,10 @@ const UserPanel: React.FC = () => {
                         <strong>ID:</strong> {order.id}
                       </p>
                       <p className="text-lg text-gray-800">
-                        <strong>Fecha:</strong>{" "}
-                        {new Date(order.date).toLocaleDateString()}
+                        <strong>Fecha:</strong> {order.createdAt}
                       </p>
                       <p className="text-lg text-gray-800">
-                        <strong>Total:</strong> ${order.total}
+                        <strong>Status:</strong> {order.status}
                       </p>
                     </div>
                     <button
@@ -738,6 +789,7 @@ const UserPanel: React.FC = () => {
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
               Mis Compras
             </h1>
+
             <div className="space-y-4">
               {data.purchases.length > 0 ? (
                 data.purchases.map((purchase) => (
