@@ -204,9 +204,9 @@ const Login: React.FC = () => {
                 className="absolute right-2 top-3 text-white"
               >
                 {showPassword ? (
-                  <FaEye className="text-purple-900" />
+                  <FaEye className="text-white" />
                 ) : (
-                  <FaEyeSlash className="text-purple-900" />
+                  <FaEyeSlash className="text-white" />
                 )}
               </button>
             </div>

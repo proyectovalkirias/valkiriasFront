@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { TbHomeHeart } from "react-icons/tb";
 import { IoShirtOutline } from "react-icons/io5";
@@ -41,7 +40,7 @@ const Sidebar: React.FC = () => {
           lastname: parsedUser.lastname || parsedUser.user.lastname || "",
           email: parsedUser.email || parsedUser.user.email || "",
           photoUrl: parsedUser.photo || "/images/Avatar.png",
-          isAdmin: parsedUser.isAdmin || false,
+          isAdmin: parsedUser.isAdmin || (parsedUser.user && parsedUser.user.isAdmin) || false,
           isGoogleUser: false,
         };
       } else if (storedGoogleUser) {
