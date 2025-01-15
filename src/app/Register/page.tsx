@@ -9,7 +9,7 @@ import axios from "axios";
 
 const Register: React.FC = () => {
   const API_URL =
-    process.env.NEXT_PUBLIC__URL || "https://valkiriasback.onrender.com";
+    process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

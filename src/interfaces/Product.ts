@@ -33,4 +33,6 @@ export interface CartItem {
   selectedLargePrint: string;
   selectedSmallPrint: string;
   totalPrice: number;
+  clientIdeas: string;
+  uploadedImage: string;
 }
