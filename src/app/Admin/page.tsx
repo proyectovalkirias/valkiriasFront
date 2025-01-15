@@ -553,14 +553,7 @@ function Admin() {
         );
       case "reports":
         return <Reports />;
-      case "inbox":
-        return (
-          <div className="bg-white min-h-screen">
-            <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-              Mensajes
-            </h1>
-          </div>
-        );
+
       default:
         return <div>Selecciona una opción</div>;
     }
@@ -597,15 +590,6 @@ function Admin() {
             >
               <FaChartBar size={24} className="inline-block mr-2 mb-2" />
               Reportes
-            </li>
-            <li
-              onClick={() => setActiveTab("inbox")}
-              className={`cursor-pointer ${
-                activeTab === "inbox" ? "border-b-2 border-white" : ""
-              }`}
-            >
-              <FaInbox size={24} className="inline-block mr-2 mb-2" />
-              Bandeja de entrada
             </li>
           </ul>
         </nav>

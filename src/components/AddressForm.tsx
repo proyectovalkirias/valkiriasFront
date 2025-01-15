@@ -125,7 +125,7 @@ const AddressForm = ({ userId }: { userId: string }) => {
   };
 
   return (
-    <div className="w-full mx-auto p-6  rounded-lg">
+    <div className="w-full flex flex-col mx-auto p-6 rounded-lg max-w-4xl md:max-w-3xl sm:max-w-xl">
       <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
         Agregar Dirección
       </h2>
@@ -134,7 +134,7 @@ const AddressForm = ({ userId }: { userId: string }) => {
           e.preventDefault();
           fetchCoordinates();
         }}
-        className="space-y-4 w-[500px]"
+        className="space-y-4 w-full"
       >
         <div>
           <input
@@ -183,7 +183,7 @@ const AddressForm = ({ userId }: { userId: string }) => {
         </div>
         <button
           type="submit"
-          className="bg-valkyrie-purple w-full text-white py-1 px-2 mr-2 rounded-lg hover:bg-creativity-purple"
+          className="bg-valkyrie-purple w-full text-white py-2 px-4 rounded-lg hover:bg-creativity-purple transition-colors duration-200"
         >
           Obtener Ubicación
         </button>
@@ -199,8 +199,8 @@ const AddressForm = ({ userId }: { userId: string }) => {
             disabled={saving}
             className={`w-full mt-4 py-2 px-4 rounded-md transition ${
               saving
-                ? "bg-custom-orange text-white py-1 px-2 mr-2 rounded-lg hover:bg-orange-400"
-                : "bg-custom-orange text-white py-1 px-2 mr-2 rounded-lg hover:bg-orange-400"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-custom-orange hover:bg-orange-500"
             } text-white`}
           >
             {saving ? "Guardando..." : "Guardar Dirección"}
@@ -208,7 +208,9 @@ const AddressForm = ({ userId }: { userId: string }) => {
         </div>
       )}
       {error && (
-        <p className="mt-4 text-red-500 text-sm font-medium">{error}</p>
+        <p className="mt-4 text-red-500 text-sm font-medium text-center">
+          {error}
+        </p>
       )}
     </div>
   );

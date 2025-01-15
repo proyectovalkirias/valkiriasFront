@@ -151,7 +151,7 @@ const ProductDetail: React.FC = () => {
 
     fetchProduct();
   }, [productId]);
-
+  console.log(product);
   useEffect(() => {
     if (selectedSize && product?.prices) {
       const sizePrice = product.prices.find(
@@ -251,10 +251,11 @@ const ProductDetail: React.FC = () => {
           <Image
             src={mainImage}
             alt={product.name}
-            className="w-[500px] aspect-square mx-auto rounded-xl shadow-md"
-            width={100}
-            height={100}
+            className="mx-auto rounded-xl max-h-[500px] shadow-md"
+            width={500}
+            height={500}
           />
+
           <button
             onClick={() => handlePhotoChange("next")}
             className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-purple-300 text-purple-900 p-2 rounded-full hover:bg-purple-400"
@@ -276,140 +277,187 @@ const ProductDetail: React.FC = () => {
               ? Math.min(...product.prices.map((priceObj) => priceObj.price))
               : "N/A"}
           </p>
-        </div>
-      </div>
 
-      <div className="w-full max-w-4xl p-6 rounded-lg">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
-          Personaliza a medida
-        </h2>
+          {!product.isCustomizable && (
+            <div className="mt-4">
+              <label className="block text-gray-800 font-semibold">
+                Cantidad:
+              </label>
+              <input
+                type="number"
+                value={quantity}
+                onChange={(e) => handleQuantityChange(Number(e.target.value))}
+                className="w-24 border border-gray-300 rounded-md py-2 px-4 mt-2"
+              />
 
-        {product.color?.length > 0 && (
-          <div className="mb-6">
-            <label className="text-gray-800 font-semibold">Color:</label>
-            <div className="flex flex-wrap gap-4 mt-2">
-              {product.color.map((color) => (
-                <button
-                  key={color}
-                  className={`w-10 h-10 rounded-full border ${
-                    selectedColor === color
-                      ? "ring-2 ring-purple-500"
-                      : "border-gray-300"
-                  }`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => setSelectedColor(color)}
-                ></button>
-              ))}
+              <label className="block text-gray-800 font-semibold mt-4">
+                Tamaño:
+              </label>
+              <select
+                className="w-full p-3 border rounded-lg mt-2 text-gray-800"
+                value={selectedSize}
+                onChange={(e) => setSelectedSize(e.target.value)}
+              >
+                <option value="">Selecciona un tamaño</option>
+                {product.sizes.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <p className="text-2xl font-bold text-gray-800">
+                Precio Total: ${totalPrice.toFixed(2)}
+              </p>
+
+              <button
+                className="bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg hover:bg-creativity-purple mt-4"
+                onClick={handleAddToCart}
+                disabled={loading}
+              >
+                {loading ? "Cargando..." : "Añadir al carrito"}
+              </button>
             </div>
-          </div>
-        )}
-
-        {Array.isArray(product.smallPrint) && product.smallPrint.length > 0 && (
-          <PrintSelector
-            prints={product.smallPrint}
-            selectedPrint={selectedSmallPrint}
-            setSelectedPrint={setSelectedSmallPrint}
-            label="Estampado pequeño"
-          />
-        )}
-        {Array.isArray(product.largePrint) && product.largePrint.length > 0 && (
-          <PrintSelector
-            prints={product.largePrint}
-            selectedPrint={selectedLargePrint}
-            setSelectedPrint={setSelectedLargePrint}
-            label="Estampado grande"
-          />
-        )}
-
-        {product.sizes?.length > 0 && (
-          <div className="mb-6">
-            <label className="text-gray-800 font-semibold">Tamaño:</label>
-            <select
-              className="w-full p-3 border rounded-lg mt-2 text-gray-800"
-              value={selectedSize}
-              onChange={(e) => setSelectedSize(e.target.value)}
-            >
-              <option value="">Selecciona un tamaño</option>
-              {product.sizes.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        <div className="mb-6">
-          <label className="text-gray-800 font-semibold">Subir Imagen:</label>
-          <input
-            type="file"
-            accept="image/*"
-            className="block w-full text-gray-800 mt-2 p-2 rounded-lg "
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleImageUpload(file);
-            }}
-          />
-        </div>
-
-        <div className="mb-6">
-          <label className="text-gray-800 font-semibold">
-            Ideas del Cliente:
-          </label>
-          <textarea
-            className="w-full p-3 border rounded-lg mt-2 text-gray-800"
-            placeholder="Describe tus ideas o personalización deseada..."
-            value={clientIdeas}
-            onChange={(e) => setClientIdeas(e.target.value)}
-          ></textarea>
-        </div>
-
-        <div className="mb-6">
-          <label className="text-gray-800 font-semibold">Cantidad:</label>
-          <div className="flex items-center gap-4 mt-2">
-            <button
-              className="px-4 py-2 bg-purple-300 text-purple-900 rounded-lg hover:bg-purple-400"
-              onClick={() => handleQuantityChange(quantity - 1)}
-              disabled={quantity === 1}
-            >
-              -
-            </button>
-            <input
-              type="number"
-              min="1"
-              className="w-16 text-center border rounded-lg text-gray-800"
-              value={quantity}
-              onChange={(e) =>
-                handleQuantityChange(Math.max(1, parseInt(e.target.value) || 1))
-              }
-            />
-            <button
-              className="px-4 py-2 bg-purple-300 text-purple-900 rounded-lg hover:bg-purple-400"
-              onClick={() => handleQuantityChange(quantity + 1)}
-              disabled={quantity >= remainingStock}
-            >
-              +
-            </button>
-          </div>
-          <p className="text-gray-800 mt-2">
-            Stock disponible: {remainingStock}
-          </p>
-        </div>
-
-        <div className="flex justify-between items-center mt-6">
-          <p className="text-2xl font-bold text-gray-800">
-            Precio Total: ${totalPrice.toFixed(2)}
-          </p>
-
-          <button
-            className="bg-valkyrie-purple w-1/2  text-white p-2 rounded-lg hover:bg-creativity-purple"
-            onClick={handleAddToCart}
-            disabled={loading}
-          >
-            {loading ? "Cargando..." : "Añadir al carrito"}
-          </button>
+          )}
         </div>
       </div>
+
+      {product.isCustomizable && (
+        <div className="w-full max-w-4xl p-6 rounded-lg">
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+            Personaliza a medida
+          </h2>
+
+          {product.color?.length > 0 && (
+            <div className="mb-6">
+              <label className="text-gray-800 font-semibold">Color:</label>
+              <div className="flex flex-wrap gap-4 mt-2">
+                {product.color.map((color) => (
+                  <button
+                    key={color}
+                    className={`w-10 h-10 rounded-full border ${
+                      selectedColor === color
+                        ? "ring-2 ring-purple-500"
+                        : "border-gray-300"
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setSelectedColor(color)}
+                  ></button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {Array.isArray(product.smallPrint) &&
+            product.smallPrint.length > 0 && (
+              <PrintSelector
+                prints={product.smallPrint}
+                selectedPrint={selectedSmallPrint}
+                setSelectedPrint={setSelectedSmallPrint}
+                label="Estampado pequeño"
+              />
+            )}
+          {Array.isArray(product.largePrint) &&
+            product.largePrint.length > 0 && (
+              <PrintSelector
+                prints={product.largePrint}
+                selectedPrint={selectedLargePrint}
+                setSelectedPrint={setSelectedLargePrint}
+                label="Estampado grande"
+              />
+            )}
+
+          {product.sizes?.length > 0 && (
+            <div className="mb-6">
+              <label className="text-gray-800 font-semibold">Tamaño:</label>
+              <select
+                className="w-full p-3 border rounded-lg mt-2 text-gray-800"
+                value={selectedSize}
+                onChange={(e) => setSelectedSize(e.target.value)}
+              >
+                <option value="">Selecciona un tamaño</option>
+                {product.sizes.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <label className="text-gray-800 font-semibold">Subir Imagen:</label>
+            <input
+              type="file"
+              accept="image/*"
+              className="block w-full text-gray-800 mt-2 p-2 rounded-lg "
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImageUpload(file);
+              }}
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="text-gray-800 font-semibold">
+              Ideas del Cliente:
+            </label>
+            <textarea
+              className="w-full p-3 border rounded-lg mt-2 text-gray-800"
+              placeholder="Describe tus ideas o personalización deseada..."
+              value={clientIdeas}
+              onChange={(e) => setClientIdeas(e.target.value)}
+            ></textarea>
+          </div>
+
+          <div className="mb-6">
+            <label className="text-gray-800 font-semibold">Cantidad:</label>
+            <div className="flex items-center gap-4 mt-2">
+              <button
+                className="px-4 py-2 bg-purple-300 text-purple-900 rounded-lg hover:bg-purple-400"
+                onClick={() => handleQuantityChange(quantity - 1)}
+                disabled={quantity === 1}
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min="1"
+                className="w-16 text-center border rounded-lg text-gray-800"
+                value={quantity}
+                onChange={(e) =>
+                  handleQuantityChange(
+                    Math.max(1, parseInt(e.target.value) || 1)
+                  )
+                }
+              />
+              <button
+                className="px-4 py-2 bg-purple-300 text-purple-900 rounded-lg hover:bg-purple-400"
+                onClick={() => handleQuantityChange(quantity + 1)}
+                disabled={quantity >= remainingStock}
+              >
+                +
+              </button>
+            </div>
+            <p className="text-gray-800 mt-2">
+              Stock disponible: {remainingStock}
+            </p>
+          </div>
+
+          <div className="flex justify-between items-center mt-6">
+            <p className="text-2xl font-bold text-gray-800">
+              Precio Total: ${totalPrice.toFixed(2)}
+            </p>
+
+            <button
+              className="bg-valkyrie-purple w-1/2  text-white p-2 rounded-lg hover:bg-creativity-purple"
+              onClick={handleAddToCart}
+              disabled={loading}
+            >
+              {loading ? "Cargando..." : "Añadir al carrito"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
