@@ -7,62 +7,71 @@ const LiveChatComponent = () => {
   const [input, setInput] = useState("");
   const [socket, setSocket] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [firstname, setFirstname] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
 
-  const getUserAdminStatus = (): boolean => {
+  const getUserDetails = () => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        return parsedUser.user.isAdmin || false;
+        return {
+          isAdmin: parsedUser.user.isAdmin || false,
+          firstname: parsedUser.user.firstname || "guest",
+          userId: parsedUser.user.id || "guest",
+        };
       } catch (error) {
         console.error("Error al parsear el objeto user de localStorage:", error);
-        return false;
+        return { isAdmin: false, firstname: "guest", userId: "guest" };
       }
     }
-    return false;
+    return { isAdmin: false, firstname: "guest", userId: "guest" };
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const adminStatus = getUserAdminStatus();
-      const storedUser = localStorage.getItem("user");
-      const userIdStored = storedUser ? JSON.parse(storedUser).user.id : "guest";
-
-      setIsAdmin(adminStatus);
-      setUserId(userIdStored);
-    }
+    const userDetails = getUserDetails();
+    setIsAdmin(userDetails.isAdmin);
+    setFirstname(userDetails.firstname);
+    setUserId(userDetails.userId);
   }, []);
 
   useEffect(() => {
-    if (isAdmin !== null) {
-      const socketUrl = `wss://valkiriasback.onrender.com/?isAdmin=${isAdmin}`;
+    if (isAdmin !== null && firstname) {
+      const socketUrl = `ws://localhost:3000/?isAdmin=${isAdmin}&firstname=${encodeURIComponent(firstname)}`;
       const newSocket = io(socketUrl);
+
       setSocket(newSocket);
 
       newSocket.on("chatToClient", (message) => {
-        const normalizedMessage = message.message ? message.message : message;
-        setMessages((prev) => [...prev, normalizedMessage]);
+          console.log("Mensaje recibido del servidor:", message);
+          setMessages((prev) => [
+          ...prev,
+          { sender: message.sender, content: message.message } 
+        ]);
       });
 
       return () => {
         newSocket.disconnect();
       };
     }
-  }, [isAdmin]);
+  }, [isAdmin, firstname]);
 
   const sendMessage = () => {
     if (socket && input.trim()) {
-      const message = { sender: isAdmin ? "Admin" : "Usuario", content: input };
+      const message = { sender: firstname, content: input };
       socket.emit("chatToServer", message);
       setMessages((prev) => [...prev, message]);
       setInput("");
+
+      console.log(message);
     }
   };
 
   if (isAdmin === null) {
     return <div>Cargando...</div>;
   }
+
+
 
   return (
     <div className="flex flex-col w-[350px] h-[500px] bg-[#F3E8FF] rounded-2xl shadow-lg overflow-hidden fixed bottom-24 right-5 z-50">
@@ -72,9 +81,12 @@ const LiveChatComponent = () => {
           <div
             key={index}
             className={`my-2 p-2 rounded-xl max-w-[70%] break-words ${
-              msg.sender === (isAdmin ? "Admin" : userId)
+              msg.sender === firstname
                 ? "self-end bg-[#5d306f] text-white text-left rounded-br-none"
+                : msg.sender === "Sistema"
+                ? "self-center bg-[#d9d9d9] text-black text-center"
                 : "self-start bg-[#3e1a4d] text-white text-left rounded-bl-none"
+                
             }`}
           >
             <strong>{msg.sender}:</strong> {msg.content}

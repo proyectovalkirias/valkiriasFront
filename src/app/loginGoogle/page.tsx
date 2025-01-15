@@ -127,7 +127,7 @@ const Landingoogle: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#7b548b]">
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h1>Procesando Inicio de Sesión...</h1>
       <p>
         Por favor, espera mientras procesamos tu inicio de sesión con Google.
@@ -136,4 +136,4 @@ const Landingoogle: React.FC = () => {
   );
 };
 
-export default Landingoogle;
+export default Landingoogle;
