@@ -14,21 +14,30 @@ import axios from "axios";
 const getUserData = () => {
   try {
     const storedUser = localStorage.getItem("user");
+    const storedGoogleUser = localStorage.getItem("user_info");
 
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
-      if (parsedUser.user) {
-        return {
-          id: parsedUser.user.id,
-          firstname: parsedUser.user.firstname || "",
-          lastname: parsedUser.user.lastname || "",
-          email: parsedUser.user.email || "",
-          photoUrl: parsedUser.user.photo || "/images/Avatar.png",
-          isAdmin: parsedUser.user.isAdmin || false,
-          isGoogleUser: false,
-        };
-      }
-      
+      return {
+        id: parsedUser.user.id,
+        firstname: parsedUser.user.firstname || "",
+        lastname: parsedUser.user.lastname || "",
+        email: parsedUser.user.email || "",
+        photoUrl: parsedUser.user.photo || "/images/Avatar.png",
+        isAdmin: parsedUser.user.isAdmin || false,
+        isGoogleUser: false,
+      };
+    } else if (storedGoogleUser) {
+      const googleUser = JSON.parse(storedGoogleUser);
+      return {
+        firstname: googleUser.given_name || "",
+        lastname: googleUser.family_name || "",
+        email: googleUser.email || "",
+        photoUrl: googleUser.picture || "/images/Avatar.png",
+        isGoogleUser: true,
+        dni: googleUser.dni || null,
+        phone: googleUser.phone || null,
+      };
     }
 
     return null;
@@ -70,10 +79,8 @@ const Sidebar: React.FC = () => {
   const handleLogout = useCallback(async () => {
     try {
       const accessToken = localStorage.getItem("access_token");
-      localStorage.removeItem("user")
+
       if (accessToken) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("user_info")
         const response = await fetch("https://oauth2.googleapis.com/revoke", {
           method: "POST",
           headers: {
@@ -93,6 +100,7 @@ const Sidebar: React.FC = () => {
         }
       }
       setIsModalOpen(false);
+      localStorage.removeItem("user");
       setUser(null);
       setIsLoggedOut(true);
       handleNavigation("/Login");
