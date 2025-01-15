@@ -1,12 +1,17 @@
 "use client";
+import axios from "axios";
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 
 interface UserInfo {
   picture: string;
-  name: string;
+  given_name: string;
   email: string;
+  family_name:string
 }
+
+const API_URL =
+process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
 
 const Landingoogle: React.FC = () => {
   useEffect(() => {
@@ -21,10 +26,10 @@ const Landingoogle: React.FC = () => {
   }, []);
 
   const exchangeCodeForToken = async (code: string) => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
-    const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI!;
-    const tokenUrl = process.env.TOKEN_URL!;
+    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID!;
+    const clientSecret = process.env.REACT_APP_GOOGLE_CLIENT_SECRET!;
+    const redirectUri = process.env.REACT_APP_GOOGLE_REDIRECT_URI!;
+    const tokenUrl = process.env.REACT_APP_TOKEN_URL!;
     const body = new URLSearchParams();
     body.append("code", code);
     body.append("client_id", clientId);
@@ -40,9 +45,10 @@ const Landingoogle: React.FC = () => {
       });
 
       const data = await response.json();
-      console.log("Data fetch Token URL:", data);
+      console.log("Data fetch Token URL:" + data);
 
       if (data.access_token) {
+        localStorage.setItem("access_token", data.access_token);
         fetchUserInfo(data.access_token);
       }
     } catch (error) {
@@ -60,33 +66,64 @@ const Landingoogle: React.FC = () => {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      console.log("Response FetchuserInfo" + response);
 
       const userInfo: UserInfo = await response.json();
-      console.log("UserInfo:", userInfo);
+      localStorage.setItem("user_info", JSON.stringify(userInfo));
 
-      // Verificar si el email existe en la base de datos
-      const checkEmailResponse = await fetch(
-        `https://valkiriasback.onrender.com/users/email/${userInfo.email}`
+      console.log("UserInfo: " + userInfo);
+      showToast(userInfo);
+      const res = await axios.post(
+        `${API_URL}/auth/google-login`, { email:userInfo.email, firstname:userInfo.given_name, lastname:userInfo.family_name, photo:userInfo.picture, accessToken }
       );
-
-      if (checkEmailResponse.ok) {
-        // El usuario está registrado, guardar datos en localStorage
-        localStorage.setItem("user_info", JSON.stringify(userInfo));
-        localStorage.setItem("access_token", accessToken);
-
-        // Mostrar el toast de bienvenida
-        toast.success(`Bienvenido, ${userInfo.name}!`);
-
-        // Redirigir al home
-        window.location.href = "/";
-      } else {
-        // El usuario no está registrado, mostrar mensaje de error y redirigir al registro
-        toast.error("Usuario no registrado en la base de datos, por favor regístrate.");
-        window.location.href = "/Register";
-      }
+      console.log(res)
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      window.location.href = "/";
     } catch (error) {
       console.error("Error fetching user info:", error);
     }
+  };
+
+  const showToast = (userInfo: UserInfo) => {
+    toast.custom((t) => (
+      <div
+        className={`${
+          t.visible ? "animate-enter" : "animate-leave"
+        } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+        onClick={() => {
+          toast.dismiss(t.id);
+        }}
+      >
+        <div className="flex-1 w-0 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 pt-0.5">
+              <img
+                className="h-10 w-10 rounded-full"
+                src={userInfo.picture}
+                alt={userInfo.given_name}
+              />
+            </div>
+            <div className="ml-3 flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                {userInfo.given_name}
+              </p>
+              <p className="mt-1 text-sm text-gray-500">{userInfo.email}</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex border-l border-gray-200">
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              window.location.href = "/";
+            }}
+            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    ));
   };
 
   return (

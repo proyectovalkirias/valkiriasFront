@@ -3,6 +3,9 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import axios from 'axios';
 
+const API_URL =
+process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
+
 const GoogleAuth = () => {
 
   if (typeof window === 'undefined') {
@@ -21,12 +24,10 @@ const GoogleAuth = () => {
       try {
         // Realizar la solicitud al backend para obtener el token con el código de autorización
         const res = await axios.post(
-          'https://valkiriasback.onrender.com/google/redirect', { code }
+          `${API_URL}/google/redirect`, { code }
         );
-
         const { token } = res.data;
 
-        // Guardar el token JWT en el almacenamiento local
         localStorage.setItem('token', token);
 
         console.log('Token recibido:', token);
