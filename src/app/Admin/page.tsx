@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaUsers, FaChartBar, FaHome, FaInbox } from "react-icons/fa";
+import { FaUsers, FaChartBar, FaHome, FaTruck } from "react-icons/fa";
 import axios from "axios";
 import Link from "next/link";
 import { User } from "@/interfaces/User";
@@ -13,6 +13,9 @@ import dynamic from "next/dynamic";
 const API_URL = process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
 
 const Reports = dynamic(() => import("@/components/Reports"), {
+  ssr: false,
+});
+const Tracking = dynamic(() => import("@/components/Tracking"), {
   ssr: false,
 });
 function Admin() {
@@ -581,7 +584,8 @@ function Admin() {
         );
       case "reports":
         return <Reports />;
-
+      case "tracking":
+        return <Tracking />;
       default:
         return <div>Selecciona una opción</div>;
     }
@@ -618,6 +622,15 @@ function Admin() {
             >
               <FaChartBar size={24} className="inline-block mr-2 mb-2" />
               Reportes
+            </li>
+            <li
+              onClick={() => setActiveTab("tracking")}
+              className={`cursor-pointer ${
+                activeTab === "tracking" ? "border-b-2 border-white" : ""
+              }`}
+            >
+              <FaTruck size={24} className="inline-block mr-2 mb-2" />
+              Tracking
             </li>
           </ul>
         </nav>

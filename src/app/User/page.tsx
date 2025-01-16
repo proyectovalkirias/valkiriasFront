@@ -178,7 +178,7 @@ const UserPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    if (activeTab === "orders") fetchOrders();
+    if (activeTab === "compras") fetchOrders();
   }, [activeTab, user.id]);
 
   const fetchAddresses = async (id: string) => {
@@ -684,11 +684,11 @@ const UserPanel: React.FC = () => {
             </div>
           </div>
         );
-      case "orders":
+      case "compras":
         return (
           <div className="bg-white min-h-screen p-6">
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
-              Mis Órdenes
+              Mis Compras
             </h1>
             <div className="space-y-4">
               {data.orders.length > 0 ? (
@@ -743,12 +743,12 @@ const UserPanel: React.FC = () => {
           </button>
           <button
             className={`p-2 flex items-center cursor-pointer ${
-              activeTab === "orders" ? "border-b-2 border-white" : ""
+              activeTab === "compras" ? "border-b-2 border-white" : ""
             }`}
-            onClick={() => setActiveTab("orders")}
+            onClick={() => setActiveTab("compras")}
           >
             <FaShoppingCart className="mr-2" />
-            Órdenes
+            Mis Compras
           </button>
 
           <button
