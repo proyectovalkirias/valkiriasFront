@@ -16,11 +16,11 @@ const colorNameMap: Record<string, string> = {
   "#00913f": "Verde Benetton",
 };
 
-const API_URL =
-  process.env.REACT_APP_API_URL || `https://valkiriasback.onrender.com`;
+const API_URL = `https://valkiriasback.onrender.com`;
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
@@ -45,6 +45,7 @@ const Products: React.FC = () => {
 
         const allProducts = res.data as Product[];
         setProducts(allProducts);
+        setFilteredProducts(allProducts);
 
         // Extraer categorías, colores y talles únicos
         const uniqueCategories = Array.from(
@@ -80,31 +81,39 @@ const Products: React.FC = () => {
     fetchProducts();
   }, []);
 
-  // Filtrar productos según los filtros seleccionados
-  const filteredProducts = products.filter((product) => {
-    const matchesCategory =
-      !selectedCategory ||
-      product.category?.toLowerCase() === selectedCategory.toLowerCase();
-    const matchesColor =
-      !selectedColor ||
-      product.color?.some(
-        (c) =>
-          colorNameMap[c.replace(/"|\[|\]/g, "")]?.toLowerCase() ===
-          selectedColor.toLowerCase()
-      );
-    const matchesSize =
-      !selectedSize ||
-      product.sizes?.some(
-        (s) =>
-          s.replace(/"|\[|\]/g, "").toLowerCase() === selectedSize.toLowerCase()
-      );
-    const matchesCustomizable =
-      isCustomizable === null || product.isCustomizable === isCustomizable;
+  useEffect(() => {
+    const updateFilteredProducts = () => {
+      const filtered = products.filter((product) => {
+        const matchesCategory =
+          !selectedCategory ||
+          product.category?.toLowerCase() === selectedCategory.toLowerCase();
+        const matchesColor =
+          !selectedColor ||
+          product.color?.some(
+            (c) =>
+              colorNameMap[c.replace(/"|\[|\]/g, "")]?.toLowerCase() ===
+              selectedColor.toLowerCase()
+          );
+        const matchesSize =
+          !selectedSize ||
+          product.sizes?.some(
+            (s) =>
+              s.replace(/"|\[|\]/g, "").toLowerCase() ===
+              selectedSize.toLowerCase()
+          );
+        const matchesCustomizable =
+          isCustomizable === null || product.isCustomizable === isCustomizable;
 
-    return (
-      matchesCategory && matchesColor && matchesSize && matchesCustomizable
-    );
-  });
+        return (
+          matchesCategory && matchesColor && matchesSize && matchesCustomizable
+        );
+      });
+
+      setFilteredProducts(filtered);
+    };
+
+    updateFilteredProducts();
+  }, [selectedCategory, selectedColor, selectedSize, isCustomizable, products]);
 
   // Agrupar productos por categoría
   const groupedProducts = filteredProducts.reduce(
@@ -146,7 +155,7 @@ const Products: React.FC = () => {
             value={selectedCategory || ""}
             onChange={(e) => setSelectedCategory(e.target.value || null)}
           >
-            <option>Todas las categorías</option>
+            <option value="">Todas las categorías</option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category}

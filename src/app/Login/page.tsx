@@ -8,8 +8,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 
 const Login: React.FC = () => {
-  const API_URL =
-    process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
+  const API_URL = process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
 
   const router = useRouter();
   const [formData, setFormData] = useState({

@@ -24,6 +24,7 @@ const Register: React.FC = () => {
   const [showPasswordHint1, setShowPasswordHint1] = useState(false);
   const [loading, setLoading] = useState(false);
   const [passwordsMatch, setPasswordsMatch] = useState(true); // Estado para la validación de contraseñas
+  const [passwordError, setPasswordError] = useState("");
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
@@ -72,6 +73,8 @@ const Register: React.FC = () => {
     if (password !== confirmPassword) {
       toast.error("Las contraseñas no coinciden.");
       return;
+    } else {
+      setPasswordError(""); // Limpiar el error si coinciden
     }
 
     setLoading(true);

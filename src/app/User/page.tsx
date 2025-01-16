@@ -1,17 +1,18 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaUser, FaShoppingCart, FaReceipt, FaTruck } from "react-icons/fa";
+import { FaUser, FaShoppingCart, FaTruck } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
 import { Address } from "@/interfaces/User";
-
+const Map = dynamic(() => import("@/components/Map"), {
+  ssr: false,
+});
 
 const API_URL =
   process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
-
 
 const AddressForm = dynamic(() => import("@/components/AddressForm"), {
   ssr: false,
@@ -26,6 +27,7 @@ const UserPanel: React.FC = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null
   );
+  const [addressUpdated, setAddressUpdated] = useState(false);
 
   const [user, setUser] = useState<{
     id: string;
@@ -62,20 +64,20 @@ const UserPanel: React.FC = () => {
 
   const getUserTokenId = (): { id: string; token: string } => {
     const user = localStorage.getItem("user");
-  
+
     if (!user) {
       console.error("No hay datos del usuario en localStorage");
       return { id: "", token: "" };
     }
-  
+
     try {
       const parsedUser = JSON.parse(user);
       const id = parsedUser.id || parsedUser.user?.id || ""; // Acceso seguro
       const token = parsedUser.token || parsedUser.accessToken || ""; // Token prioritario
-  
+
       if (!id) console.warn("El ID del usuario no está disponible.");
       if (!token) console.warn("El token del usuario no está disponible.");
-  
+
       console.log("ID:", id, "Token:", token);
       return { id, token };
     } catch (err) {
@@ -83,7 +85,7 @@ const UserPanel: React.FC = () => {
       return { id: "", token: "" };
     }
   };
-  
+
   const getUserData = () => {
     try {
       const storedUser = localStorage.getItem("user");
@@ -141,7 +143,7 @@ const UserPanel: React.FC = () => {
       return null;
     }
   };
-  
+
   useEffect(() => {
     if (user.id) fetchUserDetails(user.id);
   }, [user.id]);
@@ -166,7 +168,13 @@ const UserPanel: React.FC = () => {
       const data = await response.json();
       console.log("Respuesta de la API:", data);
 
-      setData((prev) => ({ ...prev, orders: data }));
+      if (data.length === 0) {
+        // Si no hay órdenes
+        toast("No hay órdenes disponibles.");
+      } else {
+        // Si hay órdenes, actualiza el estado
+        setData((prev) => ({ ...prev, orders: data }));
+      }
     } catch (error) {
       console.error("Error al obtener las órdenes:", error);
       toast.error("Error al obtener las órdenes.");
@@ -174,36 +182,34 @@ const UserPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    if (activeTab === "orders") fetchOrders();
+    if (activeTab === "compras") fetchOrders();
   }, [activeTab, user.id]);
-  // const fetchPurchases = async () => {
-  //   try {
-  //     const response = await axios.get(
-  //       `https://valkiriasback.onrender.com/order/user/${getUserTokenId().id}`
-  //     );
-  //     setData((prev) => ({ ...prev, purchases: response.data }));
-  //   } catch {
-  //     toast.error("Error al obtener las compras.");
-  //   }
-  // };
-  // useEffect(() => {
-  //   if (activeTab === "purchases") fetchPurchases();
-  // }, [activeTab]);
+  useEffect(() => {
+    if (activeTab === "traking") fetchOrders();
+  }, [activeTab, user.id]);
+
   const fetchAddresses = async (id: string) => {
     try {
+      const { token } = getUserTokenId() || {};
+      if (!token) {
+        console.error("No se encontró el token.");
+        return;
+      }
+
       const response = await axios.get(
-        `${API_URL}/users/address/${id}`,
+        `https://valkiriasback.onrender.com/users/address/${
+          getUserTokenId().id
+        }`,
         {
           headers: {
             Accept: "*/*",
-            Authorization: `Bearer ${getUserTokenId().token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-
       setAddresses(response.data);
     } catch (error) {
-      console.log("Error fetching addresses:", error);
+      console.error("Error al obtener direcciones:", error);
     }
   };
   useEffect(() => {
@@ -222,13 +228,11 @@ const UserPanel: React.FC = () => {
     const formData = new FormData();
     formData.append("photo", file); // La clave 'photo' debe coincidir con la esperada en la API.
 
-    console.log(getUserTokenId().token, getUserTokenId().id)
+    console.log(getUserTokenId().token, getUserTokenId().id);
 
     try {
       const response = await axios.put(
-        `${API_URL}/users/updateProfileImg/${
-          getUserTokenId().id
-        }`,
+        `${API_URL}/users/updateProfileImg/${getUserTokenId().id}`,
         formData,
         {
           headers: {
@@ -261,15 +265,12 @@ const UserPanel: React.FC = () => {
   };
   const deleteOrderById = async (orderId: string) => {
     try {
-      const response = await fetch(
-        `${API_URL}/order/${orderId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${getUserTokenId().token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/order/${orderId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getUserTokenId().token}`,
+        },
+      });
 
       if (!response.ok) throw new Error("Error eliminando la orden.");
 
@@ -428,6 +429,21 @@ const UserPanel: React.FC = () => {
     fetchData();
   }, []);
 
+  const reloadAddresses = async () => {
+    try {
+      const { id } = getUserTokenId();
+      if (id) await fetchAddresses(id);
+    } catch (error) {
+      console.error("Error recargando las direcciones:", error);
+    }
+  };
+  useEffect(() => {
+    if (addressUpdated) {
+      reloadAddresses(); // Recarga las direcciones después de guardar
+      setAddressUpdated(false); // Resetea el flag
+    }
+  }, [addressUpdated]);
+
   const userFields: {
     label: string;
     value: string | number;
@@ -550,7 +566,10 @@ const UserPanel: React.FC = () => {
                 </div>
 
                 <div className="w-full">
-                  <AddressForm userId={user?.id || ""} />
+                  <AddressForm
+                    userId={user?.id || ""}
+                    onSaveSuccess={() => reloadAddresses()}
+                  />
                 </div>
               </div>
             ) : (
@@ -562,15 +581,14 @@ const UserPanel: React.FC = () => {
         );
       case "traking":
         return (
-          <div className="bg-white min-h-screen p-6">
+          <div className="bg-white min-h-screen  p-6">
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
               Seguimiento de Pedidos
             </h1>
 
-            <div className="max-w-6xl mx-auto bg-gray-100 p-4 rounded-lg shadow-lg flex flex-wrap gap-4">
+            <div className="max-w-6xl mx-auto p-4 rounded-lg shadow-lg items-center flex flex-wrap gap-4">
               {/* Detalles del Pedido */}
               {data.orders.map((order) => {
-                // Definir la línea de tiempo dinámica basada en el estado
                 const timeline = [
                   {
                     id: `${order.id}-1`,
@@ -610,15 +628,32 @@ const UserPanel: React.FC = () => {
                   },
                 ];
 
+                // Extraer las coordenadas dependiendo del estado
+                let latitude = 0;
+                let longitude = 0;
+                if (order.status === "entregado") {
+                  latitude = order.orderDetail?.address.latitude || 0;
+                  longitude = order.orderDetail?.address.longitude || 0;
+                } else if (order.status === "pendiente") {
+                  latitude = -34.79907736154559; // Coordenada hardcodeada para "pendiente"
+                  longitude = -58.4556800769627;
+                } else if (order.status === "en preparacion") {
+                  latitude = -34.79907736154559; // Coordenada hardcodeada para "en preparacion"
+                  longitude = -58.4556800769627;
+                } else if (order.status === "en camino") {
+                  latitude = -34.80751166216941; // Coordenada hardcodeada para "en camino"
+                  longitude = -58.44423879045409;
+                }
+
                 return (
                   <div
                     key={order.id}
-                    className="bg-white p-4 rounded-lg shadow-md flex-1 min-w-[300px] max-w-[400px]"
+                    className="bg-white p-4 rounded-lg shadow-md  flex-1  min-w-[300px] max-w-[400px]"
                   >
                     <h2 className="text-xl font-bold text-gray-800 mb-2">
                       Detalles del Pedido
                     </h2>
-                    <div className="text-sm text-gray-700 space-y-1">
+                    <div className="text-sm text-gray-700  space-y-1">
                       <p>
                         <strong>ID del Pedido:</strong> {order.id}
                       </p>
@@ -633,6 +668,12 @@ const UserPanel: React.FC = () => {
                         <strong>Última Actualización:</strong>{" "}
                         {new Date(order.updatedAt).toLocaleDateString()}
                       </p>
+                    </div>
+                    <div className="flex flex-col">
+                      {/* Pasar coordenadas al componente Map */}
+                      <div>
+                        <Map latitude={latitude} longitude={longitude} />
+                      </div>
                     </div>
 
                     {/* Línea de Tiempo */}
@@ -672,77 +713,90 @@ const UserPanel: React.FC = () => {
             </div>
           </div>
         );
-      case "orders":
+
+      case "compras":
         return (
-          <div className="bg-white min-h-screen p-6">
-            <h1 className="text-3xl font-bold text-black mb-6 text-center">
-              Mis Órdenes
+          <div className="bg-gray-50 min-h-screen p-6">
+            <h1 className="text-4xl font-extrabold text-gray-800 mb-8 text-center">
+              Mis Compras
             </h1>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {data.orders.length > 0 ? (
                 data.orders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 bg-gray-100 rounded-lg shadow-md flex justify-between items-center"
+                    className="p-6 bg-white rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200"
                   >
-                    <div>
-                      <p className="text-lg text-gray-800">
+                    {/* Información principal de la orden */}
+                    <div className="mb-4">
+                      <p className="text-lg font-medium text-gray-800">
                         <strong>ID:</strong> {order.id}
                       </p>
-                      <p className="text-lg text-gray-800">
-                        <strong>Fecha:</strong> {order.createdAt}
+                      <p className="text-lg font-medium text-gray-800">
+                        <strong>Fecha:</strong>{" "}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </p>
-                      <p className="text-lg text-gray-800">
-                        <strong>Status:</strong> {order.status}
+                      <p className="text-lg font-medium text-gray-800">
+                        <strong>Status:</strong>{" "}
+                        <span className="capitalize">{order.status}</span>
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDeleteOrder(order.id)}
-                      className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
-                    >
-                      Eliminar
-                    </button>
+
+                    {/* Detalles de la orden */}
+                    <div className="mt-4">
+                      <p className="text-xl font-semibold text-gray-800 mb-2">
+                        Detalles de la Orden:
+                      </p>
+
+                      {/* Dirección */}
+                      <p className="text-gray-700 mb-4">
+                        <strong>Dirección:</strong>{" "}
+                        {order.orderDetail.address.street}{" "}
+                        {order.orderDetail.address.number},{" "}
+                        {order.orderDetail.address.city}, CP:{" "}
+                        {order.orderDetail.address.postalCode}
+                      </p>
+
+                      {/* Productos */}
+                      <ul className="space-y-3 text-gray-700">
+                        {order.orderDetail.product.map((product, index) => (
+                          <li
+                            key={index}
+                            className="p-4 bg-gray-100 rounded-lg border border-gray-300"
+                          >
+                            <p className="text-lg font-medium">
+                              <strong>Producto:</strong> {product.name}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Descripción:</strong>{" "}
+                              {product.description}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Precio:</strong> ${" "}
+                              {order.orderDetail.price}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Cantidad:</strong>{" "}
+                              {order.orderDetail.quantity}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Talla:</strong> {order.orderDetail.size}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-600">No tienes órdenes registradas.</p>
+                <p className="text-lg text-gray-600 text-center">
+                  No tienes órdenes registradas.
+                </p>
               )}
             </div>
           </div>
         );
-      case "purchases":
-        return (
-          <div className="bg-white min-h-screen p-6">
-            <h1 className="text-3xl font-bold text-black mb-6 text-center">
-              Mis Compras
-            </h1>
 
-            <div className="space-y-4">
-              {data.orders.length > 0 ? (
-                data.orders
-                  .filter((order) => order.status === "entregado") // Filtrar por status "entregado"
-                  .map((order) => (
-                    <div
-                      key={order.id}
-                      className="p-4 bg-gray-100 rounded-lg shadow-md"
-                    >
-                      <p className="text-lg text-gray-800">
-                        <strong>Id:</strong> {order.id}
-                      </p>
-                      <p className="text-lg text-gray-800">
-                        <strong>Estado:</strong> {order.status}
-                      </p>
-                      <p className="text-lg text-gray-800">
-                        <strong>Total:</strong> ${order.total}
-                      </p>
-                    </div>
-                  ))
-              ) : (
-                <p className="text-gray-600">No tienes compras registradas.</p>
-              )}
-            </div>
-          </div>
-        );
       default:
         return <p>Seleccione una pestaña para ver el contenido.</p>;
     }
@@ -763,22 +817,14 @@ const UserPanel: React.FC = () => {
           </button>
           <button
             className={`p-2 flex items-center cursor-pointer ${
-              activeTab === "orders" ? "border-b-2 border-white" : ""
+              activeTab === "compras" ? "border-b-2 border-white" : ""
             }`}
-            onClick={() => setActiveTab("orders")}
+            onClick={() => setActiveTab("compras")}
           >
             <FaShoppingCart className="mr-2" />
-            Órdenes
+            Mis Compras
           </button>
-          <button
-            className={`p-2 flex items-center cursor-pointer ${
-              activeTab === "purchases" ? "border-b-2 border-white" : ""
-            }`}
-            onClick={() => setActiveTab("purchases")}
-          >
-            <FaReceipt className="mr-2" />
-            Compras
-          </button>
+
           <button
             className={`p-2 flex items-center cursor-pointer ${
               activeTab === "traking" ? "border-b-2 border-white" : ""
@@ -844,7 +890,7 @@ const UserPanel: React.FC = () => {
                     setSelectedAddressId(null);
                   }
                 }}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
               >
                 Eliminar
               </button>

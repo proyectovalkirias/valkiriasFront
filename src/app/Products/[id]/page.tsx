@@ -69,6 +69,23 @@ const ProductDetail: React.FC = () => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [clientIdeas, setClientIdeas] = useState<string>("");
+  const [userLoggedIn, setUserLoggedIn] = useState<boolean>(false);
+  const [userRole, setUserRole] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Verificar si el usuario está logueado
+    const user = localStorage.getItem("user");
+    if (user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        setUserLoggedIn(true);
+        setUserRole(!!parsedUser.isAdmin); // Asegura que sea un booleano
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        setUserLoggedIn(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!productId) {
@@ -82,33 +99,28 @@ const ProductDetail: React.FC = () => {
         setLoading(true);
 
         const getProductById = async (id: string): Promise<Product> => {
-          const getToken = () => {
-            const user = localStorage.getItem("user");
-
-            if (!user) {
-              console.error("No hay datos del usuario en localStorage");
-              return null;
-            }
-
+          const getUserTokenId = (): { id?: string; token?: string } => {
             try {
+              const user = localStorage.getItem("user");
+              if (!user) return {}; // Si no hay datos, retorna un objeto vacío
+
               const parsedUser = JSON.parse(user);
-              return parsedUser.token || null; // Retorna el token si existe
+              return {
+                id: parsedUser.id || parsedUser.user?.id,
+                token: parsedUser.token || parsedUser.accessToken,
+              };
             } catch (err) {
-              console.error("Error al parsear los datos del usuario:", err);
-              return null;
+              console.error("Error al obtener los datos del usuario:", err);
+              return {};
             }
           };
 
-          const token = getToken();
-          if (!token) {
-            console.error("No se encontró el token.");
-          }
           const response = await axios(
             `https://valkiriasback.onrender.com/products/${id}`,
             {
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${getUserTokenId().token}`,
               },
             }
           );
@@ -177,6 +189,15 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleAddToCart = () => {
+    if (userRole) {
+      toast.error("No te puedes comprar a ti mismo");
+      return;
+    }
+    if (!userLoggedIn) {
+      toast.error("Debes iniciar sesión para comprar");
+      return;
+    }
+
     if (!selectedSize) return toast.error("Selecciona un tamaño");
     if (quantity > remainingStock) return toast.error("Stock insuficiente");
 
@@ -255,7 +276,6 @@ const ProductDetail: React.FC = () => {
             width={500}
             height={500}
           />
-
           <button
             onClick={() => handlePhotoChange("next")}
             className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-purple-300 text-purple-900 p-2 rounded-full hover:bg-purple-400"
@@ -271,7 +291,7 @@ const ProductDetail: React.FC = () => {
           <p className="text-lg text-gray-600 text-center mt-2">
             {product.description}
           </p>
-          <p className="text-xl font-bold text-gray-800 mt-4">
+          <p className="text-xl font-bold text-center text-gray-800 mt-4">
             Precio: $
             {Array.isArray(product.prices) && product.prices.length > 0
               ? Math.min(...product.prices.map((priceObj) => priceObj.price))
@@ -279,44 +299,51 @@ const ProductDetail: React.FC = () => {
           </p>
 
           {!product.isCustomizable && (
-            <div className="mt-4">
-              <label className="block text-gray-800 font-semibold">
-                Cantidad:
-              </label>
-              <input
-                type="number"
-                value={quantity}
-                onChange={(e) => handleQuantityChange(Number(e.target.value))}
-                className="w-24 border border-gray-300 rounded-md py-2 px-4 mt-2"
-              />
+            <>
+              <div className="mt-4 flex space-x-4">
+                <label className="block text-gray-800 mt-4 font-semibold">
+                  Cantidad:
+                </label>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => handleQuantityChange(Number(e.target.value))}
+                  className="w-24 h-12 border border-gray-300 rounded-md text-gray-800 py-2 px-4 mt-2"
+                />
 
-              <label className="block text-gray-800 font-semibold mt-4">
-                Tamaño:
-              </label>
-              <select
-                className="w-full p-3 border rounded-lg mt-2 text-gray-800"
-                value={selectedSize}
-                onChange={(e) => setSelectedSize(e.target.value)}
-              >
-                <option value="">Selecciona un tamaño</option>
-                {product.sizes.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-              <p className="text-2xl font-bold text-gray-800">
-                Precio Total: ${totalPrice.toFixed(2)}
-              </p>
-
-              <button
-                className="bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg hover:bg-creativity-purple mt-4"
-                onClick={handleAddToCart}
-                disabled={loading}
-              >
-                {loading ? "Cargando..." : "Añadir al carrito"}
-              </button>
-            </div>
+                <label className="block text-gray-800 font-semibold mt-4">
+                  Tamaño:
+                </label>
+                <select
+                  className="h-12 p-3 border rounded-lg mt-2 text-gray-800"
+                  value={selectedSize}
+                  onChange={(e) => setSelectedSize(e.target.value)}
+                >
+                  <option value="">Selecciona un tamaño</option>
+                  {product.sizes.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col items-center">
+                <p className="text-2xl font-bold text-gray-800">
+                  Precio Total: ${totalPrice.toFixed(2)}
+                </p>
+                {remainingStock > 0 ? (
+                  <button
+                    className="bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg hover:bg-creativity-purple mt-4"
+                    onClick={handleAddToCart}
+                    disabled={loading}
+                  >
+                    {loading ? "Cargando..." : "Añadir al carrito"}
+                  </button>
+                ) : (
+                  <p className="text-red-600 mt-4">Producto agotado</p>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -449,11 +476,22 @@ const ProductDetail: React.FC = () => {
             </p>
 
             <button
-              className="bg-valkyrie-purple w-1/2  text-white p-2 rounded-lg hover:bg-creativity-purple"
+              className={`bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg 
+            ${
+              !userLoggedIn || userRole
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-creativity-purple"
+            }`}
               onClick={handleAddToCart}
-              disabled={loading}
+              disabled={!userLoggedIn || !!userRole}
             >
-              {loading ? "Cargando..." : "Añadir al carrito"}
+              {!userLoggedIn
+                ? "Inicia sesión para comprar"
+                : userRole
+                ? "No puedes comprarte a ti mismo"
+                : loading
+                ? "Cargando..."
+                : "Añadir al carrito"}
             </button>
           </div>
         </div>
