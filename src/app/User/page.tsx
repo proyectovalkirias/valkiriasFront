@@ -7,7 +7,9 @@ import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
 import { Address } from "@/interfaces/User";
-import Map from "@/components/Map";
+const Map = dynamic(() => import("@/components/Map"), {
+  ssr: false,
+});
 
 const API_URL =
   process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
