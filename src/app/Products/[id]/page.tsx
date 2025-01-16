@@ -311,17 +311,20 @@ const ProductDetail: React.FC = () => {
                 </select>
               </div>
               <div className="flex flex-col items-center">
-                {" "}
                 <p className="text-2xl font-bold text-gray-800">
                   Precio Total: ${totalPrice.toFixed(2)}
                 </p>
-                <button
-                  className="bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg hover:bg-creativity-purple mt-4"
-                  onClick={handleAddToCart}
-                  disabled={loading}
-                >
-                  {loading ? "Cargando..." : "Añadir al carrito"}
-                </button>
+                {remainingStock > 0 ? (
+                  <button
+                    className="bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg hover:bg-creativity-purple mt-4"
+                    onClick={handleAddToCart}
+                    disabled={loading}
+                  >
+                    {loading ? "Cargando..." : "Añadir al carrito"}
+                  </button>
+                ) : (
+                  <p className="text-red-500 mt-4">Producto sin stock</p>
+                )}
               </div>
             </>
           )}
@@ -455,13 +458,17 @@ const ProductDetail: React.FC = () => {
               Precio Total: ${totalPrice.toFixed(2)}
             </p>
 
-            <button
-              className="bg-valkyrie-purple w-1/2  text-white p-2 rounded-lg hover:bg-creativity-purple"
-              onClick={handleAddToCart}
-              disabled={loading}
-            >
-              {loading ? "Cargando..." : "Añadir al carrito"}
-            </button>
+            {remainingStock > 0 ? (
+              <button
+                className="bg-valkyrie-purple w-1/2  text-white p-2 rounded-lg hover:bg-creativity-purple"
+                onClick={handleAddToCart}
+                disabled={loading}
+              >
+                {loading ? "Cargando..." : "Añadir al carrito"}
+              </button>
+            ) : (
+              <p className="text-red-500">Producto sin stock</p>
+            )}
           </div>
         </div>
       )}
