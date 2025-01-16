@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaUser, FaShoppingCart, FaReceipt, FaTruck } from "react-icons/fa";
+import { FaUser, FaShoppingCart, FaTruck } from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import Order from "@/interfaces/Order";
@@ -8,7 +8,7 @@ import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
 import { Address } from "@/interfaces/User";
 
-const API_URL = "https://valkiriasback.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
 
 const AddressForm = dynamic(() => import("@/components/AddressForm"), {
   ssr: false,
