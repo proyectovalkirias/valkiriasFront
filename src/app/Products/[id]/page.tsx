@@ -103,7 +103,7 @@ const ProductDetail: React.FC = () => {
             try {
               const user = localStorage.getItem("user");
               if (!user) return {}; // Si no hay datos, retorna un objeto vacío
-          
+
               const parsedUser = JSON.parse(user);
               return {
                 id: parsedUser.id || parsedUser.user?.id,
@@ -114,7 +114,6 @@ const ProductDetail: React.FC = () => {
               return {};
             }
           };
-          
 
           const response = await axios(
             `https://valkiriasback.onrender.com/products/${id}`,
@@ -277,7 +276,6 @@ const ProductDetail: React.FC = () => {
             width={500}
             height={500}
           />
-
           <button
             onClick={() => handlePhotoChange("next")}
             className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-purple-300 text-purple-900 p-2 rounded-full hover:bg-purple-400"
@@ -330,17 +328,20 @@ const ProductDetail: React.FC = () => {
                 </select>
               </div>
               <div className="flex flex-col items-center">
-                {" "}
                 <p className="text-2xl font-bold text-gray-800">
                   Precio Total: ${totalPrice.toFixed(2)}
                 </p>
-                <button
-                  className="bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg hover:bg-creativity-purple mt-4"
-                  onClick={handleAddToCart}
-                  disabled={loading}
-                >
-                  {loading ? "Cargando..." : "Añadir al carrito"}
-                </button>
+                {remainingStock > 0 ? (
+                  <button
+                    className="bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg hover:bg-creativity-purple mt-4"
+                    onClick={handleAddToCart}
+                    disabled={loading}
+                  >
+                    {loading ? "Cargando..." : "Añadir al carrito"}
+                  </button>
+                ) : (
+                  <p className="text-red-600 mt-4">Producto agotado</p>
+                )}
               </div>
             </>
           )}
@@ -476,11 +477,11 @@ const ProductDetail: React.FC = () => {
 
             <button
               className={`bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg 
-              ${
-                !userLoggedIn || userRole
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-creativity-purple"
-              }`}
+            ${
+              !userLoggedIn || userRole
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-creativity-purple"
+            }`}
               onClick={handleAddToCart}
               disabled={!userLoggedIn || !!userRole}
             >
