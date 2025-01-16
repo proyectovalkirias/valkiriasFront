@@ -276,7 +276,6 @@ const ProductDetail: React.FC = () => {
             width={500}
             height={500}
           />
-
           <button
             onClick={() => handlePhotoChange("next")}
             className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-purple-300 text-purple-900 p-2 rounded-full hover:bg-purple-400"
@@ -341,7 +340,7 @@ const ProductDetail: React.FC = () => {
                     {loading ? "Cargando..." : "Añadir al carrito"}
                   </button>
                 ) : (
-                  <p className="text-red-500 mt-4">Producto sin stock</p>
+                  <p className="text-red-600 mt-4">Producto agotado</p>
                 )}
               </div>
             </>
@@ -478,11 +477,11 @@ const ProductDetail: React.FC = () => {
 
             <button
               className={`bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg 
-              ${
-                !userLoggedIn || userRole
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-creativity-purple"
-              }`}
+            ${
+              !userLoggedIn || userRole
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-creativity-purple"
+            }`}
               onClick={handleAddToCart}
               disabled={!userLoggedIn || !!userRole}
             >

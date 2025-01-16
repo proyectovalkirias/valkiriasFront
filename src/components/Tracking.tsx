@@ -48,7 +48,7 @@ const Tracking: React.FC = () => {
         throw new Error("Usuario no autenticado");
       }
 
-      const response = await axios.get(`${API_URL}/order/user/${id}`, {
+      const response = await axios.get(`${API_URL}/order/orders`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -87,6 +87,18 @@ const Tracking: React.FC = () => {
   };
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    const validStatuses = [
+      "pendiente",
+      "en preparación",
+      "en camino",
+      "entregado",
+    ];
+
+    if (!validStatuses.includes(newStatus)) {
+      toast.error("Estado inválido.");
+      return;
+    }
+
     try {
       const { token } = getUserTokenId();
 
@@ -94,8 +106,8 @@ const Tracking: React.FC = () => {
         throw new Error("Usuario no autenticado");
       }
 
-      await axios.post(
-        `${API_URL}/order/${orderId}/status/manual`,
+      await axios.put(
+        `${API_URL}/order/${orderId}/status`,
         { status: newStatus },
         {
           headers: {
@@ -112,6 +124,7 @@ const Tracking: React.FC = () => {
       );
       toast.success("Estado de la orden actualizado con éxito.");
     } catch (err: any) {
+      console.error("Error al actualizar el estado:", err);
       toast.error("Error al actualizar el estado de la orden.");
     }
   };
@@ -152,7 +165,7 @@ const Tracking: React.FC = () => {
                   Pendiente
                 </button>
                 <button
-                  onClick={() => updateOrderStatus(order.id, "en preparacion")}
+                  onClick={() => updateOrderStatus(order.id, "en preparación")}
                   className="px-4 py-2 text-white bg-purple-500 rounded-md hover:bg-purple-600"
                 >
                   En Preparación

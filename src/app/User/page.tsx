@@ -7,8 +7,10 @@ import Order from "@/interfaces/Order";
 import Purchase from "@/interfaces/Purchase";
 import dynamic from "next/dynamic";
 import { Address } from "@/interfaces/User";
+import Map from "@/components/Map";
 
-const API_URL = process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
+const API_URL =
+  process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
 
 const AddressForm = dynamic(() => import("@/components/AddressForm"), {
   ssr: false,
@@ -179,6 +181,9 @@ const UserPanel: React.FC = () => {
 
   useEffect(() => {
     if (activeTab === "compras") fetchOrders();
+  }, [activeTab, user.id]);
+  useEffect(() => {
+    if (activeTab === "traking") fetchOrders();
   }, [activeTab, user.id]);
 
   const fetchAddresses = async (id: string) => {
@@ -574,15 +579,14 @@ const UserPanel: React.FC = () => {
         );
       case "traking":
         return (
-          <div className="bg-white min-h-screen p-6">
+          <div className="bg-white min-h-screen  p-6">
             <h1 className="text-3xl font-bold text-black mb-6 text-center">
               Seguimiento de Pedidos
             </h1>
 
-            <div className="max-w-6xl mx-auto  p-4 rounded-lg shadow-lg flex flex-wrap gap-4">
+            <div className="max-w-6xl mx-auto p-4 rounded-lg shadow-lg items-center flex flex-wrap gap-4">
               {/* Detalles del Pedido */}
               {data.orders.map((order) => {
-                // Definir la línea de tiempo dinámica basada en el estado
                 const timeline = [
                   {
                     id: `${order.id}-1`,
@@ -622,15 +626,19 @@ const UserPanel: React.FC = () => {
                   },
                 ];
 
+                // Extraer las coordenadas
+                const latitude = order.orderDetail?.address.latitude || 0;
+                const longitude = order.orderDetail?.address.longitude || 0;
+
                 return (
                   <div
                     key={order.id}
-                    className="bg-white p-4 rounded-lg shadow-md flex-1 min-w-[300px] max-w-[400px]"
+                    className="bg-white p-4 rounded-lg shadow-md  flex-1  min-w-[300px] max-w-[400px]"
                   >
                     <h2 className="text-xl font-bold text-gray-800 mb-2">
                       Detalles del Pedido
                     </h2>
-                    <div className="text-sm text-gray-700 space-y-1">
+                    <div className="text-sm text-gray-700  space-y-1">
                       <p>
                         <strong>ID del Pedido:</strong> {order.id}
                       </p>
@@ -645,6 +653,12 @@ const UserPanel: React.FC = () => {
                         <strong>Última Actualización:</strong>{" "}
                         {new Date(order.updatedAt).toLocaleDateString()}
                       </p>
+                    </div>
+                    <div className="flex flex-col">
+                      {/* Pasar coordenadas al componente Map */}
+                      <div>
+                        <Map latitude={latitude} longitude={longitude} />
+                      </div>
                     </div>
 
                     {/* Línea de Tiempo */}
@@ -684,34 +698,85 @@ const UserPanel: React.FC = () => {
             </div>
           </div>
         );
+
       case "compras":
         return (
-          <div className="bg-white min-h-screen p-6">
-            <h1 className="text-3xl font-bold text-black mb-6 text-center">
+          <div className="bg-gray-50 min-h-screen p-6">
+            <h1 className="text-4xl font-extrabold text-gray-800 mb-8 text-center">
               Mis Compras
             </h1>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {data.orders.length > 0 ? (
                 data.orders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 bg-gray-100 rounded-lg shadow-md flex justify-between items-center"
+                    className="p-6 bg-white rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200"
                   >
-                    <div>
-                      <p className="text-lg text-gray-800">
+                    {/* Información principal de la orden */}
+                    <div className="mb-4">
+                      <p className="text-lg font-medium text-gray-800">
                         <strong>ID:</strong> {order.id}
                       </p>
-                      <p className="text-lg text-gray-800">
-                        <strong>Fecha:</strong> {order.createdAt}
+                      <p className="text-lg font-medium text-gray-800">
+                        <strong>Fecha:</strong>{" "}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </p>
-                      <p className="text-lg text-gray-800">
-                        <strong>Status:</strong> {order.status}
+                      <p className="text-lg font-medium text-gray-800">
+                        <strong>Status:</strong>{" "}
+                        <span className="capitalize">{order.status}</span>
                       </p>
+                    </div>
+
+                    {/* Detalles de la orden */}
+                    <div className="mt-4">
+                      <p className="text-xl font-semibold text-gray-800 mb-2">
+                        Detalles de la Orden:
+                      </p>
+
+                      {/* Dirección */}
+                      <p className="text-gray-700 mb-4">
+                        <strong>Dirección:</strong>{" "}
+                        {order.orderDetail.address.street}{" "}
+                        {order.orderDetail.address.number},{" "}
+                        {order.orderDetail.address.city}, CP:{" "}
+                        {order.orderDetail.address.postalCode}
+                      </p>
+
+                      {/* Productos */}
+                      <ul className="space-y-3 text-gray-700">
+                        {order.orderDetail.product.map((product, index) => (
+                          <li
+                            key={index}
+                            className="p-4 bg-gray-100 rounded-lg border border-gray-300"
+                          >
+                            <p className="text-lg font-medium">
+                              <strong>Producto:</strong> {product.name}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Descripción:</strong>{" "}
+                              {product.description}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Precio:</strong> ${" "}
+                              {order.orderDetail.price}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Cantidad:</strong>{" "}
+                              {order.orderDetail.quantity}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Talla:</strong> {order.orderDetail.size}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-600">No tienes órdenes registradas.</p>
+                <p className="text-lg text-gray-600 text-center">
+                  No tienes órdenes registradas.
+                </p>
               )}
             </div>
           </div>

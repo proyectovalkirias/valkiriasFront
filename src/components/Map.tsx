@@ -43,7 +43,7 @@ const Map: React.FC<MapProps> = ({ latitude, longitude }) => {
       </h1>
       <div
         ref={mapContainer}
-        className="w-[500px] h-[350px] rounded-lg shadow-lg border border-gray-300"
+        className="w-full h-96 rounded-lg shadow-lg border border-gray-300"
       />
     </div>
   );
