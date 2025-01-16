@@ -626,9 +626,22 @@ const UserPanel: React.FC = () => {
                   },
                 ];
 
-                // Extraer las coordenadas
-                const latitude = order.orderDetail?.address.latitude || 0;
-                const longitude = order.orderDetail?.address.longitude || 0;
+                // Extraer las coordenadas dependiendo del estado
+                let latitude = 0;
+                let longitude = 0;
+                if (order.status === "entregado") {
+                  latitude = order.orderDetail?.address.latitude || 0;
+                  longitude = order.orderDetail?.address.longitude || 0;
+                } else if (order.status === "pendiente") {
+                  latitude = -34.79907736154559; // Coordenada hardcodeada para "pendiente"
+                  longitude = -58.4556800769627;
+                } else if (order.status === "en preparacion") {
+                  latitude = -34.79907736154559; // Coordenada hardcodeada para "en preparacion"
+                  longitude = -58.4556800769627;
+                } else if (order.status === "en camino") {
+                  latitude = -34.80751166216941; // Coordenada hardcodeada para "en camino"
+                  longitude = -58.44423879045409;
+                }
 
                 return (
                   <div
