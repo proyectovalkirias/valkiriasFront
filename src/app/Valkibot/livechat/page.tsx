@@ -18,22 +18,23 @@ const LiveChatComponent = () => {
   const API_URL =
     process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
 
-  const getUserDetails = () => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        return {
-          isAdmin: parsedUser.user.isAdmin || false,
-          firstname: parsedUser.user.firstname || "guest",
-          userId: parsedUser.user.id || "guest",
-        };
-      } catch (error) {
-        return { isAdmin: false, firstname: "guest", userId: "guest" };
+    const getUserDetails = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          return {
+            isAdmin: parsedUser.isAdmin || false,
+            firstname: parsedUser.firstname || "guest",
+            userId: parsedUser.id || "guest",
+          };
+        } catch (error) {
+          return { isAdmin: false, firstname: "guest", userId: "guest" };
+        }
       }
-    }
-    return { isAdmin: false, firstname: "guest", userId: "guest" };
-  };
+      return { isAdmin: false, firstname: "guest", userId: "guest" };
+    };
+    
 
   useEffect(() => {
     const userDetails = getUserDetails();

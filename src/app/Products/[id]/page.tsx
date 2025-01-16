@@ -69,6 +69,23 @@ const ProductDetail: React.FC = () => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [clientIdeas, setClientIdeas] = useState<string>("");
+  const [userLoggedIn, setUserLoggedIn] = useState<boolean>(false);
+  const [userRole, setUserRole] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Verificar si el usuario está logueado
+    const user = localStorage.getItem("user");
+    if (user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        setUserLoggedIn(true);
+        setUserRole(!!parsedUser.isAdmin); // Asegura que sea un booleano
+      } catch (err) {
+        console.error("Error al parsear los datos del usuario:", err);
+        setUserLoggedIn(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!productId) {
@@ -82,30 +99,23 @@ const ProductDetail: React.FC = () => {
         setLoading(true);
 
         const getProductById = async (id: string): Promise<Product> => {
-          const getUserTokenId = (): { id: string; token: string } => {
-            const user = localStorage.getItem("user");
-
-            if (!user) {
-              console.error("No hay datos del usuario en localStorage");
-              return { id: "", token: "" };
-            }
-
+          const getUserTokenId = (): { id?: string; token?: string } => {
             try {
+              const user = localStorage.getItem("user");
+              if (!user) return {}; // Si no hay datos, retorna un objeto vacío
+          
               const parsedUser = JSON.parse(user);
-              const id = parsedUser.id || parsedUser.user?.id || ""; // Acceso seguro
-              const token = parsedUser.token || parsedUser.accessToken || ""; // Token prioritario
-
-              if (!id) console.warn("El ID del usuario no está disponible.");
-              if (!token)
-                console.warn("El token del usuario no está disponible.");
-
-              console.log("ID:", id, "Token:", token);
-              return { id, token };
+              return {
+                id: parsedUser.id || parsedUser.user?.id,
+                token: parsedUser.token || parsedUser.accessToken,
+              };
             } catch (err) {
-              console.error("Error al parsear los datos del usuario:", err);
-              return { id: "", token: "" };
+              console.error("Error al obtener los datos del usuario:", err);
+              return {};
             }
           };
+          
+
           const response = await axios(
             `https://valkiriasback.onrender.com/products/${id}`,
             {
@@ -180,6 +190,15 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleAddToCart = () => {
+    if (userRole) {
+      toast.error("No te puedes comprar a ti mismo");
+      return;
+    }
+    if (!userLoggedIn) {
+      toast.error("Debes iniciar sesión para comprar");
+      return;
+    }
+
     if (!selectedSize) return toast.error("Selecciona un tamaño");
     if (quantity > remainingStock) return toast.error("Stock insuficiente");
 
@@ -456,11 +475,22 @@ const ProductDetail: React.FC = () => {
             </p>
 
             <button
-              className="bg-valkyrie-purple w-1/2  text-white p-2 rounded-lg hover:bg-creativity-purple"
+              className={`bg-valkyrie-purple w-1/2 text-white p-2 rounded-lg 
+              ${
+                !userLoggedIn || userRole
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-creativity-purple"
+              }`}
               onClick={handleAddToCart}
-              disabled={loading}
+              disabled={!userLoggedIn || !!userRole}
             >
-              {loading ? "Cargando..." : "Añadir al carrito"}
+              {!userLoggedIn
+                ? "Inicia sesión para comprar"
+                : userRole
+                ? "No puedes comprarte a ti mismo"
+                : loading
+                ? "Cargando..."
+                : "Añadir al carrito"}
             </button>
           </div>
         </div>

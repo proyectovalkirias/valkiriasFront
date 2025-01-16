@@ -10,6 +10,8 @@ import { Product } from "@/interfaces/Product";
 import "react-toastify/dist/ReactToastify.css";
 import dynamic from "next/dynamic";
 
+const API_URL = process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
+
 const Reports = dynamic(() => import("@/components/Reports"), {
   ssr: false,
 });
@@ -22,8 +24,43 @@ function Admin() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false); // Estado para verificar si es admin
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+
+  useEffect(() => {
+    const verifyAdmin = () => {
+      const user = localStorage.getItem("user");
+  
+      if (!user) {
+        toast.error("Debes iniciar sesión para acceder.");
+        router.push("/Login");
+        return;
+      }
+  
+      try {
+        const parsedUser = JSON.parse(user);
+        const isAdmin = parsedUser.isAdmin || parsedUser.user?.isAdmin;
+
+        if (!isAdmin) {
+          toast.error("No tienes permisos para acceder a esta página.");
+          router.push("/");
+          return;
+        }
+        
+  
+        setIsAdmin(true); // Usuario autorizado
+      } catch (error) {
+        console.error("Error al verificar el usuario:", error);
+        toast.error("Error de autenticación. Por favor, inicia sesión nuevamente.");
+        router.push("/Login");
+      }
+    };
+  
+    verifyAdmin();
+  }, [router]);
+  
 
   useEffect(() => {
     if (activeTab === "users") {
@@ -90,7 +127,7 @@ function Admin() {
   const fetchUserAddress = async (userId: string, token: string) => {
     try {
       const response = await axios.get(
-        `https://valkiriasback.onrender.com/users/address/${userId}`,
+        `${API_URL}/users/address/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

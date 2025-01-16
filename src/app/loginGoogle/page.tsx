@@ -10,7 +10,7 @@ interface UserInfo {
   family_name: string;
 }
 
-const API_URL = "https://valkiriasback.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL || "https://valkiriasback.onrender.com";
 
 const Landingoogle: React.FC = () => {
   useEffect(() => {
