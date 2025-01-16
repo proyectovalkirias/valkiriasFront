@@ -708,12 +708,6 @@ const UserPanel: React.FC = () => {
                         <strong>Status:</strong> {order.status}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDeleteOrder(order.id)}
-                      className="bg-valkyrie-purple px-4 py-2 bg-gray-300 rounded-md hover:bg-creativity-purple"
-                    >
-                      Eliminar
-                    </button>
                   </div>
                 ))
               ) : (
